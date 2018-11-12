@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="kg5oxC" name="Monocle" projectType="guiapp" jucerVersion="5.4.0">
+  <MAINGROUP id="fvSsVB" name="Monocle">
+    <GROUP id="{09AE327B-DBED-6613-8257-BC56EFBB0B95}" name="Source">
+      <GROUP id="{F49D8A21-69C6-54A1-A3F8-37566B99E7EE}" name="Numerical">
+        <FILE id="orBKPt" name="NewtonRaphesonSolver.cpp" compile="1" resource="0"
+              file="Source/Numerical/NewtonRaphesonSolver.cpp"/>
+        <FILE id="BCtUFj" name="NewtonRaphesonSolver.hpp" compile="0" resource="0"
+              file="Source/Numerical/NewtonRaphesonSolver.hpp"/>
+        <FILE id="Z9wkg1" name="QuadratureRule.cpp" compile="1" resource="0"
+              file="Source/Numerical/QuadratureRule.cpp"/>
+        <FILE id="L74Ogu" name="QuadratureRule.hpp" compile="0" resource="0"
+              file="Source/Numerical/QuadratureRule.hpp"/>
+        <FILE id="lZOVYH" name="RootBracketingSolver.cpp" compile="1" resource="0"
+              file="Source/Numerical/RootBracketingSolver.cpp"/>
+        <FILE id="xTCuc9" name="RootBracketingSolver.hpp" compile="0" resource="0"
+              file="Source/Numerical/RootBracketingSolver.hpp"/>
+        <FILE id="iDfXSD" name="TabulatedFunction.cpp" compile="1" resource="0"
+              file="Source/Numerical/TabulatedFunction.cpp"/>
+        <FILE id="SqE4TI" name="TabulatedFunction.hpp" compile="0" resource="0"
+              file="Source/Numerical/TabulatedFunction.hpp"/>
+      </GROUP>
+      <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
+      <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
+      <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="IE8e5X" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
+      <FILE id="gnQguV" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="EH6V0o" name="MainComponent.hpp" compile="0" resource="0"
+            file="Source/MainComponent.hpp"/>
+      <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
+      <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <OSX/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+</JUCERPROJECT>
