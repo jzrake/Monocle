@@ -4,6 +4,32 @@
 
 
 //==========================================================================
+static std::vector<Rectangle<float>> makeRectanglesInColumn (const Rectangle<int>& column,
+                                                             const std::vector<float>& midpoints,
+                                                             float height)
+{
+    std::vector<Rectangle<float>> rectangles;
+    
+    for (auto y : midpoints)
+        rectangles.push_back (Rectangle<float> (column.getX(), y - height * 0.5f, column.getWidth(), height));
+    return rectangles;
+}
+
+static std::vector<Rectangle<float>> makeRectanglesInRow (const Rectangle<int>& row,
+                                                          const std::vector<float>& midpoints,
+                                                          float width)
+{
+    std::vector<Rectangle<float>> rectangles;
+    
+    for (auto x : midpoints)
+        rectangles.push_back (Rectangle<float> (x - width * 0.5f, row.getY(), width, row.getHeight()));
+    return rectangles;
+}
+
+
+
+
+//==========================================================================
 std::vector<Ticker::Tick> Ticker::createTicks (double l0, double l1, int p0, int p1)
 {
     return formatTicks (locateTicks (l0, l1), l0, l1, p0, p1);
@@ -98,6 +124,17 @@ void FigureView::PlotArea::paint (Graphics& g)
 {
     g.setColour (figure.model.backgroundColour);
     g.fillRect (getLocalBounds());
+
+
+    auto xticks = Ticker::createTicks (figure.model.xmin, figure.model.xmax, 0, getWidth());
+    auto yticks = Ticker::createTicks (figure.model.ymin, figure.model.ymax, getHeight(), 0);
+
+    
+    // Draw gridlines
+    // =================================================================
+    g.setColour (figure.model.gridlinesColour);
+    for (const auto& tick : xticks) g.drawVerticalLine (tick.pixel, 0, getHeight());
+    for (const auto& tick : yticks) g.drawHorizontalLine (tick.pixel, 0, getWidth());
 
     for (const auto& p : figure.model.linePlots) paintLinePlot (g, p);
     for (const auto& p : figure.model.fillBetweens) paintFillBetween (g, p);
@@ -218,32 +255,6 @@ void FigureView::PlotArea::dispatchSetDomain (const Rectangle<double>& domain) c
 
 
 //==========================================================================
-static std::vector<Rectangle<float>> makeRectanglesInColumn (const Rectangle<int>& column,
-                                                             const std::vector<float>& midpoints,
-                                                             float height)
-{
-    std::vector<Rectangle<float>> rectangles;
-
-    for (auto y : midpoints)
-        rectangles.push_back (Rectangle<float> (column.getX(), y - height * 0.5f, column.getWidth(), height));
-    return rectangles;
-}
-
-static std::vector<Rectangle<float>> makeRectanglesInRow (const Rectangle<int>& row,
-                                                          const std::vector<float>& midpoints,
-                                                          float width)
-{
-    std::vector<Rectangle<float>> rectangles;
-
-    for (auto x : midpoints)
-        rectangles.push_back (Rectangle<float> (x - width * 0.5f, row.getY(), width, row.getHeight()));
-    return rectangles;
-}
-
-
-
-
-//==========================================================================
 FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*this)
 {
     xlabel.setJustificationType (Justification::centred);
@@ -252,6 +263,10 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     xlabel.setColour (Label::ColourIds::textColourId, Colours::black);
     ylabel.setColour (Label::ColourIds::textColourId, Colours::black);
     title .setColour (Label::ColourIds::textColourId, Colours::black);
+    xlabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+    ylabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+    title .setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+
     xlabel.setPaintingIsUnclipped (true);
     ylabel.setPaintingIsUnclipped (true);
     title .setPaintingIsUnclipped (true);
@@ -286,29 +301,28 @@ void FigureView::setModel (const FigureModel& newModel)
 
 void FigureView::paint (Graphics& g)
 {
-    auto area = getLocalBounds();
+    g.setColour (model.marginColour);
+    g.fillAll();
+}
+
+void FigureView::paintOverChildren (Graphics& g)
+{
     auto geom = computeGeometry();
-
-
+    
+    
     // Compute tick geometry data
     // =================================================================
-    auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY());
-    auto ytickPixels     = Ticker::getPixelLocations (yticks);
-    auto ytickLabelBoxes = makeRectanglesInColumn (geom.ytickLabelAreaL, ytickPixels, model.tickLabelHeight);
-    auto ytickBoxes      = makeRectanglesInColumn (geom.ytickAreaL, ytickPixels, model.tickWidth);
-
     auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight());
     auto xtickPixels     = Ticker::getPixelLocations (xticks);
     auto xtickLabelBoxes = makeRectanglesInRow (geom.xtickLabelAreaB, xtickPixels, model.tickLabelWidth);
     auto xtickBoxes      = makeRectanglesInRow (geom.xtickAreaB, xtickPixels, model.tickWidth);
 
-
-    // Fill figure background with margin color
-    // =================================================================
-    g.setColour (model.marginColour);
-    g.fillRect (area);
-
-
+    auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY());
+    auto ytickPixels     = Ticker::getPixelLocations (yticks);
+    auto ytickLabelBoxes = makeRectanglesInColumn (geom.ytickLabelAreaL, ytickPixels, model.tickLabelHeight);
+    auto ytickBoxes      = makeRectanglesInColumn (geom.ytickAreaL, ytickPixels, model.tickWidth);
+    
+    
     // Extra geometry fills for debugging geometry
     // =================================================================
     if (annotateGeometry)
@@ -316,23 +330,23 @@ void FigureView::paint (Graphics& g)
         g.setColour (Colours::blue.withAlpha (0.3f));
         g.fillRect (geom.xtickAreaB);
         g.fillRect (geom.ytickAreaL);
-
+        
         g.setColour (Colours::red.withAlpha (0.3f));
         g.fillRect (geom.xtickLabelAreaB);
         g.fillRect (geom.ytickLabelAreaL);
-
+        
         g.setColour (Colours::yellow.withAlpha (0.3f));
         g.fillRect (geom.marginT);
         g.fillRect (geom.marginB);
         g.fillRect (geom.marginL);
         g.fillRect (geom.marginR);
-
+        
         g.setColour (Colours::purple.withAlpha (0.3f));
         for (auto box : ytickLabelBoxes) g.fillRect (box);
         for (auto box : xtickLabelBoxes) g.fillRect (box);
     }
-
-
+    
+    
     // Draw the ticks and labels
     // =================================================================
     g.setColour (Colours::black);

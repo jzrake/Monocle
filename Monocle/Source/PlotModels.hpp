@@ -127,14 +127,16 @@ struct FigureModel
     BorderSize<int>         margin           = BorderSize<int> (40, 90, 50, 30);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;
+    float                   gridlinesWidth   = 1.f;
     float                   tickLength       = 5.f;
     float                   tickWidth        = 1.f;
     float                   tickLabelPadding = 4.f;
     float                   tickLabelWidth   = 40.f;
     float                   tickLabelHeight  = 20.f;
-    Colour                  marginColour     = Colours::tan;
+    Colour                  marginColour     = Colours::whitesmoke;
     Colour                  borderColour     = Colours::black;
-    Colour                  backgroundColour = Colours::lightblue;
+    Colour                  backgroundColour = Colours::white;
+    Colour                  gridlinesColour  = Colours::lightgrey;
 
     //==========================================================================
     Rectangle<int> getTopMargin (const Rectangle<int>& area) const;

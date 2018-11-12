@@ -85,6 +85,7 @@ public:
     FigureView (const FigureModel& model);
     void setModel (const FigureModel&);
     void paint (Graphics&) override;
+    void paintOverChildren (Graphics&) override;
     void resized() override;
     void mouseDown (const MouseEvent&) override;
 
