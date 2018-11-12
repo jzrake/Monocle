@@ -27,6 +27,9 @@ std::vector<Ticker::Tick> Ticker::formatTicks (const std::vector<double>& locati
         while (t.label.back() == '0')
             t.label.pop_back();
 
+        if (t.label.back() == '.')
+            t.label.push_back ('0');
+
         ticks.push_back (t);
     }
     return ticks;
@@ -189,18 +192,12 @@ void FigureView::PlotArea::dispatchSetMarginIfNeeded() const
     auto newMargin = computeMargin();
 
     if (newMargin != figure.model.margin)
-    {
-        Action action (set_figure_margin);
-        action.value = ModelHelpers::borderSizeToVar (newMargin);
-        findParentComponentOfClass<StateManager>()->dispatch (action);
-    }
+        dispatch (this, {set_figure_margin, ModelHelpers::borderSizeToVar (newMargin)});
 }
 
 void FigureView::PlotArea::dispatchSetDomain (const Rectangle<double>& domain) const
 {
-    Action action (set_figure_domain);
-    action.value = ModelHelpers::rectangleToVar (domain);
-    findParentComponentOfClass<StateManager>()->dispatch (action);
+    dispatch (this, {set_figure_domain, ModelHelpers::rectangleToVar (domain)});
 }
 
 
@@ -244,6 +241,12 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     xlabel.setPaintingIsUnclipped (true);
     ylabel.setPaintingIsUnclipped (true);
     title .setPaintingIsUnclipped (true);
+    xlabel.setEditable (true);
+    ylabel.setEditable (true);
+    title .setEditable (true);
+    xlabel.addListener (this);
+    ylabel.addListener (this);
+    title .addListener (this);
 
     setModel (model);
     addAndMakeVisible (plotArea);
@@ -264,7 +267,7 @@ void FigureView::setModel (const FigureModel& newModel)
 
 void FigureView::paint (Graphics& g)
 {
-    auto debugGeometry = false;
+    auto debugGeometry = true;
     auto area = getLocalBounds();
     auto geom = computeGeometry();
 
@@ -333,9 +336,13 @@ void FigureView::resized()
 void FigureView::layout()
 {
     auto g = computeGeometry();
+
+    AffineTransform ylabelRot = AffineTransform::rotation (-M_PI_2, g.marginL.getCentreX(), g.marginL.getCentreY());
+    ylabel.setTransform (ylabelRot);
+
     plotArea.setBounds (model.margin.subtractedFrom (getLocalBounds()));
     xlabel.setBounds (g.marginB);
-    ylabel.setBounds (g.marginL);
+    ylabel.setBounds (g.marginL.transformedBy (ylabelRot.inverted()));
     title.setBounds (g.marginT);
 }
 
@@ -352,4 +359,11 @@ FigureView::Geometry FigureView::computeGeometry() const
     g.xtickAreaB      = g.marginB.removeFromTop (model.tickLength);
     g.xtickLabelAreaB = g.marginB.removeFromTop (model.tickLabelHeight).withTrimmedTop (model.tickLabelPadding);
     return g;
+}
+
+void FigureView::labelTextChanged (Label* label)
+{
+    if (label == &xlabel) dispatch (this, {set_figure_xlabel, xlabel.getText()});
+    if (label == &ylabel) dispatch (this, {set_figure_ylabel, xlabel.getText()});
+    if (label == &title ) dispatch (this, {set_figure_title , title .getText()});
 }

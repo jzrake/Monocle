@@ -5,6 +5,22 @@
 
 
 //==============================================================================
+void ActionDispatcher::dispatch (const Component* subject, const Action& action) const
+{
+    auto store = subject->findParentComponentOfClass<StateManager>();
+
+    if (store == nullptr)
+    {
+        jassertfalse; // There must be a store attached somewhere above an
+                      // ActionDispatcher component!
+    }
+    store->dispatch (action);
+}
+
+
+
+
+//==============================================================================
 class MonocleApplication  : public JUCEApplication
 {
 public:

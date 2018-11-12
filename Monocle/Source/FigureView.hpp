@@ -13,7 +13,7 @@ public:
     struct Tick
     {
         double value = 0.0;      /**< normalized data coordinate (0, 1) relative to limits */
-        float pixel = 0.f;       /**< position in pixels on axes content */
+        float pixel  = 0.f;      /**< position in pixels on axes content */
         std::string label;
     };
     static std::vector<Tick> createTicks (double l0, double l1, int p0, int p1);
@@ -27,7 +27,7 @@ public:
 
 
 //==============================================================================
-class FigureView : public Component
+class FigureView : public Component, private ActionDispatcher, private Label::Listener
 {
 public:
 
@@ -45,7 +45,7 @@ public:
     };
 
     //==========================================================================
-    class PlotArea : public Component
+    class PlotArea : public Component, private ActionDispatcher
     {
     public:
         PlotArea (const FigureView&);
@@ -82,6 +82,7 @@ private:
     //==========================================================================
     void layout();
     Geometry computeGeometry() const;
+    void labelTextChanged (Label* labelThatHasChanged) override;
 
     //==========================================================================
     FigureModel model;

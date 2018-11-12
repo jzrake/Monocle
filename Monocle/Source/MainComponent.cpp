@@ -53,4 +53,19 @@ void MainComponent::dispatch (const Action& action)
         model.ymax = domain.getBottom();
         figure->setModel (model);
     }
+    else if (action.name == set_figure_xlabel)
+    {
+        model.xlabel = action.value;
+        figure->setModel (model);
+    }
+    else if (action.name == set_figure_ylabel)
+    {
+        model.ylabel = action.value;
+        figure->setModel (model);
+    }
+    else if (action.name == set_figure_title)
+    {
+        model.title = action.value;
+        figure->setModel (model);
+    }
 }
