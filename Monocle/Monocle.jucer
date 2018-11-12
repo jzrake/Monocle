@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="kg5oxC" name="Monocle" projectType="guiapp" jucerVersion="5.4.0">
+<JUCERPROJECT id="kg5oxC" name="Monocle" projectType="guiapp" jucerVersion="5.4.1">
   <MAINGROUP id="fvSsVB" name="Monocle">
     <GROUP id="{09AE327B-DBED-6613-8257-BC56EFBB0B95}" name="Source">
       <GROUP id="{F49D8A21-69C6-54A1-A3F8-37566B99E7EE}" name="Numerical">

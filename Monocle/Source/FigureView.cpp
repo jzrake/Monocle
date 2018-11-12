@@ -91,7 +91,7 @@ FigureView::PlotArea::PlotArea (const FigureView& figure)
 {
     constrainer.setMinimumOnscreenAmounts (0xffffff, 0xffffff, 0xffffff, 0xffffff);
     constrainer.setMinimumSize (100, 100);
-    addAndMakeVisible (resizer);
+    addChildComponent (resizer);
 }
 
 void FigureView::PlotArea::paint (Graphics& g)
@@ -99,22 +99,11 @@ void FigureView::PlotArea::paint (Graphics& g)
     g.setColour (figure.model.backgroundColour);
     g.fillRect (getLocalBounds());
 
-    for (const auto& linePlot : figure.model.linePlots)
-    {
-        jassert (linePlot.x.size() == linePlot.y.size());
-
-        Path p;
-        p.startNewSubPath (toDomainX (linePlot.x.getFirst()),
-                           toDomainY (linePlot.y.getFirst()));
-
-        for (int n = 1; n < linePlot.x.size(); ++n)
-        {
-            p.lineTo (toDomainX (linePlot.x.getUnchecked (n)),
-                      toDomainY (linePlot.y.getUnchecked (n)));
-        }
-        g.setColour (linePlot.lineColour);
-        g.strokePath (p, PathStrokeType (linePlot.lineWidth));
-    }
+    for (const auto& p : figure.model.linePlots) paintLinePlot (g, p);
+    for (const auto& p : figure.model.fillBetweens) paintFillBetween (g, p);
+    for (const auto& p : figure.model.scatterPlots) paintScatterPlot (g, p);
+    for (const auto& p : figure.model.histograms) paintHistogram (g, p);
+    for (const auto& p : figure.model.imagePlots) paintImagePlot (g, p);
 }
 
 void FigureView::PlotArea::resized()
@@ -134,7 +123,7 @@ void FigureView::PlotArea::mouseDrag (const MouseEvent& e)
     const auto m = Point<double> (e.getDistanceFromDragStartX(), -e.getDistanceFromDragStartY());
     const auto p = domainBeforePan.getTopLeft();
     const auto q = domainBeforePan.getBottomRight();
-    const auto d = (q - p);
+    const auto d = q - p;
     dispatchSetDomain (figure.model.getDomain().withPosition (p - d * m / D));
 }
 
@@ -149,8 +138,8 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
     const double dy = domain.getHeight();
     const double newdx = dx / scaleFactor;
     const double newdy = dy / scaleFactor;
-    const double fixedx = fromDomainX (e.position.x);
-    const double fixedy = fromDomainY (e.position.y);
+    const double fixedx = toDomainX (e.position.x);
+    const double fixedy = toDomainY (e.position.y);
     const double newx0 = e.mods.isAltDown()  ? xlim[0] : fixedx - newdx * (0 + e.position.x / Dx);
     const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
     const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
@@ -162,27 +151,52 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 
 
 //==========================================================================
+void FigureView::PlotArea::paintLinePlot (Graphics& g, const LinePlotModel& linePlot)
+{
+    jassert (linePlot.x.size() == linePlot.y.size());
+
+    Path p;
+    p.startNewSubPath (fromDomainX (linePlot.x.getFirst()),
+                       fromDomainY (linePlot.y.getFirst()));
+
+    for (int n = 1; n < linePlot.x.size(); ++n)
+    {
+        p.lineTo (fromDomainX (linePlot.x.getUnchecked (n)),
+                  fromDomainY (linePlot.y.getUnchecked (n)));
+    }
+    g.setColour (linePlot.lineColour);
+    g.strokePath (p, PathStrokeType (linePlot.lineWidth));
+}
+void FigureView::PlotArea::paintFillBetween (Graphics& g, const FillBetweenModel& fillBetween) {}
+void FigureView::PlotArea::paintScatterPlot (Graphics& g, const ScatterPlotModel& scatterPlot) {}
+void FigureView::PlotArea::paintHistogram (Graphics& g, const HistogramModel& histogram) {}
+void FigureView::PlotArea::paintImagePlot (Graphics& g, const ImagePlotModel& imagePlot) {}
+
+
+
+
+//==========================================================================
 BorderSize<int> FigureView::PlotArea::computeMargin() const
 {
     return {getY(), getX(), getParentHeight() - getBottom(), getParentWidth() - getRight()};
 }
 
-double FigureView::PlotArea::toDomainX (double x) const
+double FigureView::PlotArea::fromDomainX (double x) const
 {
     return jmap (x, figure.model.xmin, figure.model.xmax, 0.0, double (getWidth()));
 }
 
-double FigureView::PlotArea::toDomainY (double y) const
+double FigureView::PlotArea::fromDomainY (double y) const
 {
     return jmap (y, figure.model.ymin, figure.model.ymax, double (getHeight()), 0.0);
 }
 
-double FigureView::PlotArea::fromDomainX (double x) const
+double FigureView::PlotArea::toDomainX (double x) const
 {
     return jmap (x, 0.0, double (getWidth()), figure.model.xmin, figure.model.xmax);
 }
 
-double FigureView::PlotArea::fromDomainY (double y) const
+double FigureView::PlotArea::toDomainY (double y) const
 {
     return jmap (y, double (getHeight()), 0.0, figure.model.ymin, figure.model.ymax);
 }
@@ -248,7 +262,12 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     ylabel.addListener (this);
     title .addListener (this);
 
+    // So that we get popup menu clicks
+    plotArea.addMouseListener (this, false);
+
     setModel (model);
+    refreshModes();
+
     addAndMakeVisible (plotArea);
     addAndMakeVisible (title);
     addAndMakeVisible (xlabel);
@@ -267,7 +286,6 @@ void FigureView::setModel (const FigureModel& newModel)
 
 void FigureView::paint (Graphics& g)
 {
-    auto debugGeometry = true;
     auto area = getLocalBounds();
     auto geom = computeGeometry();
 
@@ -293,7 +311,7 @@ void FigureView::paint (Graphics& g)
 
     // Extra geometry fills for debugging geometry
     // =================================================================
-    if (debugGeometry)
+    if (annotateGeometry)
     {
         g.setColour (Colours::blue.withAlpha (0.3f));
         g.fillRect (geom.xtickAreaB);
@@ -329,6 +347,26 @@ void FigureView::resized()
     layout();
 }
 
+void FigureView::mouseDown (const MouseEvent& e)
+{
+    if (e.mods.isPopupMenu())
+    {
+        PopupMenu menu;
+        menu.addItem (1, "Annotate geometry", true, annotateGeometry);
+        menu.addItem (2, "Plot area resizer", true, allowPlotAreaResize);
+
+        menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
+        {
+            switch (code)
+            {
+                case 1: annotateGeometry = ! annotateGeometry; repaint(); break;
+                case 2: allowPlotAreaResize = ! allowPlotAreaResize; refreshModes(); break;
+                default: break;
+            }
+        });
+    }
+}
+
 
 
 
@@ -344,6 +382,11 @@ void FigureView::layout()
     xlabel.setBounds (g.marginB);
     ylabel.setBounds (g.marginL.transformedBy (ylabelRot.inverted()));
     title.setBounds (g.marginT);
+}
+
+void FigureView::refreshModes()
+{
+    plotArea.resizer.setVisible (allowPlotAreaResize);
 }
 
 FigureView::Geometry FigureView::computeGeometry() const

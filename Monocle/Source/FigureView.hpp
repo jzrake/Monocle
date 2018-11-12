@@ -57,6 +57,13 @@ public:
 
     private:
         //======================================================================
+        void paintLinePlot (Graphics& g, const LinePlotModel& linePlot);
+        void paintFillBetween (Graphics& g, const FillBetweenModel& fillBetween);
+        void paintScatterPlot (Graphics& g, const ScatterPlotModel& scatterPlot);
+        void paintHistogram (Graphics& g, const HistogramModel& histogram);
+        void paintImagePlot (Graphics& g, const ImagePlotModel& imagePlot);
+
+        //======================================================================
         BorderSize<int> computeMargin() const;
         double toDomainX (double x) const;
         double toDomainY (double y) const;
@@ -70,6 +77,8 @@ public:
         ComponentBoundsConstrainer constrainer;
         ResizableBorderComponent resizer;
         Rectangle<double> domainBeforePan;
+
+        friend class FigureView;
     };
 
     //==========================================================================
@@ -77,10 +86,12 @@ public:
     void setModel (const FigureModel&);
     void paint (Graphics&) override;
     void resized() override;
+    void mouseDown (const MouseEvent&) override;
 
 private:
     //==========================================================================
     void layout();
+    void refreshModes();
     Geometry computeGeometry() const;
     void labelTextChanged (Label* labelThatHasChanged) override;
 
@@ -90,4 +101,7 @@ private:
     Label xlabel;
     Label ylabel;
     Label title;
+
+    bool annotateGeometry = false;
+    bool allowPlotAreaResize = true;
 };

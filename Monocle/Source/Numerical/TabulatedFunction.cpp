@@ -202,7 +202,7 @@ TabulatedFunction TabulatedFunction::makeHistogram (
 
     for (int n = 0; n < samples.size(); ++n)
     {
-        size_t binIndex = findBinIndex (samples[n]);
+        long binIndex = findBinIndex (samples[n]);
 
         if (binIndex < 0) binIndex = 0;
         if (binIndex >= binEdges.size() - 1) binIndex = binEdges.size() - 2;
