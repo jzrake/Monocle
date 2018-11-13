@@ -1,5 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
+#include "MaterialIcons.hpp"
 
 
 
@@ -23,22 +24,23 @@ public:
     void resized() override;
 
     // ========================================================================
-    void setMainContent (Component* mainContentToShow);
+    void setMainContent (Component& mainContentToShow);
+    void addNavButton (const String& name, const String& svg);
+    void setNavPage (const String& name, Component& page);
 
 private:
     Geometry computeGeometry() const;
     void showSourceList();
     void hideSourceList();
+    void updatePageVisibility();
     void layout();
 
-    SafePointer<Component> mainContent;
-    std::vector<std::unique_ptr<Button>> navButtons;
+    WeakReference<Component> mainContent;
+    Array<std::unique_ptr<Button>> navButtons;
 
     bool sourceListVisible = false;
 
     int topNavHeight = 40;
     int leftNavWidth = 60;
     int sourceListWidth = 200;
-
-    friend class NavButton;
 };

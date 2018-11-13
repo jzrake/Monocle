@@ -42,3 +42,17 @@ class ActionDispatcher
 public:
     void dispatch (const Component* subject, const Action& action) const;
 };
+
+
+
+
+//==============================================================================
+/**
+ Not used yet...
+*/
+class MonocleLookAndFeel : public LookAndFeel_V4
+{
+public:
+    void fillTextEditorBackground (Graphics& g, int width, int height, TextEditor& textEditor) override;
+    void drawTextEditorOutline (Graphics& g, int width, int height, TextEditor& textEditor) override;
+};

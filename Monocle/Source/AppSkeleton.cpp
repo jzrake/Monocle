@@ -1,5 +1,4 @@
 #include "AppSkeleton.hpp"
-#include "MaterialIcons.hpp"
 
 
 
@@ -33,19 +32,23 @@ public:
 
     void clicked() override
     {
+        auto skeleton = findParentComponentOfClass<AppSkeleton>();
+
         if (getToggleState())
         {
             setToggleState (false, NotificationType::dontSendNotification);
-            findParentComponentOfClass<AppSkeleton>()->hideSourceList();
+            skeleton->hideSourceList();
         }
         else
         {
             setToggleState (true, NotificationType::dontSendNotification);
-            findParentComponentOfClass<AppSkeleton>()->showSourceList();
 
-            for (auto& button : findParentComponentOfClass<AppSkeleton>()->navButtons)
+            for (auto& button : skeleton->navButtons)
                 if (button.get() != this)
                     button->setToggleState (false, NotificationType::dontSendNotification);
+
+            skeleton->showSourceList();
+            skeleton->updatePageVisibility();
         }
     }
 
@@ -58,6 +61,8 @@ public:
     }
 private:
     std::unique_ptr<Drawable> drawable;
+    WeakReference<Component> page;
+    friend class AppSkeleton;
 };
 
 
@@ -66,15 +71,6 @@ private:
 // ============================================================================
 AppSkeleton::AppSkeleton()
 {
-    navButtons.push_back (std::make_unique<NavButton> ("Sources", material::bintos (material::action::ic_list)));
-    navButtons.push_back (std::make_unique<NavButton> ("Files", material::bintos (material::file::ic_folder_open)));
-    navButtons.push_back (std::make_unique<NavButton> ("Settings", material::bintos (material::action::ic_settings)));
-
-    for (const auto& button : navButtons)
-    {
-        button->setTriggeredOnMouseDown (true);
-        addAndMakeVisible (*button);
-    }
 }
 
 void AppSkeleton::paint (Graphics& g)
@@ -95,9 +91,33 @@ void AppSkeleton::resized()
     layout();
 }
 
-void AppSkeleton::setMainContent (Component* mainContentToShow)
+void AppSkeleton::setMainContent (Component& mainContentToShow)
 {
-    addAndMakeVisible (mainContent = mainContentToShow);
+    addAndMakeVisible (mainContent = &mainContentToShow);
+}
+
+void AppSkeleton::setNavPage (const String& name, Component& page)
+{
+    for (auto& button : navButtons)
+    {
+        if (button->getName() == name)
+        {
+            addChildComponent (&page);
+            dynamic_cast<NavButton*>(button.get())->page = &page;
+            updatePageVisibility();
+            return;
+        }
+    }
+    jassertfalse; // There was no page with that name!
+}
+
+void AppSkeleton::addNavButton (const String& name, const String& svg)
+{
+    auto button = std::make_unique<NavButton> (name, svg);
+    button->setTriggeredOnMouseDown (true);
+    button->setTooltip (name);
+    addAndMakeVisible (*button);
+    navButtons.add (std::move (button));
 }
 
 AppSkeleton::Geometry AppSkeleton::computeGeometry() const
@@ -106,7 +126,7 @@ AppSkeleton::Geometry AppSkeleton::computeGeometry() const
     Geometry g;
     g.topNav      = area.removeFromTop (topNavHeight);
     g.leftNav     = area.removeFromLeft (leftNavWidth);
-    g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0);
+    g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0).withTrimmedLeft (1).withTrimmedTop (1);;
     g.mainContent = area.withTrimmedLeft (1).withTrimmedTop (1);
     return g;
 }
@@ -130,6 +150,17 @@ void AppSkeleton::layout()
     for (const auto& button : navButtons)
         button->setBounds (geom.leftNav.removeFromTop (leftNavWidth));
 
+    for (const auto& button : navButtons)
+        if (auto page = dynamic_cast<NavButton*>(button.get())->page)
+            page->setBounds (geom.sourceList);
+
     if (mainContent)
         mainContent->setBounds (geom.mainContent);
+}
+
+void AppSkeleton::updatePageVisibility()
+{
+    for (const auto& button : navButtons)
+        if (auto page = dynamic_cast<NavButton*>(button.get())->page)
+            page->setVisible (button->getToggleState());
 }

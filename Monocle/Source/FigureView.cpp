@@ -255,7 +255,7 @@ void FigureView::PlotArea::dispatchSetDomain (const Rectangle<double>& domain) c
 
 
 //==========================================================================
-FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*this)
+FigureView::FigureView() : plotArea (*this)
 {
     xlabel.setJustificationType (Justification::centred);
     ylabel.setJustificationType (Justification::centred);
@@ -267,9 +267,6 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     ylabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
     title .setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
 
-//    xlabel.setPaintingIsUnclipped (true);
-//    ylabel.setPaintingIsUnclipped (true);
-//    title .setPaintingIsUnclipped (true);
     xlabel.setEditable (true);
     ylabel.setEditable (true);
     title .setEditable (true);

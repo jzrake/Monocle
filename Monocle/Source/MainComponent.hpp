@@ -23,7 +23,9 @@ public:
 
 private:
     //==========================================================================
-    std::unique_ptr<FigureView> figure;
+    FigureView figure;
+    TextEditor notesPage;
+
     FigureModel model;
     AppSkeleton skeleton;
 };

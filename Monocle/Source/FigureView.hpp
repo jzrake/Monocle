@@ -82,7 +82,7 @@ public:
     };
 
     //==========================================================================
-    FigureView (const FigureModel& model);
+    FigureView();
     void setModel (const FigureModel&);
     void paint (Graphics&) override;
     void paintOverChildren (Graphics&) override;

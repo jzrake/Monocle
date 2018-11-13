@@ -34,6 +34,13 @@ public:
     void initialise (const String& commandLine) override
     {
         mainWindow.reset (new MainWindow (getApplicationName()));
+
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::backgroundColourId, Colours::white);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::textColourId, Colours::black);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::highlightColourId, Colours::lightblue);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::highlightedTextColourId, Colours::black);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::outlineColourId, Colours::transparentBlack);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::focusedOutlineColourId, Colours::lightblue);
     }
 
     void shutdown() override
