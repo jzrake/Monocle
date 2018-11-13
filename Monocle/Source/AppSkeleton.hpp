@@ -27,11 +27,18 @@ public:
 
 private:
     Geometry computeGeometry() const;
+    void showSourceList();
+    void hideSourceList();
+    void layout();
 
     SafePointer<Component> mainContent;
     std::vector<std::unique_ptr<Button>> navButtons;
 
+    bool sourceListVisible = false;
+
     int topNavHeight = 40;
     int leftNavWidth = 60;
     int sourceListWidth = 200;
+
+    friend class NavButton;
 };
