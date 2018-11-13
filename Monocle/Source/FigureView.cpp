@@ -386,6 +386,8 @@ void FigureView::mouseDown (const MouseEvent& e)
 {
     if (e.mods.isPopupMenu())
     {
+        mouseExit (e); // work-around unpaired mouse enter/exit with popup menu
+
         PopupMenu menu;
         menu.addItem (1, "Annotate geometry", true, annotateGeometry);
         menu.addItem (2, "Plot area resizer", true, allowPlotAreaResize);

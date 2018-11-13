@@ -20,6 +20,29 @@ void ActionDispatcher::dispatch (const Component* subject, const Action& action)
 
 
 
+//==========================================================================
+//#include <fstream>
+//#include "AsciiLoader.hpp"
+//
+//Array<Database::Entry> AsciiTableDataSource::load (File file)
+//{
+//    std::fstream input (file.getFullPathName().toStdString());
+//    mcl::AsciiLoader loader (input);
+//    Array<Database::Entry> entries;
+//
+//    for (int n = 0; n < loader.getNumColumns(); ++n)
+//    {
+//        Database::Entry entry;
+//        entry.data  = std::make_shared<std::vector<double>> (loader.getColumnData (n));
+//        entry.shape = { entry.data->size() };
+//        entries.add (entry);
+//    }
+//    return entries;
+//}
+
+
+
+
 //==============================================================================
 class MonocleApplication  : public JUCEApplication
 {

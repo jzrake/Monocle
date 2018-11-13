@@ -5,7 +5,7 @@
 
 
 //==============================================================================
-SourceListView::SourceListView()
+FileListView::FileListView()
 {
     setModel (this);
     setOutlineThickness (2);
@@ -17,17 +17,17 @@ SourceListView::SourceListView()
     nonexistIcon  = material::util::icon (material::alert::ic_error_outline, Colours::red);
 }
 
-void SourceListView::addListener (Listener* listener)
+void FileListView::addListener (Listener* listener)
 {
     listeners.add (listener);
 }
 
-void SourceListView::removeListener (Listener* listener)
+void FileListView::removeListener (Listener* listener)
 {
     listeners.remove (listener);
 }
 
-void SourceListView::setFileList (const Array<File>& filesToDisplay)
+void FileListView::setFileList (const Array<File>& filesToDisplay)
 {
     files = filesToDisplay;
     updateContent();
@@ -36,29 +36,49 @@ void SourceListView::setFileList (const Array<File>& filesToDisplay)
         selectRow (files.size() - 1);
 }
 
-void SourceListView::updateFileDisplayStatus (File file)
+void FileListView::updateFileDisplayStatus (File file)
 {
     repaintRow (files.indexOf (file));
 }
 
+Array<File> FileListView::getSelectedFiles() const
+{
+    Array<File> selectedFiles;
+
+    for (int n = 0; n < files.size(); ++n)
+        if (isRowSelected (n))
+            selectedFiles.add (files[n]);
+    return selectedFiles;
+}
+
+StringArray FileListView::getSelectedFullPathNames() const
+{
+    StringArray selectedFiles;
+
+    for (int n = 0; n < files.size(); ++n)
+        if (isRowSelected (n))
+            selectedFiles.add (files[n].getFullPathName());
+    return selectedFiles;
+}
+
 //==============================================================================
-void SourceListView::focusGained (FocusChangeType)
+void FileListView::focusGained (FocusChangeType)
 {
     repaint();
 }
 
-void SourceListView::focusLost (FocusChangeType)
+void FileListView::focusLost (FocusChangeType)
 {
     repaint();
 }
 
 //==============================================================================
-int SourceListView::getNumRows()
+int FileListView::getNumRows()
 {
     return files.size();
 }
 
-void SourceListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool selected)
+void FileListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool selected)
 {
     if (selected)
     {
@@ -86,7 +106,7 @@ void SourceListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
     g.drawText (files[row].getFileName(), h, 0, w, h, Justification::centredLeft);
 }
 
-void SourceListView::listBoxItemClicked (int row, const MouseEvent& e)
+void FileListView::listBoxItemClicked (int row, const MouseEvent& e)
 {
     if (e.mods.isPopupMenu())
     {
@@ -103,80 +123,231 @@ void SourceListView::listBoxItemClicked (int row, const MouseEvent& e)
     }
 }
 
-void SourceListView::listBoxItemDoubleClicked (int row, const MouseEvent&)
+void FileListView::listBoxItemDoubleClicked (int row, const MouseEvent&)
 {
     startSelectedFilesAsProcess();
 }
 
-void SourceListView::backgroundClicked (const MouseEvent&)
+void FileListView::backgroundClicked (const MouseEvent&)
 {
     deselectAllRows();
 }
 
-void SourceListView::selectedRowsChanged (int lastRowSelected)
+void FileListView::selectedRowsChanged (int)
 {
+    listeners.call (&Listener::fileListSelectionChanged, getSelectedFullPathNames());
 }
 
-void SourceListView::deleteKeyPressed (int)
+void FileListView::deleteKeyPressed (int)
 {
     sendDeleteSelectedFiles();
 }
 
-void SourceListView::returnKeyPressed (int)
+void FileListView::returnKeyPressed (int)
 {
     startSelectedFilesAsProcess();
 }
 
-void SourceListView::listWasScrolled()
+void FileListView::listWasScrolled()
 {
 }
 
-String SourceListView::getTooltipForRow (int row)
+String FileListView::getTooltipForRow (int row)
 {
     return files[row].getFullPathName();
 }
 
 //==============================================================================
-bool SourceListView::isInterestedInFileDrag (const StringArray& files)
+bool FileListView::isInterestedInFileDrag (const StringArray& files)
 {
     return true;
 }
-void SourceListView::fileDragEnter (const StringArray& files, int x, int y)
+void FileListView::fileDragEnter (const StringArray& files, int x, int y)
 {
     setColour (ListBox::ColourIds::outlineColourId, Colours::lightblue);
 }
-void SourceListView::fileDragMove (const StringArray& files, int x, int y)
+void FileListView::fileDragMove (const StringArray& files, int x, int y)
 {
 }
-void SourceListView::fileDragExit (const StringArray& files)
+void FileListView::fileDragExit (const StringArray& files)
 {
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
 }
-void SourceListView::filesDropped (const StringArray& files, int x, int y)
+void FileListView::filesDropped (const StringArray& files, int x, int y)
 {
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
-    listeners.call (&Listener::sourceListFilesInserted, files, getInsertionIndexForPosition (x, y));
+    listeners.call (&Listener::fileListFilesInserted, files, getInsertionIndexForPosition (x, y));
 }
 
 //==============================================================================
-void SourceListView::startSelectedFilesAsProcess()
+void FileListView::startSelectedFilesAsProcess()
 {
-    for (int n = 0; n < files.size(); ++n)
-        if (isRowSelected (n))
-            files[n].startAsProcess();
+    for (const auto& file : getSelectedFiles())
+        file.startAsProcess();
 }
 
-void SourceListView::sendDeleteSelectedFiles()
+void FileListView::sendDeleteSelectedFiles()
 {
-    StringArray filesToDelete;
     auto newSelection = getSelectedRows().getRange(0).getStart();
-
-    for (int n = 0; n < files.size(); ++n)
-        if (isRowSelected (n))
-            filesToDelete.add (files[n].getFullPathName());
-
+    auto filesToDelete = getSelectedFullPathNames();
     selectRow (newSelection);
-    listeners.call (&Listener::sourceListFilesRemoved, filesToDelete);
+    listeners.call (&Listener::fileListFilesRemoved, filesToDelete);
+}
+
+
+
+
+//==============================================================================
+FileDetailsView::FileDetailsView()
+{
+    filterKnown   = material::util::icon (material::navigation::ic_check, Colours::green);
+    filterUnknown = material::util::icon (material::navigation::ic_close, Colours::red);
+
+    filterNameEditor.setMultiLine (false);
+    filterNameEditor.setReturnKeyStartsNewLine (false);
+    filterNameEditor.setBorder ({0, 0, 0, 0});
+    filterNameEditor.setTextToShowWhenEmpty ("Filter name", Colours::lightgrey);
+    filterNameEditor.setFont (Font ("Monaco", 14, 0));
+    filterNameEditor.addListener (this);
+    filterNameEditor.setVisible (false);
+    filterNameEditor.setColour (TextEditor::ColourIds::outlineColourId, Colours::lightgrey);
+
+    addChildComponent (filterNameEditor);
+}
+
+void FileDetailsView::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void FileDetailsView::removeListener (Listener* listener)
+{
+    listeners.remove (listener);
+}
+
+void FileDetailsView::setCurrentlyActiveFiles (const StringArray& filenames, const StringArray& filters)
+{
+    jassert (filenames.size() == filters.size());
+
+    if (filenames.size() == 1)
+    {
+        filterNameEditor.setText (filters[0]);
+        filterNameEditor.setVisible (true);
+    }
+    else
+    {
+        filterNameEditor.clear();
+        filterNameEditor.setVisible (false);
+    }
+
+    currentFilenames = filenames;
+    repaint();
+}
+
+void FileDetailsView::setFilterIsValid (bool isValid)
+{
+    filterIsCurrentlyValid = isValid;
+    repaint();
+}
+
+void FileDetailsView::paint (Graphics& g)
+{
+    if (currentFilenames.isEmpty())
+        return;
+
+    int64 size = 0;
+
+    for (const auto& filename : currentFilenames)
+        size += File (filename).getSize();
+    auto modifiedString = File (currentFilenames[0]).getLastModificationTime().toString (true, true);
+    auto sizeString = String (size / 1024) + "kB";
+    auto geom = computeGeometry();
+
+    g.fillAll (Colours::whitesmoke);
+
+    if (! filterNameEditor.isEmpty())
+    {
+        if (filterIsCurrentlyValid)
+            filterKnown->drawWithin (g, geom.icon.toFloat(), RectanglePlacement::fillDestination, 1.f);
+        else
+            filterUnknown->drawWithin (g, geom.icon.toFloat(), RectanglePlacement::fillDestination, 1.f);
+    }
+
+    g.setFont (Font ("Monaco", 10, 0));
+    g.setColour (Colours::black);
+
+    if (currentFilenames.size() > 0)
+        g.drawText ("size: " + sizeString, geom.fileSize, Justification::bottomLeft);
+    if (currentFilenames.size() == 1)
+        g.drawText ("modified: " + modifiedString, geom.modified, Justification::bottomLeft);
+}
+
+void FileDetailsView::resized()
+{
+    filterNameEditor.setBounds (computeGeometry().editor);
+}
+
+void FileDetailsView::textEditorTextChanged (TextEditor&)
+{
+    listeners.call (&Listener::filterNameChanged, filterNameEditor.getText());
+}
+
+FileDetailsView::Geometry FileDetailsView::computeGeometry() const
+{
+    auto rowHeight = 22;
+    auto area = getLocalBounds().withTrimmedTop (rowHeight).withTrimmedRight(8);
+    auto col1 = area.removeFromLeft (rowHeight);
+    auto col2 = area;
+
+    Geometry g;
+    g.icon     = col1.removeFromTop (rowHeight).reduced(6);
+    g.editor   = col2.removeFromTop (rowHeight);
+    g.fileSize = col2.removeFromTop (rowHeight);
+    g.modified = col2.removeFromTop (rowHeight);
+    return g;
+}
+
+
+
+
+//==============================================================================
+DualComponentView::DualComponentView()
+{
+}
+
+void DualComponentView::setContent1 (Component& contentFor1)
+{
+    content1 = &contentFor1;
+    resetContent();
+}
+
+void DualComponentView::setContent2 (Component& contentFor2)
+{
+    content2 = &contentFor2;
+    resetContent();
+}
+
+void DualComponentView::resized()
+{
+    layout();
+}
+
+void DualComponentView::resetContent()
+{
+    removeAllChildren();
+    addAndMakeVisible (content1);
+    addAndMakeVisible (content2);
+    layout();
+}
+
+void DualComponentView::layout()
+{
+    auto area = getLocalBounds();
+
+    if (content2)
+        content2->setBounds (area.removeFromBottom (150));
+    if (content1)
+        content1->setBounds (area);
 }
 
 
@@ -185,14 +356,13 @@ void SourceListView::sendDeleteSelectedFiles()
 //==============================================================================
 MainComponent::MainComponent()
 {
-    skeleton.addNavButton ("Sources", material::bintos (material::action::ic_list));
-    skeleton.addNavButton ("Files", material::bintos (material::file::ic_folder_open));
-    skeleton.addNavButton ("Notes", material::bintos (material::action::ic_speaker_notes));
+    skeleton.addNavButton ("Sources",  material::bintos (material::action::ic_list));
+    skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
+    skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
     skeleton.setMainContent (figure);
-
     skeleton.setNavPage ("Notes", notesPage);
-    skeleton.setNavPage ("Files", sourceList);
+    skeleton.setNavPage ("Files", fileListAndDetail);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -200,24 +370,18 @@ MainComponent::MainComponent()
     notesPage.setTextToShowWhenEmpty ("Notes", Colours::lightgrey);
     notesPage.setFont (Font ("Optima", 14, 0));
 
-    LinePlotModel linePlot;
-
-    for (int n = 0; n < 200; ++n)
-    {
-        double t = 2 * M_PI * n / 200.0;
-        linePlot.x.add (cos (t));
-        linePlot.y.add (sin (t));
-    }
-    linePlot.lineWidth = 4;
-    model.linePlots.add (linePlot);
-    figure.setModel (model);
+    fileListAndDetail.setContent1 (fileList);
+    fileListAndDetail.setContent2 (fileDetail);
 
     fileManager.setPollingInterval (100);
     fileManager.addListener (this);
-    sourceList.addListener (this);
+    fileList.addListener (this);
+    fileDetail.addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
+
+    figure.setModel (model = FigureModel::createExample());
 }
 
 MainComponent::~MainComponent()
@@ -267,19 +431,35 @@ void MainComponent::dispatch (const Action& action)
 }
 
 //==========================================================================
-void MainComponent::sourceListFilesInserted (const StringArray& files, int index)
+void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
-    fileManager.insertFiles (files, index);
-    sourceList.setFileList (fileManager.getFiles());
-}
-void MainComponent::sourceListFilesRemoved (const StringArray& files)
-{
-    fileManager.removeFiles (files);
-    sourceList.setFileList (fileManager.getFiles());
+    fileList.updateFileDisplayStatus (file);
 }
 
 //==========================================================================
-void MainComponent::fileManagerFileChangedOnDisk (File file)
+void MainComponent::fileListFilesInserted (const StringArray& files, int index)
 {
-    sourceList.updateFileDisplayStatus (file);
+    fileManager.insertFiles (files, index);
+    fileList.setFileList (fileManager.getFiles());
+}
+
+void MainComponent::fileListFilesRemoved (const StringArray& files)
+{
+    fileManager.removeFiles (files);
+    fileList.setFileList (fileManager.getFiles());
+}
+
+void MainComponent::fileListSelectionChanged (const StringArray& files)
+{
+    fileDetail.setCurrentlyActiveFiles (files, fileManager.getFilterNames (files));
+}
+
+//==========================================================================
+void MainComponent::filterNameChanged (const String& newName)
+{
+    for (const auto& file : fileList.getSelectedFullPathNames())
+    {
+        fileManager.setFilterName (file, newName);
+        fileDetail.setFilterIsValid (newName == "Ascii");
+    }
 }

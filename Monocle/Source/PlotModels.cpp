@@ -72,3 +72,19 @@ Rectangle<double> FigureModel::getDomain() const
 {
     return Rectangle<double>(xmin, ymin, xmax - xmin, ymax - ymin);
 }
+
+FigureModel FigureModel::createExample()
+{
+    FigureModel model;
+    LinePlotModel linePlot;
+
+    for (int n = 0; n < 200; ++n)
+    {
+        double t = 2 * M_PI * n / 200.0;
+        linePlot.x.add (cos (t));
+        linePlot.y.add (sin (t));
+    }
+    linePlot.lineWidth = 4;
+    model.linePlots.add (linePlot);
+    return model;
+}

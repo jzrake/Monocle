@@ -144,4 +144,6 @@ struct FigureModel
     Rectangle<int> getLeftMargin (const Rectangle<int>& area) const;
     Rectangle<int> getRightMargin (const Rectangle<int>& area) const;
     Rectangle<double> getDomain() const;
+    
+    static FigureModel createExample();
 };

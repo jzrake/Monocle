@@ -23,6 +23,10 @@
       </GROUP>
       <FILE id="u8gK2D" name="AppSkeleton.cpp" compile="1" resource="0" file="Source/AppSkeleton.cpp"/>
       <FILE id="ptcxxb" name="AppSkeleton.hpp" compile="0" resource="0" file="Source/AppSkeleton.hpp"/>
+      <FILE id="tItiDi" name="AsciiLoader.cpp" compile="1" resource="0" file="Source/AsciiLoader.cpp"/>
+      <FILE id="ciUL8K" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/AsciiLoader.hpp"/>
+      <FILE id="hzLcyF" name="Database.cpp" compile="1" resource="0" file="Source/Database.cpp"/>
+      <FILE id="KVlvbI" name="Database.hpp" compile="0" resource="0" file="Source/Database.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>

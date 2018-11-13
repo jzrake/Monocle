@@ -47,6 +47,29 @@ public:
 
 
 //==============================================================================
+//#include "Database.hpp"
+//
+//class DataSource
+//{
+//public:
+//    virtual ~DataSource() {}
+//    virtual Array<Database::Entry> load (File file) = 0;
+//};
+//
+//
+//
+//
+////==============================================================================
+//class AsciiTableDataSource : public DataSource
+//{
+//public:
+//    Array<Database::Entry> load (File file) override;
+//};
+
+
+
+
+//==============================================================================
 /**
  Not used yet...
 */
