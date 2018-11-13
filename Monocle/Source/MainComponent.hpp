@@ -97,6 +97,7 @@ public:
     void removeListener (Listener*);
     void setCurrentlyActiveFiles (const StringArray& names, const StringArray& filters);
     void setFilterIsValid (bool isValid);
+    void updateFileDetailsIfShowing (File file);
 
     //==============================================================================
     void paint (Graphics& g) override;
@@ -139,10 +140,10 @@ private:
 //==============================================================================
 class MainComponent
 : public Component
-, public StateManager
 , private FileManager::Listener
 , private FileListView::Listener
 , private FileDetailsView::Listener
+, private FigureView::Listener
 {
 public:
     //==========================================================================
@@ -150,9 +151,6 @@ public:
     ~MainComponent();
     void paint (Graphics&) override;
     void resized() override;
-
-    //==========================================================================
-    void dispatch (const Action& action) override;
 
 private:
     //==========================================================================
@@ -165,6 +163,13 @@ private:
 
     //==========================================================================
     void filterNameChanged (const String& newName) override;
+
+    //==========================================================================
+    void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
+    void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) override;
+    void figureViewSetXlabel (FigureView* figure, const String& value) override;
+    void figureViewSetYlabel (FigureView* figure, const String& value) override;
+    void figureViewSetTitle (FigureView* figure, const String& value) override;
 
     //==========================================================================
     AppSkeleton       skeleton;

@@ -250,6 +250,12 @@ void FileDetailsView::setFilterIsValid (bool isValid)
     repaint();
 }
 
+void FileDetailsView::updateFileDetailsIfShowing (File file)
+{
+    if (currentFilenames.contains (file.getFullPathName()))
+        repaint();
+}
+
 void FileDetailsView::paint (Graphics& g)
 {
     if (currentFilenames.isEmpty())
@@ -374,14 +380,15 @@ MainComponent::MainComponent()
     fileListAndDetail.setContent2 (fileDetail);
 
     fileManager.setPollingInterval (100);
+    figure     .setModel (model = FigureModel::createExample());
+
     fileManager.addListener (this);
-    fileList.addListener (this);
-    fileDetail.addListener (this);
+    fileList   .addListener (this);
+    fileDetail .addListener (this);
+    figure     .addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
-
-    figure.setModel (model = FigureModel::createExample());
 }
 
 MainComponent::~MainComponent()
@@ -397,43 +404,11 @@ void MainComponent::resized()
     skeleton.setBounds (getLocalBounds());
 }
 
-void MainComponent::dispatch (const Action& action)
-{
-    if (action.name == set_figure_margin)
-    {
-        model.margin = ModelHelpers::borderSizeFromVar (action.value);
-        figure.setModel (model);
-    }
-    else if (action.name == set_figure_domain)
-    {
-        auto domain = ModelHelpers::rectangleFromVar (action.value);
-        model.xmin = domain.getX();
-        model.xmax = domain.getRight();
-        model.ymin = domain.getY();
-        model.ymax = domain.getBottom();
-        figure.setModel (model);
-    }
-    else if (action.name == set_figure_xlabel)
-    {
-        model.xlabel = action.value;
-        figure.setModel (model);
-    }
-    else if (action.name == set_figure_ylabel)
-    {
-        model.ylabel = action.value;
-        figure.setModel (model);
-    }
-    else if (action.name == set_figure_title)
-    {
-        model.title = action.value;
-        figure.setModel (model);
-    }
-}
-
 //==========================================================================
 void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
     fileList.updateFileDisplayStatus (file);
+    fileDetail.updateFileDetailsIfShowing (file);
 }
 
 //==========================================================================
@@ -462,4 +437,38 @@ void MainComponent::filterNameChanged (const String& newName)
         fileManager.setFilterName (file, newName);
         fileDetail.setFilterIsValid (newName == "Ascii");
     }
+}
+
+//==========================================================================
+void MainComponent::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
+{
+    model.margin = value;
+    figure->setModel (model);
+}
+
+void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
+{
+    model.xmin = domain.getX();
+    model.xmax = domain.getRight();
+    model.ymin = domain.getY();
+    model.ymax = domain.getBottom();
+    figure->setModel (model);
+}
+
+void MainComponent::figureViewSetXlabel (FigureView* figure, const String& value)
+{
+    model.xlabel = value;
+    figure->setModel (model);
+}
+
+void MainComponent::figureViewSetYlabel (FigureView* figure, const String& value)
+{
+    model.ylabel = value;
+    figure->setModel (model);
+}
+
+void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
+{
+    model.title = value;
+    figure->setModel (model);
 }

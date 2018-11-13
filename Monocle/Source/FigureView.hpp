@@ -27,9 +27,21 @@ public:
 
 
 //==============================================================================
-class FigureView : public Component, private ActionDispatcher, private Label::Listener
+class FigureView : public Component, private Label::Listener
 {
 public:
+
+    //==========================================================================
+    class Listener
+    {
+    public:
+        virtual ~Listener() {}
+        virtual void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) = 0;
+        virtual void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) = 0;
+        virtual void figureViewSetXlabel (FigureView* figure, const String& value) = 0;
+        virtual void figureViewSetYlabel (FigureView* figure, const String& value) = 0;
+        virtual void figureViewSetTitle (FigureView* figure, const String& value) = 0;
+    };
 
     //==========================================================================
     struct Geometry
@@ -39,16 +51,16 @@ public:
         Rectangle<int> marginL;
         Rectangle<int> marginR;
         Rectangle<int> ytickAreaL;
-        Rectangle<int> ytickLabelAreaL;
         Rectangle<int> xtickAreaB;
+        Rectangle<int> ytickLabelAreaL;
         Rectangle<int> xtickLabelAreaB;
     };
 
     //==========================================================================
-    class PlotArea : public Component, private ActionDispatcher
+    class PlotArea : public Component
     {
     public:
-        PlotArea (const FigureView&);
+        PlotArea (FigureView&);
         void paint (Graphics&) override;
         void resized() override;
         void mouseDown (const MouseEvent&) override;
@@ -69,11 +81,11 @@ public:
         double toDomainY (double y) const;
         double fromDomainX (double x) const;
         double fromDomainY (double y) const;
-        void dispatchSetMarginIfNeeded() const;
-        void dispatchSetDomain (const Rectangle<double>& domain) const;
+        void sendSetMarginIfNeeded();
+        void sendSetDomain (const Rectangle<double>& domain);
 
         //======================================================================
-        const FigureView& figure;
+        FigureView& figure;
         ComponentBoundsConstrainer constrainer;
         ResizableBorderComponent resizer;
         Rectangle<double> domainBeforePan;
@@ -84,6 +96,10 @@ public:
     //==========================================================================
     FigureView();
     void setModel (const FigureModel&);
+    void addListener (Listener* listener);
+    void removeListener (Listener* listener);
+
+    //==========================================================================
     void paint (Graphics&) override;
     void paintOverChildren (Graphics&) override;
     void resized() override;
@@ -105,6 +121,7 @@ private:
     Label ylabel;
     Label title;
 
+    ListenerList<Listener> listeners;
     bool annotateGeometry = false;
     bool allowPlotAreaResize = true;
 };

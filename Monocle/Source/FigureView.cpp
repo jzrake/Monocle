@@ -9,7 +9,7 @@ static std::vector<Rectangle<float>> makeRectanglesInColumn (const Rectangle<int
                                                              float height)
 {
     std::vector<Rectangle<float>> rectangles;
-    
+
     for (auto y : midpoints)
         rectangles.push_back (Rectangle<float> (column.getX(), y - height * 0.5f, column.getWidth(), height));
     return rectangles;
@@ -20,7 +20,7 @@ static std::vector<Rectangle<float>> makeRectanglesInRow (const Rectangle<int>& 
                                                           float width)
 {
     std::vector<Rectangle<float>> rectangles;
-    
+
     for (auto x : midpoints)
         rectangles.push_back (Rectangle<float> (x - width * 0.5f, row.getY(), width, row.getHeight()));
     return rectangles;
@@ -111,7 +111,7 @@ std::vector<float> Ticker::getPixelLocations (const std::vector<Tick>& ticks)
 
 
 //==========================================================================
-FigureView::PlotArea::PlotArea (const FigureView& figure)
+FigureView::PlotArea::PlotArea (FigureView& figure)
 : figure (figure)
 , resizer (this, &constrainer)
 {
@@ -146,7 +146,7 @@ void FigureView::PlotArea::paint (Graphics& g)
 void FigureView::PlotArea::resized()
 {
     resizer.setBounds (getLocalBounds());
-    dispatchSetMarginIfNeeded();
+    sendSetMarginIfNeeded();
 }
 
 void FigureView::PlotArea::mouseDown (const MouseEvent&)
@@ -161,7 +161,7 @@ void FigureView::PlotArea::mouseDrag (const MouseEvent& e)
     const auto p = domainBeforePan.getTopLeft();
     const auto q = domainBeforePan.getBottomRight();
     const auto d = q - p;
-    dispatchSetDomain (figure.model.getDomain().withPosition (p - d * m / D));
+    sendSetDomain (figure.model.getDomain().withPosition (p - d * m / D));
 }
 
 void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
@@ -181,7 +181,7 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
     const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
     const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
     const double newy1 = e.mods.isCtrlDown() ? ylim[1] : fixedy + newdy * (0 + e.position.y / Dy);
-    dispatchSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
+    sendSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
 }
 
 
@@ -238,17 +238,17 @@ double FigureView::PlotArea::toDomainY (double y) const
     return jmap (y, double (getHeight()), 0.0, figure.model.ymin, figure.model.ymax);
 }
 
-void FigureView::PlotArea::dispatchSetMarginIfNeeded() const
+void FigureView::PlotArea::sendSetMarginIfNeeded()
 {
     auto newMargin = computeMargin();
 
     if (newMargin != figure.model.margin)
-        dispatch (this, {set_figure_margin, ModelHelpers::borderSizeToVar (newMargin)});
+        figure.listeners.call (&Listener::figureViewSetMargin, &figure, newMargin);
 }
 
-void FigureView::PlotArea::dispatchSetDomain (const Rectangle<double>& domain) const
+void FigureView::PlotArea::sendSetDomain (const Rectangle<double>& domain)
 {
-    dispatch (this, {set_figure_domain, ModelHelpers::rectangleToVar (domain)});
+    figure.listeners.call (&Listener::figureViewSetDomain, &figure, domain);
 }
 
 
@@ -303,6 +303,17 @@ void FigureView::setModel (const FigureModel& newModel)
     repaint();
 }
 
+void FigureView::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void FigureView::removeListener (Listener* listener)
+{
+    listeners.remove (listener);
+}
+
+//==========================================================================
 void FigureView::paint (Graphics& g)
 {
     g.setColour (model.marginColour);
@@ -443,7 +454,7 @@ FigureView::Geometry FigureView::computeGeometry() const
 
 void FigureView::labelTextChanged (Label* label)
 {
-    if (label == &xlabel) dispatch (this, {set_figure_xlabel, xlabel.getText()});
-    if (label == &ylabel) dispatch (this, {set_figure_ylabel, xlabel.getText()});
-    if (label == &title ) dispatch (this, {set_figure_title , title .getText()});
+    if (label == &xlabel) listeners.call (&Listener::figureViewSetXlabel, this, xlabel.getText());
+    if (label == &ylabel) listeners.call (&Listener::figureViewSetYlabel, this, ylabel.getText());
+    if (label == &title ) listeners.call (&Listener::figureViewSetTitle,  this, title .getText());
 }
