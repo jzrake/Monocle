@@ -21,20 +21,25 @@ void FileManager::removeListener (Listener* listener)
 
 void FileManager::addFile (File file)
 {
-    if (! files.contains (file))
-    {
-        files.add (file);
-        listeners.call (&Listener::fileAdded, file);
-    }
+    files.addIfNotAlreadyThere (file);
 }
 
 void FileManager::removeFile (File file)
 {
-    if (files.contains (file))
-    {
-        files.removeAllInstancesOf (file);
-        listeners.call (&Listener::fileRemoved, file);
-    }
+    files.removeFirstMatchingValue (file);
+}
+
+void FileManager::insertFiles (const StringArray& filenames, int index)
+{
+    for (const auto& filename : filenames)
+        if (! files.contains (filename))
+            files.insert (index, filename);
+}
+
+void FileManager::removeFiles (const StringArray& filenames)
+{
+    for (const auto& filename : filenames)
+        files.removeFirstMatchingValue (filename);
 }
 
 Array<File> FileManager::getFiles() const

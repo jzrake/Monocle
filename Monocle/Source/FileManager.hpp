@@ -13,10 +13,8 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void fileAdded (File) = 0;
-        virtual void fileRemoved (File) = 0;
-        virtual void fileChangedOnDisk (File) = 0;
-        virtual void fileDeletedOnDisk (File) = 0;
+        virtual void fileManagerFileChangedOnDisk (File) = 0;
+        virtual void fileManagerFileDeletedOnDisk (File) = 0;
     };
 
     // ========================================================================
@@ -25,6 +23,8 @@ public:
     void removeListener (Listener* listener);
     void addFile (File);
     void removeFile (File);
+    void insertFiles (const StringArray& filenames, int index);
+    void removeFiles (const StringArray& filenames);
     Array<File> getFiles() const;
 
 private:
