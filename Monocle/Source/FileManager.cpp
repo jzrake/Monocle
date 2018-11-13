@@ -19,32 +19,67 @@ void FileManager::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
+void FileManager::setPollingInterval (int millisecondsBetweenPolling)
+{
+    startTimer (millisecondsBetweenPolling);
+}
+
 void FileManager::addFile (File file)
 {
-    files.addIfNotAlreadyThere (file);
+    statuses.addIfNotAlreadyThere (file);
 }
 
 void FileManager::removeFile (File file)
 {
-    files.removeFirstMatchingValue (file);
+    statuses.removeFirstMatchingValue (file);
 }
 
 void FileManager::insertFiles (const StringArray& filenames, int index)
 {
     for (const auto& filename : filenames)
-        if (! files.contains (filename))
-            files.insert (index, filename);
+        if (! statuses.contains (File (filename)))
+            statuses.insert (index, File (filename));
 }
 
 void FileManager::removeFiles (const StringArray& filenames)
 {
     for (const auto& filename : filenames)
-        files.removeFirstMatchingValue (filename);
+        statuses.removeFirstMatchingValue (File (filename));
 }
 
 Array<File> FileManager::getFiles() const
 {
+    Array<File> files;
+
+    for (const auto& status : statuses)
+        files.add (status.file);
     return files;
+}
+
+
+
+
+// ============================================================================
+FileManager::FileStatus::FileStatus()
+{
+}
+
+FileManager::FileStatus::FileStatus (File file) : file (file)
+{
+    refreshFromDisk();
+}
+
+bool FileManager::FileStatus::operator== (const FileStatus& other) const
+{
+    return file == other.file;
+}
+
+bool FileManager::FileStatus::refreshFromDisk()
+{
+    auto last = *this;
+    existed = file.existsAsFile();
+    modified = file.getLastModificationTime();
+    return last.existed != existed || last.modified != modified;
 }
 
 
@@ -53,8 +88,22 @@ Array<File> FileManager::getFiles() const
 // ============================================================================
 void FileManager::timerCallback()
 {
+    pollForChanges();
 }
 
 void FileManager::pollForChanges()
 {
+    for (auto& status : statuses)
+        if (status.refreshFromDisk())
+            listeners.call (&Listener::fileManagerFileChangedOnDisk, status.file);
+}
+
+FileManager::FileStatus FileManager::getStatusForFile (File file) const
+{
+    for (const auto& status : statuses)
+        if (status.file == file)
+            return status;
+
+    jassertfalse; // That file is not being tracked!
+    return FileStatus();
 }

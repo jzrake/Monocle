@@ -1,3 +1,5 @@
+#pragma once
+#include "JuceHeader.h"
 #include <vector>
 #include <string>
 
@@ -15,6 +17,24 @@ namespace material {
         for (auto c : binary) content += c;
         return content;
     }
+
+    class util
+    {
+    public:
+        static std::unique_ptr<Drawable> icon (const String& svgString, Colour colour=Colours::black)
+        {
+            auto svg = std::unique_ptr<XmlElement> (XmlDocument (svgString).getDocumentElement());
+            auto drawable = std::unique_ptr<Drawable> (Drawable::createFromSVG (*svg));
+            drawable->replaceColour (Colours::black, colour);
+            return drawable;
+        }
+
+        template <typename T>
+        static std::unique_ptr<Drawable> icon (const T& binary, Colour colour=Colours::black)
+        {
+            return icon (String (bintos (binary)), colour);
+        }
+    };
 
     class action
     {

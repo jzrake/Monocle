@@ -1,4 +1,5 @@
 #include "MainComponent.hpp"
+#include "MaterialIcons.hpp"
 
 
 
@@ -10,6 +11,10 @@ SourceListView::SourceListView()
     setOutlineThickness (2);
     setMultipleSelectionEnabled (true);
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
+
+    fileIcon      = material::util::icon (material::editor::ic_insert_drive_file, Colours::seagreen);
+    directoryIcon = material::util::icon (material::file::ic_folder, Colours::cyan);
+    nonexistIcon  = material::util::icon (material::alert::ic_error_outline, Colours::red);
 }
 
 void SourceListView::addListener (Listener* listener)
@@ -31,20 +36,54 @@ void SourceListView::setFileList (const Array<File>& filesToDisplay)
         selectRow (files.size() - 1);
 }
 
+void SourceListView::updateFileDisplayStatus (File file)
+{
+    repaintRow (files.indexOf (file));
+}
+
+//==============================================================================
+void SourceListView::focusGained (FocusChangeType)
+{
+    repaint();
+}
+
+void SourceListView::focusLost (FocusChangeType)
+{
+    repaint();
+}
+
+//==============================================================================
 int SourceListView::getNumRows()
 {
     return files.size();
 }
 
-void SourceListView::paintListBoxItem (int rowNumber, Graphics& g, int w, int h, bool selected)
+void SourceListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool selected)
 {
     if (selected)
     {
-        g.setColour (Colours::lightblue);
+        g.setColour (hasKeyboardFocus (false) ? Colours::lightblue : Colours::lightgrey);
         g.fillRect (0, 0, w, h);
     }
-    g.setColour (Colours::black);
-    g.drawText (files[rowNumber].getFileName(), 0, 0, w, h, Justification::centredLeft);
+
+    auto iconArea = Rectangle<float> (0, 0, h, h);
+    auto iconRect = iconArea.withSizeKeepingCentre (10, 10);
+
+    if (files[row].existsAsFile())
+    {
+        fileIcon->drawWithin (g, iconRect, RectanglePlacement::fillDestination, 1.f);
+    }
+    else if (files[row].exists())
+    {
+        directoryIcon->drawWithin (g, iconRect, RectanglePlacement::fillDestination, 1.f);
+    }
+    else
+    {
+        nonexistIcon->drawWithin (g, iconRect, RectanglePlacement::fillDestination, 1.f);
+    }
+
+    g.setColour (files[row].exists() ? Colours::black : Colours::red);
+    g.drawText (files[row].getFileName(), h, 0, w, h, Justification::centredLeft);
 }
 
 void SourceListView::listBoxItemClicked (int row, const MouseEvent& e)
@@ -130,13 +169,16 @@ void SourceListView::startSelectedFilesAsProcess()
 void SourceListView::sendDeleteSelectedFiles()
 {
     StringArray filesToDelete;
-    
+    auto newSelection = getSelectedRows().getRange(0).getStart();
+
     for (int n = 0; n < files.size(); ++n)
         if (isRowSelected (n))
             filesToDelete.add (files[n].getFullPathName());
 
+    selectRow (newSelection);
     listeners.call (&Listener::sourceListFilesRemoved, filesToDelete);
 }
+
 
 
 
@@ -170,6 +212,7 @@ MainComponent::MainComponent()
     model.linePlots.add (linePlot);
     figure.setModel (model);
 
+    fileManager.setPollingInterval (100);
     fileManager.addListener (this);
     sourceList.addListener (this);
 
@@ -236,5 +279,7 @@ void MainComponent::sourceListFilesRemoved (const StringArray& files)
 }
 
 //==========================================================================
-void MainComponent::fileManagerFileChangedOnDisk (File) {}
-void MainComponent::fileManagerFileDeletedOnDisk (File) {}
+void MainComponent::fileManagerFileChangedOnDisk (File file)
+{
+    sourceList.updateFileDisplayStatus (file);
+}

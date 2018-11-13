@@ -10,9 +10,7 @@ public:
     NavButton (const String& tooltip, const String& svgString) : Button (tooltip)
     {
         setTooltip (tooltip);
-        auto svg = std::unique_ptr<XmlElement> (XmlDocument (svgString).getDocumentElement());
-        drawable = std::unique_ptr<Drawable> (Drawable::createFromSVG (*svg));
-        drawable->replaceColour (Colours::black, Colours::darkgrey);
+        drawable = material::util::icon (svgString, Colours::darkgrey);
     }
 
     void paintButton (Graphics& g, bool highlighted, bool down) override

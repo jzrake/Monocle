@@ -27,18 +27,23 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setFileList (const Array<File>& filesToDisplay);
+    void updateFileDisplayStatus (File file);
+
+    //==========================================================================
+    void focusGained (FocusChangeType) override;
+    void focusLost (FocusChangeType) override;
 
     //==========================================================================
     int getNumRows() override;
     void paintListBoxItem (int, Graphics&, int, int, bool) override;
-    void listBoxItemClicked (int row, const MouseEvent&) override;
-    void listBoxItemDoubleClicked (int row, const MouseEvent&) override;
+    void listBoxItemClicked (int, const MouseEvent&) override;
+    void listBoxItemDoubleClicked (int, const MouseEvent&) override;
     void backgroundClicked (const MouseEvent&) override;
-    void selectedRowsChanged (int lastRowSelected) override;
-    void deleteKeyPressed (int lastRowSelected) override;
-    void returnKeyPressed (int lastRowSelected) override;
+    void selectedRowsChanged (int) override;
+    void deleteKeyPressed (int) override;
+    void returnKeyPressed (int) override;
     void listWasScrolled() override;
-    String getTooltipForRow (int row) override;
+    String getTooltipForRow (int) override;
 
     //==========================================================================
     bool isInterestedInFileDrag (const StringArray& files) override;
@@ -53,6 +58,9 @@ private:
 
     Array<File> files;
     ListenerList<Listener> listeners;
+    std::unique_ptr<Drawable> fileIcon;
+    std::unique_ptr<Drawable> directoryIcon;
+    std::unique_ptr<Drawable> nonexistIcon;
 };
 
 
@@ -82,7 +90,6 @@ private:
 
     //==========================================================================
     void fileManagerFileChangedOnDisk (File) override;
-    void fileManagerFileDeletedOnDisk (File) override;
 
     //==========================================================================
     AppSkeleton skeleton;
