@@ -273,6 +273,9 @@ FigureView::FigureView() : plotArea (*this)
     xlabel.addListener (this);
     ylabel.addListener (this);
     title .addListener (this);
+    xlabel.setFont (Font().withHeight (12));
+    ylabel.setFont (Font().withHeight (12));
+    title .setFont (Font().withHeight (16));
 
     xlabel.addMouseListener (this, false);
     ylabel.addMouseListener (this, false);
@@ -351,6 +354,7 @@ void FigureView::paintOverChildren (Graphics& g)
     // Draw the ticks and labels
     // =================================================================
     g.setColour (Colours::black);
+    g.setFont (Font().withHeight (12));
     for (auto box : xtickBoxes) g.fillRect (box);
     for (auto box : ytickBoxes) g.fillRect (box);
     for (int n = 0; n < xticks.size(); ++n) g.drawText (xticks[n].label, xtickLabelBoxes[n], Justification::centredTop);

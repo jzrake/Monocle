@@ -4,6 +4,39 @@
 
 
 //==============================================================================
+SourceListView::SourceListView()
+{
+    setModel (this);
+}
+
+void SourceListView::setFileList (Array<File> filesToDisplay)
+{
+    files = filesToDisplay;
+    updateContent();
+}
+
+int SourceListView::getNumRows()
+{
+    return files.size();
+}
+
+void SourceListView::paintListBoxItem (int rowNumber,
+                                      Graphics& g,
+                                      int width, int height,
+                                      bool rowIsSelected)
+{
+    if (rowIsSelected)
+    {
+        g.setColour (Colours::lightblue);
+        g.fillRect (0, 0, width, height);
+    }
+    g.setColour (Colours::black);
+    g.drawText (files[rowNumber].getFullPathName(), 6, 0, width, height, Justification::centredLeft);
+}
+
+
+
+//==============================================================================
 MainComponent::MainComponent()
 {
     skeleton.addNavButton ("Sources", material::bintos (material::action::ic_list));
@@ -11,7 +44,9 @@ MainComponent::MainComponent()
     skeleton.addNavButton ("Notes", material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
     skeleton.setMainContent (figure);
+
     skeleton.setNavPage ("Notes", notesPage);
+    skeleton.setNavPage ("Files", sourceList);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -19,6 +54,7 @@ MainComponent::MainComponent()
     notesPage.setTextToShowWhenEmpty ("Notes", Colours::lightgrey);
     notesPage.setFont (Font ("Optima", 14, 0));
 
+    sourceList.setFileList ({ File("/File/Thing/2"), File("/File/Thing/1") });
     LinePlotModel linePlot;
 
     for (int n = 0; n < 200; ++n)

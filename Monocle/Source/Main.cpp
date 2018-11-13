@@ -41,6 +41,7 @@ public:
         Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::highlightedTextColourId, Colours::black);
         Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::outlineColourId, Colours::transparentBlack);
         Desktop::getInstance().getDefaultLookAndFeel().setColour (TextEditor::focusedOutlineColourId, Colours::lightblue);
+        Desktop::getInstance().getDefaultLookAndFeel().setColour (ListBox::backgroundColourId, Colours::white);
     }
 
     void shutdown() override

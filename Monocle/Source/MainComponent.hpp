@@ -3,6 +3,29 @@
 #include "PlotModels.hpp"
 #include "FigureView.hpp"
 #include "AppSkeleton.hpp"
+#include "FileManager.hpp"
+
+
+
+
+//==============================================================================
+class SourceListView : public ListBox, public ListBoxModel
+{
+public:
+    //==========================================================================
+    SourceListView();
+    void setFileList (Array<File> filesToDisplay);
+
+    //==========================================================================
+    int getNumRows() override;
+    void paintListBoxItem (int rowNumber,
+                           Graphics& g,
+                           int width, int height,
+                           bool rowIsSelected) override;
+
+private:
+    Array<File> files;
+};
 
 
 
@@ -23,9 +46,11 @@ public:
 
 private:
     //==========================================================================
+    AppSkeleton skeleton;
     FigureView figure;
     TextEditor notesPage;
+    SourceListView sourceList;
 
+    FileManager fileManager;
     FigureModel model;
-    AppSkeleton skeleton;
 };

@@ -25,6 +25,8 @@
       <FILE id="ptcxxb" name="AppSkeleton.hpp" compile="0" resource="0" file="Source/AppSkeleton.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
+      <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>
+      <FILE id="rXamNm" name="FileManager.hpp" compile="0" resource="0" file="Source/FileManager.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IE8e5X" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="gnQguV" name="MainComponent.cpp" compile="1" resource="0"
