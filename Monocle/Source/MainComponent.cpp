@@ -18,7 +18,9 @@ MainComponent::MainComponent()
     model.linePlots.add (linePlot);
 
     figure.reset (new FigureView (model));
-    addAndMakeVisible (*figure);
+    skeleton.setMainContent (figure.get());
+
+    addAndMakeVisible (skeleton);
 
     setSize (800, 600);
 }
@@ -33,8 +35,7 @@ void MainComponent::paint (Graphics& g)
 
 void MainComponent::resized()
 {
-    auto area = getLocalBounds();
-    figure->setBounds (area);
+    skeleton.setBounds (getLocalBounds());
 }
 
 void MainComponent::dispatch (const Action& action)

@@ -129,7 +129,7 @@ void FigureView::PlotArea::paint (Graphics& g)
     auto xticks = Ticker::createTicks (figure.model.xmin, figure.model.xmax, 0, getWidth());
     auto yticks = Ticker::createTicks (figure.model.ymin, figure.model.ymax, getHeight(), 0);
 
-    
+
     // Draw gridlines
     // =================================================================
     g.setColour (figure.model.gridlinesColour);

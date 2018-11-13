@@ -21,6 +21,8 @@
         <FILE id="SqE4TI" name="TabulatedFunction.hpp" compile="0" resource="0"
               file="Source/Numerical/TabulatedFunction.hpp"/>
       </GROUP>
+      <FILE id="u8gK2D" name="AppSkeleton.cpp" compile="1" resource="0" file="Source/AppSkeleton.cpp"/>
+      <FILE id="ptcxxb" name="AppSkeleton.hpp" compile="0" resource="0" file="Source/AppSkeleton.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
@@ -29,6 +31,10 @@
             file="Source/MainComponent.cpp"/>
       <FILE id="EH6V0o" name="MainComponent.hpp" compile="0" resource="0"
             file="Source/MainComponent.hpp"/>
+      <FILE id="nCkZ5k" name="MaterialIcons.cpp" compile="1" resource="0"
+            file="Source/MaterialIcons.cpp"/>
+      <FILE id="dpeOzy" name="MaterialIcons.hpp" compile="0" resource="0"
+            file="Source/MaterialIcons.hpp"/>
       <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
     </GROUP>

@@ -74,6 +74,7 @@ public:
         }
     };
 private:
+    TooltipWindow tooltipWindow;
     std::unique_ptr<MainWindow> mainWindow;
 };
 
