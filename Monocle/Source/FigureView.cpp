@@ -267,15 +267,19 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     ylabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
     title .setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
 
-    xlabel.setPaintingIsUnclipped (true);
-    ylabel.setPaintingIsUnclipped (true);
-    title .setPaintingIsUnclipped (true);
+//    xlabel.setPaintingIsUnclipped (true);
+//    ylabel.setPaintingIsUnclipped (true);
+//    title .setPaintingIsUnclipped (true);
     xlabel.setEditable (true);
     ylabel.setEditable (true);
     title .setEditable (true);
     xlabel.addListener (this);
     ylabel.addListener (this);
     title .addListener (this);
+
+    xlabel.addMouseListener (this, false);
+    ylabel.addMouseListener (this, false);
+    title .addMouseListener (this, false);
 
     // So that we get popup menu clicks
     plotArea.addMouseListener (this, false);
@@ -359,6 +363,22 @@ void FigureView::paintOverChildren (Graphics& g)
 void FigureView::resized()
 {
     layout();
+}
+
+void FigureView::mouseEnter (const MouseEvent& e)
+{
+    if (e.originalComponent == &xlabel ||
+        e.originalComponent == &ylabel ||
+        e.originalComponent == &title)
+        e.originalComponent->setColour (Label::backgroundColourId, model.marginColour.darker (0.1f));
+}
+
+void FigureView::mouseExit (const MouseEvent& e)
+{
+    if (e.originalComponent == &xlabel ||
+        e.originalComponent == &ylabel ||
+        e.originalComponent == &title)
+        e.originalComponent->setColour (Label::backgroundColourId, Colours::transparentBlack);
 }
 
 void FigureView::mouseDown (const MouseEvent& e)

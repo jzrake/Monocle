@@ -87,6 +87,8 @@ public:
     void paint (Graphics&) override;
     void paintOverChildren (Graphics&) override;
     void resized() override;
+    void mouseEnter (const MouseEvent&) override;
+    void mouseExit (const MouseEvent&) override;
     void mouseDown (const MouseEvent&) override;
 
 private:
