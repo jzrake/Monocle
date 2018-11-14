@@ -6,19 +6,6 @@
 
 
 //==============================================================================
-class ModelHelpers
-{
-public:
-    static var borderSizeToVar (const BorderSize<int>& border);
-    static BorderSize<int> borderSizeFromVar (const var& border);
-    static var rectangleToVar (const Rectangle<double>& rectangle);
-    static Rectangle<double> rectangleFromVar (const var& rectangle);
-};
-
-
-
-
-//==============================================================================
 enum class LineStyle { none, solid, dash, dashdot };
 enum class MarkerStyle { none, circle, square, diamond, plus, cross };
 

@@ -3,26 +3,14 @@
 
 
 
-//==============================================================================
-var ModelHelpers::borderSizeToVar (const BorderSize<int>& border)
+// Experimental:
+// =============================================================================
+template <>
+struct VariantConverter<FigureModel>
 {
-    return Array<var> {border.getTop(), border.getLeft(), border.getBottom(), border.getRight()};
-}
-
-BorderSize<int> ModelHelpers::borderSizeFromVar (const var& border)
-{
-    return {border[0], border[1], border[2], border[3]};
-}
-
-var ModelHelpers::rectangleToVar (const Rectangle<double>& rectangle)
-{
-    return Array<var> {rectangle.getX(), rectangle.getY(), rectangle.getWidth(), rectangle.getHeight()};
-}
-
-Rectangle<double> ModelHelpers::rectangleFromVar (const var& rectangle)
-{
-    return {rectangle[0], rectangle[1], rectangle[2], rectangle[3]};
-}
+    static FigureModel fromVar (const var& v) { return FigureModel(); }
+    static var toVar (const FigureModel& t)   { return var(); }
+};
 
 
 

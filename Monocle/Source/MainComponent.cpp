@@ -13,7 +13,7 @@ FileListView::FileListView()
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
 
     fileIcon      = material::util::icon (material::editor::ic_insert_drive_file, Colours::seagreen);
-    directoryIcon = material::util::icon (material::file::ic_folder, Colours::cyan);
+    directoryIcon = material::util::icon (material::file::ic_folder, Colours::skyblue);
     nonexistIcon  = material::util::icon (material::alert::ic_error_outline, Colours::red);
 }
 
