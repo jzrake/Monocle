@@ -124,4 +124,7 @@ private:
     ListenerList<Listener> listeners;
     bool annotateGeometry = false;
     bool allowPlotAreaResize = true;
+    bool paintAxisLabels = true;
+    bool paintTickLabels = true;
+    bool paintMarginsAndBackground = true;
 };

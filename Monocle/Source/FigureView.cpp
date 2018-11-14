@@ -122,8 +122,10 @@ FigureView::PlotArea::PlotArea (FigureView& figure)
 
 void FigureView::PlotArea::paint (Graphics& g)
 {
-    g.setColour (figure.model.backgroundColour);
-    g.fillRect (getLocalBounds());
+    if (figure.paintMarginsAndBackground)
+    {
+        g.fillAll (figure.model.backgroundColour);
+    }
 
 
     auto xticks = Ticker::createTicks (figure.model.xmin, figure.model.xmax, 0, getWidth());
@@ -316,8 +318,10 @@ void FigureView::removeListener (Listener* listener)
 //==========================================================================
 void FigureView::paint (Graphics& g)
 {
-    g.setColour (model.marginColour);
-    g.fillAll();
+    if (paintMarginsAndBackground)
+    {
+        g.fillAll (model.marginColour);
+    }
 }
 
 void FigureView::paintOverChildren (Graphics& g)
@@ -368,8 +372,12 @@ void FigureView::paintOverChildren (Graphics& g)
     g.setFont (Font().withHeight (12));
     for (auto box : xtickBoxes) g.fillRect (box);
     for (auto box : ytickBoxes) g.fillRect (box);
-    for (int n = 0; n < xticks.size(); ++n) g.drawText (xticks[n].label, xtickLabelBoxes[n], Justification::centredTop);
-    for (int n = 0; n < yticks.size(); ++n) g.drawText (yticks[n].label, ytickLabelBoxes[n], Justification::centredRight);
+
+    if (paintTickLabels)
+    {
+        for (int n = 0; n < xticks.size(); ++n) g.drawText (xticks[n].label, xtickLabelBoxes[n], Justification::centredTop);
+        for (int n = 0; n < yticks.size(); ++n) g.drawText (yticks[n].label, ytickLabelBoxes[n], Justification::centredRight);
+    }
 }
 
 void FigureView::resized()
@@ -402,6 +410,9 @@ void FigureView::mouseDown (const MouseEvent& e)
         PopupMenu menu;
         menu.addItem (1, "Annotate geometry", true, annotateGeometry);
         menu.addItem (2, "Plot area resizer", true, allowPlotAreaResize);
+        menu.addItem (3, "Draw axis labels", true, paintAxisLabels);
+        menu.addItem (4, "Draw tick labels", true, paintTickLabels);
+        menu.addItem (5, "Fill backgrounds", true, paintMarginsAndBackground);
 
         menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
         {
@@ -409,6 +420,9 @@ void FigureView::mouseDown (const MouseEvent& e)
             {
                 case 1: annotateGeometry = ! annotateGeometry; repaint(); break;
                 case 2: allowPlotAreaResize = ! allowPlotAreaResize; refreshModes(); break;
+                case 3: paintAxisLabels = ! paintAxisLabels; refreshModes(); break;
+                case 4: paintTickLabels = ! paintTickLabels; refreshModes(); break;
+                case 5: paintMarginsAndBackground = ! paintMarginsAndBackground; refreshModes(); break;
                 default: break;
             }
         });
@@ -435,6 +449,10 @@ void FigureView::layout()
 void FigureView::refreshModes()
 {
     plotArea.resizer.setVisible (allowPlotAreaResize);
+    xlabel.setVisible (paintAxisLabels);
+    ylabel.setVisible (paintAxisLabels);
+    title .setVisible (paintAxisLabels);
+    repaint();
 }
 
 FigureView::Geometry FigureView::computeGeometry() const
