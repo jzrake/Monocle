@@ -1,4 +1,5 @@
 #include "AppSkeleton.hpp"
+#include "MaterialIcons.hpp"
 
 
 
@@ -7,6 +8,7 @@
 class AppSkeleton::NavButton : public Button
 {
 public:
+    // ========================================================================
     NavButton (const String& tooltip, const String& svgString) : Button (tooltip)
     {
         setTooltip (tooltip);
@@ -25,7 +27,11 @@ public:
             g.setColour (Colours::green);
             g.fillRect (getLocalBounds().removeFromLeft (4));
         }
-        drawable->drawWithin (g, getLocalBounds().toFloat(), RectanglePlacement::doNotResize, 1.0f);
+
+        float w = 0.5f * drawable->getWidth();
+        float h = 0.5f * drawable->getHeight();
+        auto area = getLocalBounds().toFloat().withSizeKeepingCentre (w, h);
+        drawable->drawWithin (g, area, RectanglePlacement::stretchToFit, 1.0f);
     }
 
     void clicked() override
@@ -50,16 +56,54 @@ public:
         }
     }
 
-    void resized() override
-    {
-        auto a = 0.6f;
-        auto w = drawable->getWidth();
-        auto h = drawable->getHeight();
-        drawable->setTransform (AffineTransform::scale (a, a, 0.5f * w, 0.5f * h));
-    }
 private:
+    // ========================================================================
     std::unique_ptr<Drawable> drawable;
     WeakReference<Component> page;
+    WeakReference<Component> backdrop;
+    friend class AppSkeleton;
+};
+
+
+
+
+// ============================================================================
+class AppSkeleton::BackdropButton : public Button
+{
+public:
+    // ========================================================================
+    BackdropButton() : Button ("Backdrop")
+    {
+        setTooltip ("Toggle backdrop");
+        setClickingTogglesState (true);
+        more = material::util::icon (material::navigation::ic_expand_more, Colours::darkgrey);
+        less = material::util::icon (material::navigation::ic_expand_less, Colours::darkgrey);
+    }
+
+    void paintButton (Graphics& g, bool highlighted, bool down) override
+    {
+        if (highlighted)
+        {
+            g.setColour (Colours::lightgrey);
+            g.fillAll();
+        }
+
+        auto& d = getToggleState() ? less : more;
+        float w = 0.5f * d->getWidth();
+        float h = 0.5f * d->getHeight();
+        auto area = getLocalBounds().toFloat().withSizeKeepingCentre (w, h);
+        d->drawWithin (g, area, RectanglePlacement::stretchToFit, 1.0f);
+    }
+
+    void buttonStateChanged() override
+    {
+        findParentComponentOfClass<AppSkeleton>()->layout();
+    }
+
+private:
+    // ========================================================================
+    std::unique_ptr<Drawable> more;
+    std::unique_ptr<Drawable> less;
     friend class AppSkeleton;
 };
 
@@ -69,13 +113,22 @@ private:
 // ============================================================================
 AppSkeleton::AppSkeleton()
 {
+    backdropButton = std::make_unique<BackdropButton>();
+    addAndMakeVisible (*backdropButton);
+}
+
+AppSkeleton::~AppSkeleton()
+{
 }
 
 void AppSkeleton::paint (Graphics& g)
 {
+}
+
+void AppSkeleton::paintOverChildren (Graphics& g)
+{
     auto geom = computeGeometry();
 
-    g.fillAll (Colours::white);
     g.setColour (Colours::lightgrey);
     g.drawHorizontalLine (geom.topNav.getBottom(), geom.topNav.getX(), geom.topNav.getRight());
     g.drawVerticalLine (geom.leftNav.getRight(), geom.leftNav.getY(), geom.leftNav.getBottom());
@@ -100,13 +153,38 @@ void AppSkeleton::setNavPage (const String& name, Component& page)
     {
         if (button->getName() == name)
         {
+            button->page = &page;
             addChildComponent (&page);
-            dynamic_cast<NavButton*>(button.get())->page = &page;
             updatePageVisibility();
             return;
         }
     }
-    jassertfalse; // There was no page with that name!
+    jassertfalse; // There was no nav section with that name!
+}
+
+void AppSkeleton::setBackdrop (const String& name, Component& backdrop)
+{
+    for (auto& button : navButtons)
+    {
+        if (button->getName() == name)
+        {
+            button->backdrop = &backdrop;
+            addChildComponent (&backdrop);
+            updatePageVisibility();
+            return;
+        }
+    }
+    jassertfalse; // There was no nav section with that name!
+}
+
+void AppSkeleton::setBackdropRevealed (bool shouldBackdropBeRevealed)
+{
+    backdropButton->setToggleState (shouldBackdropBeRevealed, NotificationType::sendNotification);
+}
+
+void AppSkeleton::toggleBackdropRevealed()
+{
+    backdropButton->triggerClick();
 }
 
 void AppSkeleton::addNavButton (const String& name, const String& svg)
@@ -126,19 +204,28 @@ AppSkeleton::Geometry AppSkeleton::computeGeometry() const
     g.leftNav     = area.removeFromLeft (leftNavWidth);
     g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0).withTrimmedLeft (1).withTrimmedTop (1);;
     g.mainContent = area.withTrimmedLeft (1).withTrimmedTop (1);
+    g.backdropButton = Rectangle<int> (g.topNav).removeFromRight (topNavHeight);
+
+    if (backdropButton->getToggleState())
+    {
+        g.backdrop = g.mainContent.withBottom (200);
+        g.mainContent.translate (0, 200);
+    }
     return g;
 }
 
 void AppSkeleton::showSourceList()
 {
     sourceListVisible = true;
-    resized();
+    layout();
+    repaint();
 }
 
 void AppSkeleton::hideSourceList()
 {
     sourceListVisible = false;
-    resized();
+    layout();
+    repaint();
 }
 
 void AppSkeleton::layout()
@@ -149,16 +236,26 @@ void AppSkeleton::layout()
         button->setBounds (geom.leftNav.removeFromTop (leftNavWidth));
 
     for (const auto& button : navButtons)
-        if (auto page = dynamic_cast<NavButton*>(button.get())->page)
+        if (auto page = button->page)
             page->setBounds (geom.sourceList);
+
+    for (const auto& button : navButtons)
+        if (auto backdrop = button->backdrop)
+            backdrop->setBounds (geom.backdrop);
 
     if (mainContent)
         mainContent->setBounds (geom.mainContent);
+
+    backdropButton->setBounds (geom.backdropButton);
 }
 
 void AppSkeleton::updatePageVisibility()
 {
     for (const auto& button : navButtons)
-        if (auto page = dynamic_cast<NavButton*>(button.get())->page)
+        if (auto page = button->page)
             page->setVisible (button->getToggleState());
+
+    for (const auto& button : navButtons)
+        if (auto backdrop = button->backdrop)
+            backdrop->setVisible (button->getToggleState());
 }

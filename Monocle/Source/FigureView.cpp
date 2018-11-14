@@ -323,8 +323,8 @@ void FigureView::paint (Graphics& g)
 void FigureView::paintOverChildren (Graphics& g)
 {
     auto geom = computeGeometry();
-    
-    
+
+
     // Compute tick geometry data
     // =================================================================
     auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight());
@@ -336,8 +336,8 @@ void FigureView::paintOverChildren (Graphics& g)
     auto ytickPixels     = Ticker::getPixelLocations (yticks);
     auto ytickLabelBoxes = makeRectanglesInColumn (geom.ytickLabelAreaL, ytickPixels, model.tickLabelHeight);
     auto ytickBoxes      = makeRectanglesInColumn (geom.ytickAreaL, ytickPixels, model.tickWidth);
-    
-    
+
+
     // Extra geometry fills for debugging geometry
     // =================================================================
     if (annotateGeometry)
@@ -345,23 +345,23 @@ void FigureView::paintOverChildren (Graphics& g)
         g.setColour (Colours::blue.withAlpha (0.3f));
         g.fillRect (geom.xtickAreaB);
         g.fillRect (geom.ytickAreaL);
-        
+
         g.setColour (Colours::red.withAlpha (0.3f));
         g.fillRect (geom.xtickLabelAreaB);
         g.fillRect (geom.ytickLabelAreaL);
-        
+
         g.setColour (Colours::yellow.withAlpha (0.3f));
         g.fillRect (geom.marginT);
         g.fillRect (geom.marginB);
         g.fillRect (geom.marginL);
         g.fillRect (geom.marginR);
-        
+
         g.setColour (Colours::purple.withAlpha (0.3f));
         for (auto box : ytickLabelBoxes) g.fillRect (box);
         for (auto box : xtickLabelBoxes) g.fillRect (box);
     }
-    
-    
+
+
     // Draw the ticks and labels
     // =================================================================
     g.setColour (Colours::black);

@@ -151,6 +151,7 @@ public:
     ~MainComponent();
     void paint (Graphics&) override;
     void resized() override;
+    bool keyPressed (const KeyPress&) override;
 
 private:
     //==========================================================================

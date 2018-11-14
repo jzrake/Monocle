@@ -404,6 +404,16 @@ void MainComponent::resized()
     skeleton.setBounds (getLocalBounds());
 }
 
+bool MainComponent::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress ('K', ModifierKeys::commandModifier, 0))
+    {
+        skeleton.toggleBackdropRevealed();
+        return true;
+    }
+    return false;
+}
+
 //==========================================================================
 void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
