@@ -12,6 +12,7 @@ public:
     NavButton (const String& tooltip, const String& svgString) : Button (tooltip)
     {
         setTooltip (tooltip);
+        setWantsKeyboardFocus (false);
         drawable = material::util::icon (svgString, Colours::darkgrey);
     }
 
@@ -76,6 +77,7 @@ public:
     {
         setTooltip ("Toggle backdrop");
         setClickingTogglesState (true);
+        setWantsKeyboardFocus (false);
         more = material::util::icon (material::navigation::ic_expand_more, Colours::darkgrey);
         less = material::util::icon (material::navigation::ic_expand_less, Colours::darkgrey);
     }

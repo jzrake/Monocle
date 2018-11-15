@@ -168,13 +168,12 @@ void FigureView::PlotArea::mouseDrag (const MouseEvent& e)
 
 void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 {
-    auto domain = figure.model.getDomain();
-    const double xlim[2] = { domain.getX(), domain.getRight() };
-    const double ylim[2] = { domain.getY(), domain.getBottom() };
+    const double xlim[2] = {figure.model.xmin, figure.model.xmax};
+    const double ylim[2] = {figure.model.ymin, figure.model.ymax};
     const double Dx = getWidth();
     const double Dy = getHeight();
-    const double dx = domain.getWidth();
-    const double dy = domain.getHeight();
+    const double dx = xlim[1] - xlim[0];
+    const double dy = ylim[1] - ylim[0];
     const double newdx = dx / scaleFactor;
     const double newdy = dy / scaleFactor;
     const double fixedx = toDomainX (e.position.x);

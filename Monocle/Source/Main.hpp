@@ -12,6 +12,7 @@ namespace CommandIDs
         openDocument              = 0x300000,
         windowToggleBackdrop      = 0x301001,
         windowToggleNavPages      = 0x301002,
+        windowToggleOpenGL        = 0x301003,
     };
 }
 

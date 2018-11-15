@@ -31,6 +31,8 @@ public:
     public:
         MainWindow (String name);
         void closeButtonPressed() override;
+        void toggleOpenGL();
+        OpenGLContext context;
     };
 
 
@@ -71,11 +73,6 @@ public:
         return menu;
     }
 
-    void handleMainMenuCommand (int menuItemID)
-    {
-        DBG("handleMainMenuCommand: " << menuItemID);
-    }
-
     void createFileMenu (PopupMenu& menu)
     {
         menu.addCommandItem (&commandManager, CommandIDs::openDocument);
@@ -85,6 +82,7 @@ public:
     {
         menu.addCommandItem (&commandManager, CommandIDs::windowToggleNavPages);
         menu.addCommandItem (&commandManager, CommandIDs::windowToggleBackdrop);
+        menu.addCommandItem (&commandManager, CommandIDs::windowToggleOpenGL);
     }
 
     void configureLookAndFeel()
@@ -141,6 +139,7 @@ public:
 
         const CommandID ids[] = {
             CommandIDs::openDocument,
+            CommandIDs::windowToggleOpenGL,
         };
         commands.addArray (ids, numElementsInArray (ids));
     }
@@ -150,8 +149,14 @@ public:
         switch (commandID)
         {
             case CommandIDs::openDocument:
-                result.setInfo ("Open...", "Opens a new document", CommandCategories::general, 0);
+                result.setInfo ("Open...", "", CommandCategories::general,
+                                ApplicationCommandInfo::isDisabled);
                 result.defaultKeypresses.add (KeyPress ('o', ModifierKeys::commandModifier, 0));
+                break;
+            case CommandIDs::windowToggleOpenGL:
+                result.setInfo ("OpenGL Backend", "", CommandCategories::window,
+                                mainWindow && mainWindow->context.isAttached() ? ApplicationCommandInfo::isTicked : 0);
+                result.defaultKeypresses.add (KeyPress ('g', ModifierKeys::ctrlModifier, 0));
                 break;
             default:
                 JUCEApplication::getCommandInfo (commandID, result);
@@ -164,6 +169,7 @@ public:
         switch (info.commandID)
         {
             case CommandIDs::openDocument:              return true;
+            case CommandIDs::windowToggleOpenGL:        mainWindow->toggleOpenGL(); return true;
             default:                                    return JUCEApplication::perform (info);
         }
     }
@@ -197,6 +203,14 @@ void MonocleApplication::MainWindow::closeButtonPressed()
     getApp().systemRequestedQuit();
 }
 
+void MonocleApplication::MainWindow::toggleOpenGL()
+{
+    if (! context.isAttached())
+        context.attachTo (*this);
+    else
+        context.detach();
+}
+
 
 
 
@@ -218,7 +232,7 @@ PopupMenu MonocleApplication::MainMenuBarModel::getMenuForIndex (int /*topLevelM
 
 void MonocleApplication::MainMenuBarModel::menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/)
 {
-    getApp().handleMainMenuCommand (menuItemID);
+    // Not sure what this method is for...
 }
 
 
