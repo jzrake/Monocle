@@ -1,7 +1,7 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
 
-
+#include "Kernel/Expression.hpp"
 
 
 //==============================================================================
@@ -389,6 +389,14 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
+
+    // Experimenting with kernel
+    using namespace mcl;
+    auto f = [] (const Object::List&, const Object::Dict&) { /*DBG("make-figure");*/ return Object(); };
+    kernel.setListener ([] (const std::string& key, const mcl::Object& val) { /*DBG("changed " << key);*/ });
+    kernel.setErrorLog ([] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
+    kernel.insert ("make-figure", Object::Func (f));
+    kernel.insert ("fig", Object::Expr ("(make-figure fig:limits)"));
 }
 
 MainComponent::~MainComponent()
@@ -493,6 +501,7 @@ void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<dou
     model.xmax = domain.getRight();
     model.ymin = domain.getY();
     model.ymax = domain.getBottom();
+    kernel.insert ("fig:limits", mcl::Object::List {model.xmin, model.xmax, model.ymin, model.ymax});
     figure->setModel (model);
 }
 

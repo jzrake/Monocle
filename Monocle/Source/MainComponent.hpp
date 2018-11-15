@@ -5,6 +5,7 @@
 #include "AppSkeleton.hpp"
 #include "FileManager.hpp"
 #include "Database.hpp"
+#include "Kernel/AcyclicGraph.hpp"
 
 
 
@@ -189,4 +190,5 @@ private:
     //==========================================================================
     FileManager fileManager;
     FigureModel model;
+    mcl::AcyclicGraph kernel;
 };

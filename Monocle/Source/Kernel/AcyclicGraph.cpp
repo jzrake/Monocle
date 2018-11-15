@@ -10,6 +10,11 @@ void AcyclicGraph::setListener (Listener listenerToInvoke)
     listener = listenerToInvoke;
 }
 
+void AcyclicGraph::setErrorLog (ErrorLog errorLogToInvoke)
+{
+    errorLog = errorLogToInvoke;
+}
+
 bool AcyclicGraph::insert (const std::string& key, const Object& value, const std::set<std::string>& incoming)
 {
     if (wouldCreateCycle (key, incoming))
@@ -250,6 +255,9 @@ bool AcyclicGraph::update (const std::string& key)
 
     if (listener)
         listener (key, node->second.concrete);
+
+    if (errorLog && ! node->second.error.empty())
+        errorLog (key, node->second.error);
 
     return true;
 }

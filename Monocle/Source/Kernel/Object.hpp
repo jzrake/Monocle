@@ -53,14 +53,15 @@ public:
         std::vector<Component> parts;
     };
 
-    Object() {}
     static Object dict() { return Dict(); }
     static Object list() { return List(); }
     static Object expr (const std::string& expr) { return Expr (expr); }
     static Object deserialize (const std::vector<char>&);
     bool none() const { return v.index() == 0; }
     char type() const;
-    template <typename T> Object (const T& v) : v (v) {}
+
+    Object() : v (None()) {}
+    template<typename T> Object (const T& v) : v (v) {}
     template <typename T> T& get() { return mpark::get<T>(v);}
     template <typename T> const T& get() const { return mpark::get<T>(v);}
     template <typename T> void set (const T& w) { v.emplace<T>(w); }

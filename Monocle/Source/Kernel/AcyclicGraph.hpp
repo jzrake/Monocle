@@ -43,12 +43,21 @@ public:
     */
     using Listener = std::function<void (const std::string&, const Object&)>;
 
+    /** Function type for notifications of failed downstream symbol resolutions.
+     */
+    using ErrorLog = std::function<void (const std::string& key, const std::string& what)>;
+
     /** Set a callback to be invoked with the key and concrete data of a node,
         any time that data is updated. The callback is invoked when a node is
         inserted only if that node has concrete data, and when it is removed
         unless the pre-existing value was already Object::None.
     */
     void setListener (Listener listenerToInvoke);
+
+    /** Set a callback to be invoked when a downstream symbol resolution fails for any
+        reason.
+     */
+    void setErrorLog (ErrorLog errorLogToInvoke);
 
     /** Insert the given node into the graph. If the node cannot be inserted because
         it would create a cycle, then returns false. Otherwise returns true. Incoming
@@ -181,4 +190,6 @@ private:
     NodeMap nodes;
     NodeSet dirty;
     Listener listener = nullptr;
+    ErrorLog errorLog = nullptr;
+    
 };

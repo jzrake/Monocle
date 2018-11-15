@@ -112,7 +112,7 @@ void Expression::testParser()
 // ========================================================================
 bool Expression::isSymbolCharacter (char e)
 {
-    return isalnum (e) || e == '_' || e == '-';
+    return isalnum (e) || e == '_' || e == '-' || e == ':';
 }
 
 bool Expression::isNumber (const char* d)
