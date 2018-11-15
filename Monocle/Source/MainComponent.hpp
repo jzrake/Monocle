@@ -140,6 +140,7 @@ private:
 //==============================================================================
 class MainComponent
 : public Component
+, public ApplicationCommandTarget
 , private FileManager::Listener
 , private FileListView::Listener
 , private FileDetailsView::Listener
@@ -151,7 +152,12 @@ public:
     ~MainComponent();
     void paint (Graphics&) override;
     void resized() override;
-    bool keyPressed (const KeyPress&) override;
+
+    //==========================================================================
+    ApplicationCommandTarget* getNextCommandTarget() override;
+    void getAllCommands (Array<CommandID>& commands) override;
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform (const InvocationInfo& info) override;
 
 private:
     //==========================================================================

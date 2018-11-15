@@ -33,6 +33,7 @@ public:
     void setNavPage (const String& name, Component& page);
     void setBackdrop (const String& name, Component& backdrop);
     void setBackdropRevealed (bool shouldBackdropBeRevealed);
+    void toggleNavPagesRevealed();
     void toggleBackdropRevealed();
 
 private:
@@ -43,6 +44,7 @@ private:
     void layout();
 
     WeakReference<Component> mainContent;
+    WeakReference<Component> lastNavButtonClosed;
     Array<std::unique_ptr<NavButton>> navButtons;
     std::unique_ptr<BackdropButton> backdropButton;
 

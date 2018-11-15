@@ -182,6 +182,27 @@ void AppSkeleton::setBackdropRevealed (bool shouldBackdropBeRevealed)
     backdropButton->setToggleState (shouldBackdropBeRevealed, NotificationType::sendNotification);
 }
 
+void AppSkeleton::toggleNavPagesRevealed()
+{
+    for (auto& button : navButtons)
+    {
+        if (button->getToggleState())
+        {
+            lastNavButtonClosed = button.get();
+            button->triggerClick();
+            return;
+        }
+    }
+    if (lastNavButtonClosed)
+    {
+        dynamic_cast<NavButton*>(lastNavButtonClosed.get())->triggerClick();
+    }
+    else if (! navButtons.isEmpty())
+    {
+        navButtons.getReference(0)->triggerClick();
+    }
+}
+
 void AppSkeleton::toggleBackdropRevealed()
 {
     backdropButton->triggerClick();

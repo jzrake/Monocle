@@ -404,14 +404,45 @@ void MainComponent::resized()
     skeleton.setBounds (getLocalBounds());
 }
 
-bool MainComponent::keyPressed (const KeyPress& key)
+//==========================================================================
+ApplicationCommandTarget* MainComponent::getNextCommandTarget()
 {
-    if (key == KeyPress ('K', ModifierKeys::commandModifier, 0))
+    return nullptr;
+}
+
+void MainComponent::getAllCommands (Array<CommandID>& commands)
+{
+    const CommandID ids[] = {
+        CommandIDs::windowToggleBackdrop,
+        CommandIDs::windowToggleNavPages,
+    };
+    commands.addArray (ids, numElementsInArray (ids));
+}
+
+void MainComponent::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
+{
+    switch (commandID)
     {
-        skeleton.toggleBackdropRevealed();
-        return true;
+        case CommandIDs::windowToggleNavPages:
+            result.setInfo ("Toggle Navigation Pages", "", CommandCategories::window, 0);
+            result.defaultKeypresses.add (KeyPress ('K', ModifierKeys::commandModifier, 0));
+            break;
+        case CommandIDs::windowToggleBackdrop:
+            result.setInfo ("Toggle Backdrop", "", CommandCategories::window, 0);
+            result.defaultKeypresses.add (KeyPress ('L', ModifierKeys::commandModifier, 0));
+            break;
+        default: break;
     }
-    return false;
+}
+
+bool MainComponent::perform (const InvocationInfo& info)
+{
+    switch (info.commandID)
+    {
+        case CommandIDs::windowToggleNavPages: skeleton.toggleNavPagesRevealed(); return true;
+        case CommandIDs::windowToggleBackdrop: skeleton.toggleBackdropRevealed(); return true;
+        default: return false;
+    }
 }
 
 //==========================================================================
