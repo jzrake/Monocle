@@ -3,6 +3,20 @@
 <JUCERPROJECT id="kg5oxC" name="Monocle" projectType="guiapp" jucerVersion="5.4.1">
   <MAINGROUP id="fvSsVB" name="Monocle">
     <GROUP id="{09AE327B-DBED-6613-8257-BC56EFBB0B95}" name="Source">
+      <GROUP id="{588E0634-C112-C22B-B33A-F9BEB2C84216}" name="Kernel">
+        <FILE id="NFnZHZ" name="AcyclicGraph.cpp" compile="1" resource="0"
+              file="Source/Kernel/AcyclicGraph.cpp"/>
+        <FILE id="nRRPxh" name="AcyclicGraph.hpp" compile="0" resource="0"
+              file="Source/Kernel/AcyclicGraph.hpp"/>
+        <FILE id="iNBUFA" name="Builtin.cpp" compile="1" resource="0" file="Source/Kernel/Builtin.cpp"/>
+        <FILE id="PO9Ohv" name="Builtin.hpp" compile="0" resource="0" file="Source/Kernel/Builtin.hpp"/>
+        <FILE id="cRp9eO" name="Expression.cpp" compile="1" resource="0" file="Source/Kernel/Expression.cpp"/>
+        <FILE id="eXB0R7" name="Expression.hpp" compile="0" resource="0" file="Source/Kernel/Expression.hpp"/>
+        <FILE id="E0CqEq" name="Object.cpp" compile="1" resource="0" file="Source/Kernel/Object.cpp"/>
+        <FILE id="ysWxCx" name="Object.hpp" compile="0" resource="0" file="Source/Kernel/Object.hpp"/>
+        <FILE id="VDlARO" name="Variant.cpp" compile="1" resource="0" file="Source/Kernel/Variant.cpp"/>
+        <FILE id="Cv0NcY" name="Variant.hpp" compile="0" resource="0" file="Source/Kernel/Variant.hpp"/>
+      </GROUP>
       <GROUP id="{F49D8A21-69C6-54A1-A3F8-37566B99E7EE}" name="Numerical">
         <FILE id="orBKPt" name="NewtonRaphesonSolver.cpp" compile="1" resource="0"
               file="Source/Numerical/NewtonRaphesonSolver.cpp"/>
