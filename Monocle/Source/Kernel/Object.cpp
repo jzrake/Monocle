@@ -329,6 +329,11 @@ std::string Object::protocol() const
     return std::string();
 }
 
+std::string Object::expression() const
+{
+    return type() == 'E' ? get<Expr>().source : std::string();
+}
+
 std::vector<char> Object::serialize() const
 {
     return Serializer().serialize (*this);

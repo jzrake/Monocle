@@ -66,7 +66,7 @@ public:
     template<typename T> Object (const T& v) : v (v) {}
     template <typename T> T& get() { return mpark::get<T>(v);}
     template <typename T> const T& get() const { return mpark::get<T>(v);}
-    template <typename T> const T& get_any() const { return linb::any_cast<T> (mpark::get<Any>(v).v); }
+    template <typename T> const T& get_any() const { return linb::any_cast<const T&> (mpark::get<Any>(v).v); }
     template <typename T> void set (const T& w) { v.emplace<T>(w); }
     template <typename T> Object& operator= (const T& w) { v.emplace<T>(w); return *this; }
 
@@ -114,7 +114,16 @@ public:
      */
     std::string protocol() const;
 
+    /** If this object is an expression, return the expression string. Otherwise return
+        empty.
+     */
+    std::string expression() const;
+
+    /** Return a binary sequence represention of the object. Func and Any are not
+        serialized.
+     */
     std::vector<char> serialize() const;
+
     static void testSerialization();
     static void testSymbolResolution();
     static void testAnyConstruction();

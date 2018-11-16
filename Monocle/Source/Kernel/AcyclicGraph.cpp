@@ -1,3 +1,4 @@
+#include <iostream>
 #include "AcyclicGraph.hpp"
 using namespace mcl;
 
@@ -18,7 +19,9 @@ void AcyclicGraph::setErrorLog (ErrorLog errorLogToInvoke)
 bool AcyclicGraph::insert (const std::string& key, const Object& value, const std::set<std::string>& incoming)
 {
     if (wouldCreateCycle (key, incoming))
-        return false;
+    {
+        throw std::invalid_argument ("AcyclicGraph: would create a reference cycle");
+    }
 
     /*
      getOutgoingEdges is O(N) if it's not already in the graph.
@@ -48,14 +51,14 @@ bool AcyclicGraph::insert (const std::string& key, const Object& value, const st
     node.incoming = incoming;
     node.outgoing = outgoing;
 
-    if (listener)
-        listener (key, node.concrete);
-
     for (const auto& o : node.outgoing)
         mark (o);
 
     nodes.emplace (key, node);
     updateRecurse (key);
+
+    if (listener)
+        listener (key, node.concrete);
 
     return true;
 }
@@ -183,19 +186,50 @@ const std::string& AcyclicGraph::error (const std::string& key) const
     return nodes.at (key).error;
 }
 
-Object::List AcyclicGraph::select (NodePredicate predicate) const
+std::vector<std::string> AcyclicGraph::select (NodePredicate predicate) const
 {
-    auto s = Object::List();
+    auto s = std::vector<std::string>();
 
     for (const auto& node : nodes)
-        if (predicate (node.second))
+        if (! predicate || predicate (node.second))
             s.push_back (node.first);
 
-    std::sort (s.begin(), s.end(), [] (const Object& a, const Object& b)
-    {
-        return a.get<std::string>() < b.get<std::string>();
-    });
+    std::sort (s.begin(), s.end(), [] (const std::string& a, const std::string& b) { return a < b; });
     return s;
+}
+
+AcyclicGraph::Status AcyclicGraph::status (const std::string& key) const
+{
+    if (! contains (key))
+    {
+        Status s;
+        Object dummy;
+        s["key"] = key;
+        s["expr"] = "";
+        s["type"] = 'n';
+        s["descr"] = "";
+        s["error"] = "";
+        return s;
+    }
+
+    const Node& node = nodes.at (key);
+    Status s;
+    s["key"] = key;
+    s["expr"] = node.abstract.expression();
+    s["type"] = node.concrete.type();
+    s["descr"] = "";
+    s["error"] = node.error;
+    return s;
+}
+
+std::vector<AcyclicGraph::Status> AcyclicGraph::status (const std::vector<std::string>& keys) const
+{
+    std::vector<Status> res;
+    res.reserve (keys.size());
+
+    for (const auto& key : keys)
+        res.push_back (status (key));
+    return res;
 }
 
 Object::Dict AcyclicGraph::scope() const

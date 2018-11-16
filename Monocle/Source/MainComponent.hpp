@@ -5,6 +5,7 @@
 #include "AppSkeleton.hpp"
 #include "FileManager.hpp"
 #include "Database.hpp"
+#include "KernelListView.hpp"
 #include "Kernel/AcyclicGraph.hpp"
 
 
@@ -144,6 +145,7 @@ class MainComponent
 , public ApplicationCommandTarget
 , private FileManager::Listener
 , private FileListView::Listener
+, private KernelListView::Listener
 , private FileDetailsView::Listener
 , private FigureView::Listener
 {
@@ -170,6 +172,10 @@ private:
     void fileListSelectionChanged (const StringArray& files) override;
 
     //==========================================================================
+    void kernelListSelectionChanged (const StringArray& symbols) override;
+    void kernelListSymbolsRemoved (const StringArray& symbols) override;
+
+    //==========================================================================
     void filterNameChanged (const String& newName) override;
 
     //==========================================================================
@@ -179,6 +185,8 @@ private:
     void figureViewSetYlabel (FigureView* figure, const String& value) override;
     void figureViewSetTitle (FigureView* figure, const String& value) override;
 
+    static StringArray stringArrayFromStdStringVector (const std::vector<std::string>&);
+
     //==========================================================================
     AppSkeleton       skeleton;
     FigureView        figure;
@@ -186,6 +194,7 @@ private:
     FileListView      fileList;
     FileDetailsView   fileDetail;
     DualComponentView fileListAndDetail;
+    KernelListView    kernelList;
 
     //==========================================================================
     FileManager fileManager;

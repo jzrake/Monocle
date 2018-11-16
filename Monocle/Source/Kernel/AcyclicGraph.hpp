@@ -34,7 +34,7 @@ public:
         std::set<std::string> incoming;
         std::set<std::string> outgoing;
     };
-
+    using Status = std::unordered_map<std::string, std::string>;
     using NodePredicate = std::function<bool (const Node&)>;
     using NodeMap = std::unordered_map<std::string, Node>;
     using NodeSet = std::unordered_set<std::string>;
@@ -109,8 +109,22 @@ public:
     /** Return the error string associated with the evaluation of a node. */
     const std::string& error (const std::string& key) const;
 
-    /** Return a list of all key names with nodes satisfying the given predicate. */
-    Object::List select (NodePredicate predicate) const;
+    /** Return a list of all key names with nodes satisfying the given predicate. If
+        the predicate is nullptr, then all the symbol names are returned.
+     */
+    std::vector<std::string> select (NodePredicate predicate=nullptr) const;
+
+    /** Return a dictionary describing the symbols:
+
+        key ..... the symbol's key name
+        type .... a single character corresponding to the concrete object type
+        expr .... the expression string if the abstract object is an expression
+        descr ... a succinct string description of the concrete object (not yet implemented)
+        error ... a non-empty string if it's an expression and its evaluation has failed
+     */
+    Status status (const std::string& key) const;
+
+    std::vector<Status> status (const std::vector<std::string>& keys) const;
 
     /** Return a mapping of all the data items in the graph to their concrete
         values.

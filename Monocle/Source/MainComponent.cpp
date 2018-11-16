@@ -1,7 +1,8 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
+#include "Kernel/Expression.hpp" // Need ???
 
-#include "Kernel/Expression.hpp"
+
 
 
 //==============================================================================
@@ -362,13 +363,14 @@ void DualComponentView::layout()
 //==============================================================================
 MainComponent::MainComponent()
 {
-    skeleton.addNavButton ("Sources",  material::bintos (material::action::ic_list));
+    skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
     skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
     skeleton.setMainContent (figure);
     skeleton.setNavPage ("Notes", notesPage);
     skeleton.setNavPage ("Files", fileListAndDetail);
+    skeleton.setNavPage ("Symbols", kernelList);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -384,6 +386,7 @@ MainComponent::MainComponent()
 
     fileManager.addListener (this);
     fileList   .addListener (this);
+    kernelList .addListener (this);
     fileDetail .addListener (this);
     figure     .addListener (this);
 
@@ -399,13 +402,19 @@ MainComponent::MainComponent()
     mcl::Object::testSymbolResolution();
     mcl::Object::testAnyConstruction();
 
-    auto f = [] (const Object::List&, const Object::Dict&) { /*DBG("make-figure");*/ return Object(); };
-    kernel.setListener ([] (const std::string& key, const mcl::Object& val) { /*DBG("changed " << key);*/ });
-    kernel.setErrorLog ([] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
+    auto f = [] (const Object::List&, const Object::Dict&) { return std::string(); };
+
+    kernel.setListener ([this] (const std::string& key, const mcl::Object& val)
+    {
+        auto status = kernel.status (key);
+        kernelList.updateSymbolStatus (key, status);
+    });
+
+    kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
     kernel.insert ("make-figure", Object::Func (f));
     kernel.insert ("fig", Object::Expr ("(make-figure fig:limits)"));
 
-    // mcl::Expression {f, Expression("a"), 34, mcl::Expression{f, "ASD"}};
+    kernelList.setSymbolList (kernel.status (kernel.select()));
 }
 
 MainComponent::~MainComponent()
@@ -488,6 +497,19 @@ void MainComponent::fileListSelectionChanged (const StringArray& files)
 }
 
 //==========================================================================
+void MainComponent::kernelListSelectionChanged (const StringArray& symbols)
+{
+}
+
+void MainComponent::kernelListSymbolsRemoved (const StringArray& symbols)
+{
+    for (const auto& key : symbols)
+        kernel.remove (key.toStdString());
+
+    kernelList.setSymbolList (kernel.status (kernel.select()));
+}
+
+//==========================================================================
 void MainComponent::filterNameChanged (const String& newName)
 {
     for (const auto& file : fileList.getSelectedFullPathNames())
@@ -530,4 +552,15 @@ void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
 {
     model.title = value;
     figure->setModel (model);
+}
+
+//==========================================================================
+StringArray MainComponent::stringArrayFromStdStringVector (const std::vector<std::string>& strings)
+{
+    StringArray res;
+    res.ensureStorageAllocated (int (strings.size()));
+
+    for (const auto& s : strings)
+        res.add (s);
+    return res;
 }
