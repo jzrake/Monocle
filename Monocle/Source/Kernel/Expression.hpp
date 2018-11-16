@@ -14,12 +14,57 @@ namespace mcl { class Expression; }
 class mcl::Expression
 {
 public:
+
+    struct Part
+    {
+        union {
+            bool        b;
+            int         i;
+            double      d;
+            const char* s = nullptr;
+        };
+
+        char type = 0;            /**< 0 for None, otherwise one of ['b', 'i', 'd', 's'] or ['S', 'E', 'O'] */
+        const char* kw = nullptr; /**< keyword name if keyword argument */
+        const char* id = nullptr; /**< symbol name if symbol in scope */
+        const char* er = nullptr; /**< error string if any occurred */
+
+        size_t slen  = 0;         /**< string length if string, or num args otherwise */
+        size_t kwlen = 0;         /**< kw length if keyword */
+        size_t idlen = 0;         /**< id length if symbol */
+
+        std::vector<Part> parts;  /**< Non-empty if and only if this is an expression */
+        std::string source;       /**< Non-empty only if this is a part of a composite */
+        Object value;             /**< Non-empty only if this is a part of a composite */
+
+        static Part error (const char* message);
+        std::string str() const;
+        std::string symbol() const;
+        std::string keyword() const;
+        std::set<std::string> symbols() const;
+        Object evaluate (const Object::Dict& scope) const;
+        Object evaluate (Object::Scope scope) const;
+        Part withKeyword (const char* keyword, size_t len) const;
+    };
+
+    static Part symbol (const std::string& name);
+    static Part object (const Object& value, const std::string& keyword=std::string());
+
     Expression() {}
 
     /** Instantiate an expression from a source string. Throws std::runtime_error
         in case of a syntax error.
      */
     Expression (const std::string& expression);
+
+    /** Construct an expression programmatically from a single part.
+     */
+    Expression (Part root);
+
+    /** Construct an expression programmatically from a list of parts, instead of
+        using the lisp-like language as in the constructor above.
+     */
+    Expression (std::initializer_list<Part> parts);
 
     /** Evaluate an expression from the given scope. Throws std::runtime_error
         if the evaluation fails for any reason.
@@ -36,38 +81,8 @@ public:
     std::set<std::string> symbols() const;
 
     static void testParser();
-
+    static void testProgrammaticConstruction();
 private:
-    struct Part
-    {
-        union {
-            bool        b;
-            int         i;
-            double      d;
-            const char* s = nullptr;
-        };
-
-        char type = 0;            /**< 0 for None, otherwise one of ['b', 'i', 'd', 's'] or ['S', 'E'] */
-        const char* kw = nullptr; /**< keyword name if keyword argument */
-        const char* id = nullptr; /**< symbol name if symbol in scope */
-        const char* er = nullptr; /**< error string if any occurred */
-
-        size_t slen  = 0;         /**< string length if string, or num args otherwise */
-        size_t kwlen = 0;         /**< kw length if keyword */
-        size_t idlen = 0;         /**< id length if symbol */
-
-        std::vector<Part> parts;  /**< Non-empty if and only if this is an expression */
-
-        static Part error (const char* message);
-        std::string str() const;
-        std::string symbol() const;
-        std::string keyword() const;
-        std::set<std::string> symbols() const;
-        Object evaluate (const Object::Dict& scope) const;
-        Object evaluate (Object::Scope scope) const;
-        Part withKeyword (const char* keyword, size_t len) const;
-    };
-
     static bool isSymbolCharacter (char e);
     static bool isNumber (const char* d);
     static const char* getNamedPart (const char*& c);

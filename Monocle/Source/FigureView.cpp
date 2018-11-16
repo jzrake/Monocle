@@ -331,13 +331,12 @@ void FigureView::paintOverChildren (Graphics& g)
     // Compute tick geometry data
     // =================================================================
     auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight());
-    auto xtickPixels     = Ticker::getPixelLocations (xticks);
-    auto xtickLabelBoxes = makeRectanglesInRow (geom.xtickLabelAreaB, xtickPixels, model.tickLabelWidth);
-    auto xtickBoxes      = makeRectanglesInRow (geom.xtickAreaB, xtickPixels, model.tickWidth);
-
     auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY());
+    auto xtickPixels     = Ticker::getPixelLocations (xticks);
     auto ytickPixels     = Ticker::getPixelLocations (yticks);
+    auto xtickLabelBoxes = makeRectanglesInRow    (geom.xtickLabelAreaB, xtickPixels, model.tickLabelWidth);
     auto ytickLabelBoxes = makeRectanglesInColumn (geom.ytickLabelAreaL, ytickPixels, model.tickLabelHeight);
+    auto xtickBoxes      = makeRectanglesInRow    (geom.xtickAreaB, xtickPixels, model.tickWidth);
     auto ytickBoxes      = makeRectanglesInColumn (geom.ytickAreaL, ytickPixels, model.tickWidth);
 
 

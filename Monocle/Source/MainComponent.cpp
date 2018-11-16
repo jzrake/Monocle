@@ -392,11 +392,17 @@ MainComponent::MainComponent()
 
     // Experimenting with kernel
     using namespace mcl;
+
+    mcl::Expression::testParser();
+    mcl::Expression::testProgrammaticConstruction();
+
     auto f = [] (const Object::List&, const Object::Dict&) { /*DBG("make-figure");*/ return Object(); };
     kernel.setListener ([] (const std::string& key, const mcl::Object& val) { /*DBG("changed " << key);*/ });
     kernel.setErrorLog ([] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
     kernel.insert ("make-figure", Object::Func (f));
     kernel.insert ("fig", Object::Expr ("(make-figure fig:limits)"));
+
+    // mcl::Expression {f, Expression("a"), 34, mcl::Expression{f, "ASD"}};
 }
 
 MainComponent::~MainComponent()

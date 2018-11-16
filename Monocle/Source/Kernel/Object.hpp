@@ -53,11 +53,12 @@ public:
         std::vector<Component> parts;
     };
 
+    static Object none() { return None(); }
     static Object dict() { return Dict(); }
     static Object list() { return List(); }
     static Object expr (const std::string& expr) { return Expr (expr); }
     static Object deserialize (const std::vector<char>&);
-    bool none() const { return v.index() == 0; }
+    bool empty() const { return v.index() == 0; }
     char type() const;
 
     Object() : v (None()) {}

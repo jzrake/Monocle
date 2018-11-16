@@ -126,7 +126,7 @@ bool AcyclicGraph::remove (const std::string& key)
             upstream->second.outgoing.erase (key);
     }
 
-    if (listener && ! node->second.concrete.none())
+    if (listener && ! node->second.concrete.empty())
         listener (key, Object());
 
     nodes.erase (node);

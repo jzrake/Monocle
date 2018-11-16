@@ -6,6 +6,40 @@ using namespace mcl;
 
 
 // ============================================================================
+Expression::Part Expression::symbol (const std::string& name)
+{
+    for (auto c : name)
+        if (! isSymbolCharacter(c))
+            throw std::invalid_argument ("Expression::symbol: invalid symbol name");
+
+    Part part;
+    part.source = name;
+    part.id = part.source.data();
+    part.kw = nullptr;
+    part.kwlen = 0;
+    part.type = 'S';
+    part.idlen = name.size();
+    part.value = Object::none();
+    return part;
+}
+
+Expression::Part Expression::object (const Object& value, const std::string& keyword)
+{
+    for (auto c : keyword)
+        if (! isSymbolCharacter(c))
+            throw std::invalid_argument ("Expression::symbol: invalid keyword name");
+
+    Part part;
+    part.source = keyword;
+    part.id = nullptr;
+    part.kw = part.source.data();
+    part.kwlen = keyword.size();
+    part.type = 'O';
+    part.idlen = 0;
+    part.value = value;
+    return part;
+}
+
 Expression::Expression (const std::string& expression)
 {
     source = std::make_shared<std::string> (expression);
@@ -16,6 +50,22 @@ Expression::Expression (const std::string& expression)
     {
         throw std::runtime_error (root.er);
     }
+}
+
+Expression::Expression (Part root) : root (root)
+{
+}
+
+Expression::Expression (std::initializer_list<Part> parts)
+{
+    root.source = std::string();
+    root.id = nullptr;
+    root.kw = nullptr;
+    root.kwlen = 0;
+    root.type = 'E';
+    root.idlen = 0;
+    root.value = Object::none();
+    root.parts = parts;
 }
 
 Object Expression::evaluate (const Object::Dict& scope) const
@@ -31,79 +81,6 @@ Object Expression::evaluate (Object::Scope scope) const
 std::set<std::string> Expression::symbols() const
 {
     return root.symbols();
-}
-
-void Expression::testParser()
-{
-    assert (parse ("12").i == 12);
-    assert (parse ("13").i == 13);
-    assert (parse ("13a").er != nullptr);
-    assert (parse ("13.5").type == 'd');
-    assert (parse ("13.5").d == 13.5);
-    assert (parse ("+12").i == 12);
-    assert (parse ("-12").i ==-12);
-    assert (parse ("+13.5").d == 13.5);
-    assert (parse ("-13.5").d ==-13.5);
-    assert (parse ("+13.5e2").d == 13.5e2);
-    assert (parse ("-13.5e2").d ==-13.5e2);
-    assert (parse ("+13e2").d == 13e2);
-    assert (parse ("-13e2").d ==-13e2);
-    assert (parse ("-.5").d == -.5);
-    assert (parse ("+.5").d == +.5);
-    assert (parse (".5").d == +.5);
-    assert (parse ("-").er != nullptr);
-    assert (parse ("1e2e2").er != nullptr);
-    assert (parse ("1.2.2").er != nullptr);
-    assert (parse ("1e2.2").er != nullptr);
-
-    assert (parse ("Dog").type == 'S');
-    assert (parse ("Dog").idlen == 3);
-    assert (parse ("Dog").symbol() == "Dog");
-    assert (parse ("'Hello'").type == 's');
-    assert (parse ("'Hello'").slen == 5);
-    assert (parse ("'Hello'").str() == "Hello");
-    assert (parse ("'Hello, cat'").str() == "Hello, cat");
-
-    assert (parse ("(Dog 5)").type == 'E');
-    assert (parse ("(Dog 5)").parts.size() == 2);
-    assert (parse ("(Dog 5)").parts[0].type == 'S');
-    assert (parse ("(Dog 5)").parts[0].symbol() == "Dog");
-    assert (parse ("(Dog 5)").parts[1].type == 'i');
-    assert (parse ("(Dog 5)").parts[1].i == 5);
-    assert (parse ("(Dog 5 )").parts[1].i == 5);
-
-    assert (parse ("(Dog 9").er != nullptr);
-    assert (parse ("'Cat 9").er != nullptr);
-
-    assert (parse ("(Cat 'chicken' 'goose' 12)").er == nullptr);
-    assert (parse ("(Cat 'chicken' 'goose' 12)").type == 'E');
-    assert (parse ("(add (mul 1 2) (div 2 3))").type == 'E');
-
-    assert (parse ("a=1").type == 'i');
-    assert (parse ("a=1").keyword() == "a");
-    assert (parse ("cow='moo'").type == 's');
-    assert (parse ("cow='moo'").keyword() == "cow");
-    assert (parse ("deer=(0 1 2 3)").type == 'E');
-    assert (parse ("deer=(0 1 2 3)").keyword() == "deer");
-    assert (parse ("deer=(0 1 2 3)").parts.size() == 4);
-    assert (parse ("deer=(0 1 2 3)").parts[0].i == 0);
-    assert (parse ("deer=(0 1 2 3)").parts[3].i == 3);
-    
-    assert (parse ("(a b c)").symbols().size() == 3);
-    assert (parse ("(a b (A B C))").symbols().size() == 5);
-    assert (parse ("(a b (a b c))").symbols().size() == 3);
-
-    auto s = Object::Dict();
-    s.emplace ("a", 1.0);
-    s.emplace ("b", 2.0);
-    s.emplace ("add", Object::Func ([] (const Object::List& ar, const Object::Dict& kw)
-    {
-        return ar.at (0).get<double>() + ar.at (1).get<double>();
-    }));
-
-    assert (Expression ("a").evaluate (s).get<double>() == 1.0);
-    assert (Expression ("b").evaluate (s).get<double>() == 2.0);
-    assert (Expression ("(add a b)").evaluate (s).get<double>() == 3.0);
 }
 
 
@@ -381,6 +358,7 @@ Object Expression::Part::evaluate (Object::Scope scope) const
         case 'd': return d;
         case 's': return str();
         case 'S': return scope (symbol());
+        case 'O': return value.resolve (scope);
         case 'E':
         {
             if (parts.size() == 0)
@@ -427,4 +405,91 @@ Expression::Part Expression::Part::withKeyword (const char* keyword, size_t len)
     p.kw = keyword;
     p.kwlen = len;
     return p;
+}
+
+
+
+
+// ============================================================================
+void Expression::testParser()
+{
+    assert (parse ("12").i == 12);
+    assert (parse ("13").i == 13);
+    assert (parse ("13a").er != nullptr);
+    assert (parse ("13.5").type == 'd');
+    assert (parse ("13.5").d == 13.5);
+    assert (parse ("+12").i == 12);
+    assert (parse ("-12").i ==-12);
+    assert (parse ("+13.5").d == 13.5);
+    assert (parse ("-13.5").d ==-13.5);
+    assert (parse ("+13.5e2").d == 13.5e2);
+    assert (parse ("-13.5e2").d ==-13.5e2);
+    assert (parse ("+13e2").d == 13e2);
+    assert (parse ("-13e2").d ==-13e2);
+    assert (parse ("-.5").d == -.5);
+    assert (parse ("+.5").d == +.5);
+    assert (parse (".5").d == +.5);
+    assert (parse ("-").er != nullptr);
+    assert (parse ("1e2e2").er != nullptr);
+    assert (parse ("1.2.2").er != nullptr);
+    assert (parse ("1e2.2").er != nullptr);
+
+    assert (parse ("Dog").type == 'S');
+    assert (parse ("Dog").idlen == 3);
+    assert (parse ("Dog").symbol() == "Dog");
+    assert (parse ("'Hello'").type == 's');
+    assert (parse ("'Hello'").slen == 5);
+    assert (parse ("'Hello'").str() == "Hello");
+    assert (parse ("'Hello, cat'").str() == "Hello, cat");
+
+    assert (parse ("(Dog 5)").type == 'E');
+    assert (parse ("(Dog 5)").parts.size() == 2);
+    assert (parse ("(Dog 5)").parts[0].type == 'S');
+    assert (parse ("(Dog 5)").parts[0].symbol() == "Dog");
+    assert (parse ("(Dog 5)").parts[1].type == 'i');
+    assert (parse ("(Dog 5)").parts[1].i == 5);
+    assert (parse ("(Dog 5 )").parts[1].i == 5);
+
+    assert (parse ("(Dog 9").er != nullptr);
+    assert (parse ("'Cat 9").er != nullptr);
+
+    assert (parse ("(Cat 'chicken' 'goose' 12)").er == nullptr);
+    assert (parse ("(Cat 'chicken' 'goose' 12)").type == 'E');
+    assert (parse ("(add (mul 1 2) (div 2 3))").type == 'E');
+
+    assert (parse ("a=1").type == 'i');
+    assert (parse ("a=1").keyword() == "a");
+    assert (parse ("cow='moo'").type == 's');
+    assert (parse ("cow='moo'").keyword() == "cow");
+    assert (parse ("deer=(0 1 2 3)").type == 'E');
+    assert (parse ("deer=(0 1 2 3)").keyword() == "deer");
+    assert (parse ("deer=(0 1 2 3)").parts.size() == 4);
+    assert (parse ("deer=(0 1 2 3)").parts[0].i == 0);
+    assert (parse ("deer=(0 1 2 3)").parts[3].i == 3);
+
+    assert (parse ("(a b c)").symbols().size() == 3);
+    assert (parse ("(a b (A B C))").symbols().size() == 5);
+    assert (parse ("(a b (a b c))").symbols().size() == 3);
+
+    auto s = Object::Dict();
+    s.emplace ("a", 1.0);
+    s.emplace ("b", 2.0);
+    s.emplace ("add", Object::Func ([] (const Object::List& ar, const Object::Dict& kw)
+                                    {
+                                        return ar.at (0).get<double>() + ar.at (1).get<double>();
+                                    }));
+
+    assert (Expression ("a").evaluate (s).get<double>() == 1.0);
+    assert (Expression ("b").evaluate (s).get<double>() == 2.0);
+    assert (Expression ("(add a b)").evaluate (s).get<double>() == 3.0);
+}
+
+void Expression::testProgrammaticConstruction()
+{
+    Object::Dict scope;
+    scope["a"] = 12;
+    scope["f"] = Object::Func ([] (auto, auto) { return 10; });
+    assert (Expression::symbol ("a").parts.empty());
+    assert (Expression (Expression::symbol ("a")).evaluate (scope) == 12);
+    assert (Expression ({Expression::symbol ("f")}).evaluate (scope) == 10);
 }
