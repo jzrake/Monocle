@@ -395,6 +395,9 @@ MainComponent::MainComponent()
 
     mcl::Expression::testParser();
     mcl::Expression::testProgrammaticConstruction();
+    mcl::Object::testSerialization();
+    mcl::Object::testSymbolResolution();
+    mcl::Object::testAnyConstruction();
 
     auto f = [] (const Object::List&, const Object::Dict&) { /*DBG("make-figure");*/ return Object(); };
     kernel.setListener ([] (const std::string& key, const mcl::Object& val) { /*DBG("changed " << key);*/ });

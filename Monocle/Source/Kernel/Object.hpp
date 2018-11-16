@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include "Variant.hpp"
+#include "Any.hpp"
 
 namespace mcl { class Object; }
 
@@ -42,15 +43,13 @@ public:
         std::function<Object (const List&, const Dict&)> f = nullptr;
     };
 
-    /** Data structure describing an entry within an object. */
-    struct Path
+    struct Any
     {
-        using Component = mpark::variant<std::size_t, std::string>;
-        Path();
-        Path concat (const std::size_t& index) const;
-        Path concat (const std::string& index) const;
-        bool empty() const { return parts.empty(); }
-        std::vector<Component> parts;
+        Any() {}
+        Any (const linb::any& v) : v (v) {}
+        bool operator==(const Any& other) const { return false; }
+        bool operator!=(const Any& other) const { return true; }
+        linb::any v;
     };
 
     static Object none() { return None(); }
@@ -58,6 +57,8 @@ public:
     static Object list() { return List(); }
     static Object expr (const std::string& expr) { return Expr (expr); }
     static Object deserialize (const std::vector<char>&);
+    template <typename T> static Object any (const T& v) { return Any (linb::any (v)); }
+
     bool empty() const { return v.index() == 0; }
     char type() const;
 
@@ -65,6 +66,7 @@ public:
     template<typename T> Object (const T& v) : v (v) {}
     template <typename T> T& get() { return mpark::get<T>(v);}
     template <typename T> const T& get() const { return mpark::get<T>(v);}
+    template <typename T> const T& get_any() const { return linb::any_cast<T> (mpark::get<Any>(v).v); }
     template <typename T> void set (const T& w) { v.emplace<T>(w); }
     template <typename T> Object& operator= (const T& w) { v.emplace<T>(w); return *this; }
 
@@ -73,20 +75,14 @@ public:
     const Object& operator[] (const char* index) const;
     const Object& operator[] (const std::string& index) const;
     const Object& operator[] (const std::size_t& index) const;
-    const Object& operator[] (const Path::Component& part) const;
-    const Object& operator[] (const Path& path) const;
 
     Object& operator[] (const char* index);
     Object& operator[] (const std::string& index);
     Object& operator[] (const std::size_t& index);
-    Object& operator[] (const Path::Component& part);
-    Object& operator[] (const Path& path);
 
     Object with (const char* index, const Object& value) const;
     Object with (const std::string& index, const Object& value) const;
     Object with (const std::size_t& index, const Object& value) const;
-    Object with (const Path::Component& part, const Object& value) const;
-    Object with (const Path& path, const Object& value) const;
 
     /** Operations applying only to dictionary objects. */
     Object including (const Object& other) const;
@@ -121,6 +117,7 @@ public:
     std::vector<char> serialize() const;
     static void testSerialization();
     static void testSymbolResolution();
+    static void testAnyConstruction();
 
 private:
     class Serializer;
@@ -133,6 +130,6 @@ private:
     Dict,
     Expr,
     Func,
+    Any,
     std::string> v;
 };
-

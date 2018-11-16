@@ -9,14 +9,6 @@ using namespace mcl;
 
 
 // ============================================================================
-Object::Path::Path() {}
-Object::Path Object::Path::concat (const std::size_t& index) const { auto p = *this; p.parts.push_back (index); return p; }
-Object::Path Object::Path::concat (const std::string& index) const { auto p = *this; p.parts.push_back (index); return p; }
-
-
-
-
-// ============================================================================
 class Object::Serializer
 {
 public:
@@ -159,7 +151,8 @@ private:
             case 5: pack ('D'); packDict (value.get<Dict>()); break;
             case 6: pack ('E'); packExpr (value.get<Expr>()); break;
             case 7: pack ('F'); packString ("<function>"); break;
-            case 8: pack ('S'); packString (value.get<std::string>()); break;
+            case 8: pack ('A'); packString ("<any>"); break;
+            case 9: pack ('S'); packString (value.get<std::string>()); break;
         }
     }
 
@@ -175,6 +168,7 @@ private:
             case 'D': return unpackDict();
             case 'E': return unpackExpr();
             case 'F': return unpackString();
+            case 'A': return unpackString();
             case 'S': return unpackString();
         }
         throw;
@@ -206,7 +200,8 @@ char Object::type() const
         case 5: return 'D';
         case 6: return 'E';
         case 7: return 'F';
-        case 8: return 'S';
+        case 8: return 'A';
+        case 9: return 'S';
     }
     return 0;
 }
@@ -226,27 +221,6 @@ const Object& Object::operator[] (const std::size_t& index) const
     return mpark::get<List>(v).at (index);
 }
 
-const Object& Object::operator[] (const Path::Component& part) const
-{
-    switch (part.index())
-    {
-        case 0: return operator[] (mpark::get<std::size_t> (part));
-        case 1: return operator[] (mpark::get<std::string> (part));
-    }
-    throw;
-}
-
-const Object& Object::operator[] (const Path& path) const
-{
-    auto object = this;
-
-    for (const auto& part : path.parts)
-    {
-        object = &object->operator[] (part);
-    }
-    return *object;
-}
-
 Object& Object::operator[] (const char* index)
 {
     return mpark::get<Dict>(v)[index];
@@ -260,27 +234,6 @@ Object& Object::operator[] (const std::string& index)
 Object& Object::operator[] (const std::size_t& index)
 {
     return mpark::get<List>(v).at (index);
-}
-
-Object& Object::operator[] (const Path::Component& part)
-{
-    switch (part.index())
-    {
-        case 0: return operator[] (mpark::get<std::size_t> (part));
-        case 1: return operator[] (mpark::get<std::string> (part));
-    }
-    throw;
-}
-
-Object& Object::operator[] (const Path& path)
-{
-    auto object = this;
-
-    for (const auto& part : path.parts)
-    {
-        object = &object->operator[] (part);
-    }
-    return *object;
 }
 
 Object Object::with (const char* index, const Object& value) const
@@ -301,20 +254,6 @@ Object Object::with (const std::size_t& index, const Object& value) const
 {
     auto object = *this;
     object[index] = value;
-    return object;
-}
-
-Object Object::with (const Path::Component& part, const Object& value) const
-{
-    auto object = *this;
-    object[part] = value;
-    return object;
-}
-
-Object Object::with (const Path& path, const Object& value) const
-{
-    auto object = *this;
-    object[path] = value;
     return object;
 }
 
@@ -453,4 +392,14 @@ void Object::testSymbolResolution()
     assert (Object::dict()
             .with ("A", Object::Expr ("(add a b)"))
             .with ("B", Object::Expr ("(sub a b)")).resolve (scope)["B"] ==-1.0);
+}
+
+void Object::testAnyConstruction()
+{
+    struct Test {};
+    auto a = Object::any (123);
+    auto b = Object::any (Test());
+
+    assert(a.get_any<int>() == 123);
+    b.get_any<Test>();
 }
