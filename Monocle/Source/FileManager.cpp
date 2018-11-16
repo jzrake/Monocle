@@ -26,8 +26,14 @@ void FileManager::setPollingInterval (int millisecondsBetweenPolling)
 
 void FileManager::setFilterName (const String &filename, const String &filter)
 {
-    auto n = statuses.indexOf ( File (filename));
+    auto n = statuses.indexOf (File (filename));
     statuses.getReference(n).filter = filter;
+}
+
+void FileManager::setUniqueKey (const String &filename, const std::string &key)
+{
+    auto n = statuses.indexOf (File (filename));
+    statuses.getReference(n).uniqueKey = key;
 }
 
 void FileManager::addFile (File file)

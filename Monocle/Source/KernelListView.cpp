@@ -54,25 +54,29 @@ StringArray KernelListView::getSelectedSymbols() const
 
 void KernelListView::updateSymbolStatus (const std::string& key, const Status& status)
 {
-    int n = 0;
+    int row = findSymbol (key);
 
-    for (const auto& status : statuses)
+    if (status.at ("exist").empty()) // symbol is not in the kernel
     {
-        if (status.at ("key") == key)
-            break;
-        ++n;
+        if (row != -1) // symbol is in the list box
+        {
+            statuses.erase (statuses.begin() + row);
+            updateContent();
+        }
     }
-
-    if (n < statuses.size())
+    else // symbol is in the kernel
     {
-        statuses[n] = status;
-        repaintRow (n);
-    }
-    else
-    {
-        statuses.push_back (status);
-        std::sort (statuses.begin(), statuses.end(), [] (const auto& a, const auto& b) { return a.at ("key") < b.at ("key"); });
-        updateContent();
+        if (row != -1) // symbol is in the list box
+        {
+            statuses[row] = status;
+            repaintRow (row);
+        }
+        else // symbol is not in the list box
+        {
+            statuses.push_back (status);
+            std::sort (statuses.begin(), statuses.end(), [] (const auto& a, const auto& b) { return a.at ("key") < b.at ("key"); });
+            updateContent();
+        }
     }
 }
 
@@ -116,12 +120,9 @@ void KernelListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
     g.setColour (Colours::black);
     g.setFont (Font ("Monaco", 12, 0));
 
-//    if (isExpr)
-//        g.drawText (statuses[row].at ("key") + " = " + statuses[row].at ("expr"), h, 0, w, h, Justification::centredLeft);
-//    else
-//        g.drawText (statuses[row].at ("key"), h, 0, w, h, Justification::centredLeft);
-
-    g.drawText (statuses[row].at ("key"), h, 0, w, h, Justification::centredLeft);
+    auto key = statuses[row].at ("key");
+    auto descr = statuses[row].at ("descr");
+    g.drawText (key + (descr.empty() ? "" : " = " + descr), h, 0, w, h, Justification::centredLeft);
 
     if (iconL) iconL->drawWithin (g, iconRectL, RectanglePlacement::fillDestination, 1.f);
     if (iconC) iconC->drawWithin (g, iconRectC, RectanglePlacement::fillDestination, 1.f);
@@ -184,6 +185,20 @@ void KernelListView::sendDeleteSelectedSymbols()
     auto filesToDelete = getSelectedSymbols();
     selectRow (newSelection);
     listeners.call (&Listener::kernelListSymbolsRemoved, getSelectedSymbols());
+}
+
+int KernelListView::findSymbol (const std::string& key)
+{
+    int n = 0;
+
+    for (const auto& status : statuses)
+    {
+        if (status.at ("key") == key)
+            break;
+        ++n;
+    }
+    return n < statuses.size() ? n : -1;
+    
 }
 
 Drawable* KernelListView::getIconForType (char type)

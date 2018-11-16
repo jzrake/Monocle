@@ -483,10 +483,16 @@ void MainComponent::fileListFilesInserted (const StringArray& files, int index)
 {
     fileManager.insertFiles (files, index);
     fileList.setFileList (fileManager.getFiles());
+
+    for (const auto& file : files)
+        kernel.insert (File (file).getFileNameWithoutExtension().toStdString(), file.toStdString());
 }
 
 void MainComponent::fileListFilesRemoved (const StringArray& files)
 {
+    for (const auto& file : files)
+        kernel.remove (File (file).getFileNameWithoutExtension().toStdString());
+
     fileManager.removeFiles (files);
     fileList.setFileList (fileManager.getFiles());
 }

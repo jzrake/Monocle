@@ -47,6 +47,7 @@ public:
 
 private:
     void sendDeleteSelectedSymbols();
+    int findSymbol (const std::string& key);
     Drawable* getIconForType (char type);
 
     std::vector<Status> statuses;

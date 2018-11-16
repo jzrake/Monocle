@@ -22,6 +22,7 @@ public:
     void removeListener (Listener* listener);
     void setPollingInterval (int millisecondsBetweenPolling);
     void setFilterName (const String& filename, const String& filter);
+    void setUniqueKey (const String& filename, const std::string& key);
     void addFile (File);
     void removeFile (File);
     void insertFiles (const StringArray& filenames, int index);
@@ -41,6 +42,7 @@ private:
         Time modified;
         bool existed = false;
         String filter;
+        std::string uniqueKey;
     };
 
     void timerCallback() override;

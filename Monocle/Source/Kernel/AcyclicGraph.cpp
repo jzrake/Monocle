@@ -129,11 +129,11 @@ bool AcyclicGraph::remove (const std::string& key)
             upstream->second.outgoing.erase (key);
     }
 
-    if (listener && ! node->second.concrete.empty())
-        listener (key, Object());
-
     nodes.erase (node);
     dirty.erase (key);
+
+    if (listener)
+        listener (key, Object());
 
     return true;
 }
@@ -208,6 +208,7 @@ AcyclicGraph::Status AcyclicGraph::status (const std::string& key) const
         s["expr"] = "";
         s["type"] = 'n';
         s["descr"] = "";
+        s["exist"] = "";
         s["error"] = "";
         return s;
     }
@@ -217,7 +218,8 @@ AcyclicGraph::Status AcyclicGraph::status (const std::string& key) const
     s["key"] = key;
     s["expr"] = node.abstract.expression();
     s["type"] = node.concrete.type();
-    s["descr"] = "";
+    s["descr"] = node.concrete.type() == 'S' ? "'" + node.concrete.get<std::string>() + "'" : "";
+    s["exist"] = "1";
     s["error"] = node.error;
     return s;
 }
