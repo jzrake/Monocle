@@ -61,4 +61,5 @@ private:
     std::unique_ptr<Drawable> iconDict;
     std::unique_ptr<Drawable> iconFunction;
     std::unique_ptr<Drawable> iconRightArrow;
+    std::unique_ptr<Drawable> iconError;
 };

@@ -71,6 +71,11 @@ public:
      */
     std::string insert (const Object& item);
 
+    /** Trigger an update of any expression downstream of the given symbol, even if the
+        data associated with it has not changed.
+     */
+    void touch (const std::string& key);
+
     /** Generate a random key that does not exist in the graph. */
     std::string nextRandomKey() const;
 

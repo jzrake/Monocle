@@ -51,5 +51,5 @@ private:
     bool sourceListVisible = false;
     int topNavHeight = 40;
     int leftNavWidth = 60;
-    int sourceListWidth = 200;
+    int sourceListWidth = 250;
 };

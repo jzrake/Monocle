@@ -63,6 +63,19 @@ bool AcyclicGraph::insert (const std::string& key, const Object& value, const st
     return true;
 }
 
+void AcyclicGraph::touch (const std::string& key)
+{
+    if (! contains (key))
+        return;
+
+    mark (key);
+
+    if (listener)
+        listener (key, concrete (key));
+
+    updateRecurse (key);
+}
+
 bool AcyclicGraph::insert (const std::string& key, const Object& item)
 {
     return insert (key, item, item.symbols());

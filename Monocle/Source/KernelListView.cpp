@@ -21,6 +21,7 @@ KernelListView::KernelListView()
     iconList       = material::util::icon (material::editor::ic_format_list_numbered, Colours::darkmagenta);
     iconAny        = material::util::icon (material::device::ic_storage, Colours::purple);
     iconRightArrow = material::util::icon (material::navigation::ic_arrow_forward, Colours::black);
+    iconError      = material::util::icon (material::alert::ic_error, Colours::red);
 }
 
 void KernelListView::addListener (Listener* listener)
@@ -105,7 +106,11 @@ void KernelListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
         g.fillRect (0, 0, w, h);
     }
 
-    auto isExpr = ! statuses[row].at ("expr").empty();
+    auto key     =   statuses[row].at ("key");
+    auto descr   =   statuses[row].at ("descr");
+    auto isExpr  = ! statuses[row].at ("expr").empty();
+    auto isError = ! statuses[row].at ("error").empty();
+
     auto iconAreaL = Rectangle<float> (0, 0, h, h);
     auto iconAreaC = Rectangle<float> (w - 2 * h, 0, h, h);
     auto iconAreaR = Rectangle<float> (w - 1 * h, 0, h, h);
@@ -117,11 +122,11 @@ void KernelListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
     Drawable* iconC = isExpr ? iconRightArrow.get() : nullptr;
     Drawable* iconR = isExpr ? getIconForType (statuses[row].at ("type").front()) : nullptr;
 
+    if (isError)
+        iconR = iconError.get();
+
     g.setColour (Colours::black);
     g.setFont (Font ("Monaco", 12, 0));
-
-    auto key = statuses[row].at ("key");
-    auto descr = statuses[row].at ("descr");
     g.drawText (key + (descr.empty() ? "" : " = " + descr), h, 0, w, h, Justification::centredLeft);
 
     if (iconL) iconL->drawWithin (g, iconRectL, RectanglePlacement::fillDestination, 1.f);
@@ -175,7 +180,7 @@ void KernelListView::listWasScrolled()
 
 String KernelListView::getTooltipForRow (int row)
 {
-    return String();
+    return statuses[row].at ("error");
 }
 
 //==============================================================================
@@ -183,8 +188,8 @@ void KernelListView::sendDeleteSelectedSymbols()
 {
     auto newSelection = getSelectedRows().getRange(0).getStart();
     auto filesToDelete = getSelectedSymbols();
-    selectRow (newSelection);
     listeners.call (&Listener::kernelListSymbolsRemoved, getSelectedSymbols());
+    selectRow (newSelection);
 }
 
 int KernelListView::findSymbol (const std::string& key)

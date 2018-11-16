@@ -361,6 +361,26 @@ void DualComponentView::layout()
 
 
 //==============================================================================
+#include <fstream>
+#include "AsciiLoader.hpp"
+
+static mcl::Object load_ascii (const mcl::Object::List& arg, const mcl::Object::Dict&)
+{
+    File f (arg.at(0).get<std::string>());
+
+    std::fstream input (f.getFullPathName().toStdString());
+    mcl::AsciiLoader loader (input);
+
+    if (loader.getStatusMessage().isNotEmpty())
+        throw std::runtime_error (loader.getStatusMessage().toStdString());
+
+    return f.getLastModificationTime().toString (false, true).toStdString();
+}
+
+
+
+
+//==============================================================================
 MainComponent::MainComponent()
 {
     skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
@@ -393,17 +413,6 @@ MainComponent::MainComponent()
     addAndMakeVisible (skeleton);
     setSize (800, 600);
 
-    // Experimenting with kernel
-    using namespace mcl;
-
-    mcl::Expression::testParser();
-    mcl::Expression::testProgrammaticConstruction();
-    mcl::Object::testSerialization();
-    mcl::Object::testSymbolResolution();
-    mcl::Object::testAnyConstruction();
-
-    auto f = [] (const Object::List&, const Object::Dict&) { return std::string(); };
-
     kernel.setListener ([this] (const std::string& key, const mcl::Object& val)
     {
         auto status = kernel.status (key);
@@ -411,8 +420,8 @@ MainComponent::MainComponent()
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
-    kernel.insert ("make-figure", Object::Func (f));
-    kernel.insert ("fig", Object::Expr ("(make-figure fig:limits)"));
+    kernel.insert ("load-ascii", mcl::Object::Func (load_ascii));
+    kernel.insert ("test-data", mcl::Object::expr ("(load-ascii test)"));
 
     kernelList.setSymbolList (kernel.status (kernel.select()));
 }
@@ -476,6 +485,7 @@ void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
     fileList.updateFileDisplayStatus (file);
     fileDetail.updateFileDetailsIfShowing (file);
+    kernel.touch (File (file).getFileNameWithoutExtension().toStdString());
 }
 
 //==========================================================================
@@ -511,8 +521,6 @@ void MainComponent::kernelListSymbolsRemoved (const StringArray& symbols)
 {
     for (const auto& key : symbols)
         kernel.remove (key.toStdString());
-
-    kernelList.setSymbolList (kernel.status (kernel.select()));
 }
 
 //==========================================================================
@@ -538,7 +546,6 @@ void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<dou
     model.xmax = domain.getRight();
     model.ymin = domain.getY();
     model.ymax = domain.getBottom();
-    kernel.insert ("fig:limits", mcl::Object::List {model.xmin, model.xmax, model.ymin, model.ymax});
     figure->setModel (model);
 }
 
