@@ -3,6 +3,25 @@
 <JUCERPROJECT id="kg5oxC" name="Monocle" projectType="guiapp" jucerVersion="5.4.1">
   <MAINGROUP id="fvSsVB" name="Monocle">
     <GROUP id="{09AE327B-DBED-6613-8257-BC56EFBB0B95}" name="Source">
+      <GROUP id="{5E218EDD-6D3B-C109-F1AE-84C0376E9ACE}" name="3rdParty">
+        <GROUP id="{29366588-E833-1EBB-9CAD-61DB16896DFD}" name="ndarray">
+          <GROUP id="{B298AC27-21FC-19EF-3E3A-B61FF89AA752}" name="include">
+            <FILE id="Kx6HJG" name="ndarray.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/include/ndarray.hpp"/>
+          </GROUP>
+          <FILE id="vNzU8X" name="buffer.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/buffer.hpp"/>
+          <FILE id="kCib4Y" name="catch.cpp" compile="0" resource="0" file="Source/3rdParty/ndarray/catch.cpp"/>
+          <FILE id="Y5kRfM" name="catch.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/catch.hpp"/>
+          <FILE id="qt5Cxl" name="collate.sh" compile="0" resource="0" file="Source/3rdParty/ndarray/collate.sh"/>
+          <FILE id="U4soxp" name="main.cpp" compile="0" resource="0" file="Source/3rdParty/ndarray/main.cpp"/>
+          <FILE id="S6LsdR" name="Makefile" compile="0" resource="0" file="Source/3rdParty/ndarray/Makefile"/>
+          <FILE id="ZAMiOc" name="ndarray.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/ndarray.hpp"/>
+          <FILE id="rZQ5jL" name="read_file.py" compile="0" resource="0" file="Source/3rdParty/ndarray/read_file.py"/>
+          <FILE id="GjbzMJ" name="README.md" compile="0" resource="0" file="Source/3rdParty/ndarray/README.md"/>
+          <FILE id="O6tI0p" name="selector.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/selector.hpp"/>
+          <FILE id="m1ZppC" name="shape.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/shape.hpp"/>
+          <FILE id="P8nA34" name="test.cpp" compile="0" resource="0" file="Source/3rdParty/ndarray/test.cpp"/>
+        </GROUP>
+      </GROUP>
       <GROUP id="{588E0634-C112-C22B-B33A-F9BEB2C84216}" name="Kernel">
         <FILE id="NFnZHZ" name="AcyclicGraph.cpp" compile="1" resource="0"
               file="Source/Kernel/AcyclicGraph.cpp"/>

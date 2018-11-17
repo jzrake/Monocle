@@ -1,6 +1,6 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
-#include "Kernel/Expression.hpp" // Need ???
+#include "3rdParty/ndarray/ndarray.hpp" // Just to prove ndarray can be included
 
 
 
