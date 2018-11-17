@@ -42,11 +42,15 @@ void SymbolDetailsView::SymbolItem::paintItem (Graphics& g, int width, int heigh
 
     std::string descr;
 
-    if (object.type() == 'i')      descr = std::to_string (object.get<int>());
-    else if (object.type() == 'S') descr = object.get<std::string>();
+    if (false) {}
+    else if (object.type() == 'n') descr = "None";
+    else if (object.type() == 'b') descr = std::to_string (object.get<bool>());
+    else if (object.type() == 'i') descr = std::to_string (object.get<int>());
+    else if (object.type() == 'd') descr = std::to_string (object.get<double>());
     else if (object.type() == 'L') descr = "List";
     else if (object.type() == 'D') descr = "Dict";
     else if (object.type() == 'F') descr = "Func";
+    else if (object.type() == 'S') descr = object.get<std::string>();
     else                           descr = "Object";
 
     g.drawText (key + " = " + descr, 0, 0, width, height, Justification::centredLeft);

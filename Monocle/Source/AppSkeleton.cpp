@@ -6,6 +6,21 @@
 
 
 //==============================================================================
+void DualComponentView::Resizer::paint (Graphics& g)
+{
+    g.setColour (Colours::lightgrey);
+    g.drawHorizontalLine (getHeight() - 1, 0, getWidth());
+}
+
+MouseCursor DualComponentView::Resizer::getMouseCursor()
+{
+    return MouseCursor::UpDownResizeCursor;
+}
+
+
+
+
+//==============================================================================
 DualComponentView::DualComponentView()
 {
 }
@@ -20,15 +35,6 @@ void DualComponentView::setContent2 (Component& contentFor2)
 {
     content2 = &contentFor2;
     resetContent();
-}
-
-void DualComponentView::paintOverChildren (Graphics& g)
-{
-    if (content2)
-    {
-        g.setColour (Colours::lightgrey);
-        g.drawHorizontalLine (getHeight() - bottomHeight, 0, getWidth());
-    }
 }
 
 void DualComponentView::resized()
@@ -53,16 +59,12 @@ bool DualComponentView::hitTest (int x, int y)
     return x < getWidth() - GAP_WIDTH;
 }
 
-MouseCursor DualComponentView::getMouseCursor()
-{
-    return MouseCursor::UpDownResizeCursor;
-}
-
 void DualComponentView::resetContent()
 {
     removeAllChildren();
     addAndMakeVisible (content1);
     addAndMakeVisible (content2);
+    addAndMakeVisible (resizer);
     layout();
 }
 
@@ -73,7 +75,9 @@ void DualComponentView::layout()
     if (content2)
         content2->setBounds (area.removeFromBottom (bottomHeight));
     if (content1)
-        content1->setBounds (area.withTrimmedBottom (GAP_WIDTH));
+        content1->setBounds (area);
+
+    resizer.setBounds (area.removeFromBottom (GAP_WIDTH));
 }
 
 

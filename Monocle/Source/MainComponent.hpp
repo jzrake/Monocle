@@ -66,11 +66,18 @@ private:
     void startSelectedFilesAsProcess();
     void sendDeleteSelectedFiles();
 
+    class DropOutline : public Component
+    {
+    public:
+        void paint (Graphics&) override;
+    };
+
     Array<File> files;
     ListenerList<Listener> listeners;
     std::unique_ptr<Drawable> fileIcon;
     std::unique_ptr<Drawable> directoryIcon;
     std::unique_ptr<Drawable> nonexistIcon;
+    DropOutline outline;
 };
 
 

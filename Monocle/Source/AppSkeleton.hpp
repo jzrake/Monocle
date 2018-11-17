@@ -11,17 +11,28 @@ public:
     DualComponentView();
     void setContent1 (Component& contentFor1);
     void setContent2 (Component& contentFor2);
-    void paintOverChildren (Graphics&) override;
+
+    // ========================================================================
     void resized() override;
     bool hitTest (int x, int y) override;
     void mouseDown (const MouseEvent&) override;
     void mouseDrag (const MouseEvent&) override;
-    MouseCursor getMouseCursor() override;
+
 private:
     void resetContent();
     void layout();
+
+    // ========================================================================
+    class Resizer : public Component
+    {
+    public:
+        void paint (Graphics&) override;
+        MouseCursor getMouseCursor() override;
+    };
+
     WeakReference<Component> content1;
     WeakReference<Component> content2;
+    Resizer resizer;
     int bottomHeight = 300;
     int bottomHeightAtMouseDown = 0;
 };

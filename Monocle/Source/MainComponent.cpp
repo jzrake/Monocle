@@ -6,12 +6,25 @@
 
 
 //==============================================================================
+void FileListView::DropOutline::paint (Graphics& g)
+{
+
+    g.setColour (Colours::lightblue);
+    g.drawRect (getLocalBounds(), 4);
+}
+
+
+
+
+//==============================================================================
 FileListView::FileListView()
 {
     setModel (this);
-    setOutlineThickness (0);
     setMultipleSelectionEnabled (true);
+    setOutlineThickness (0);
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
+    addChildComponent (outline);
+    outline.setInterceptsMouseClicks (false, false);
 
     fileIcon      = material::util::icon (material::editor::ic_insert_drive_file, Colours::seagreen);
     directoryIcon = material::util::icon (material::file::ic_folder, Colours::skyblue);
@@ -163,20 +176,25 @@ bool FileListView::isInterestedInFileDrag (const StringArray& files)
 {
     return true;
 }
+
 void FileListView::fileDragEnter (const StringArray& files, int x, int y)
 {
-    setColour (ListBox::ColourIds::outlineColourId, Colours::lightblue);
+    outline.setBounds (getLocalBounds());
+    outline.setVisible (true);
 }
+
 void FileListView::fileDragMove (const StringArray& files, int x, int y)
 {
 }
+
 void FileListView::fileDragExit (const StringArray& files)
 {
-    setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
+    outline.setVisible (false);
 }
+
 void FileListView::filesDropped (const StringArray& files, int x, int y)
 {
-    setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
+    outline.setVisible (false);
     listeners.call (&Listener::fileListFilesInserted, files, getInsertionIndexForPosition (x, y));
 }
 
