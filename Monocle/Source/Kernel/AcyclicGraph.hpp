@@ -204,6 +204,7 @@ public:
 
 private:
     bool insert (const std::string& key, const Object& value, const std::set<std::string>& incoming);
+    bool removeWithoutNotificationOrUpdate (const std::string& key);
     void mark (const std::string& key);
 
     NodeMap nodes;

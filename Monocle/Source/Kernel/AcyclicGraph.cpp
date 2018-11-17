@@ -27,15 +27,7 @@ bool AcyclicGraph::insert (const std::string& key, const Object& value, const st
      getOutgoingEdges is O(N) if it's not already in the graph.
      */
     auto outgoing = getOutgoingEdges (key);
-
-    if (contains (key))
-    {
-        auto cachedListener = listener;
-        listener = nullptr; /* prevents listener message from going out twice */
-
-        remove (key);
-        listener = cachedListener;
-    }
+    removeWithoutNotificationOrUpdate (key);
 
     /*
      Add the new node as an outoing edge for all of its incomings.
@@ -124,7 +116,7 @@ void AcyclicGraph::import (const Object::Dict &items)
         insert (item.first, item.second, item.second.symbols());
 }
 
-bool AcyclicGraph::remove (const std::string& key)
+bool AcyclicGraph::removeWithoutNotificationOrUpdate (const std::string& key)
 {
     auto node = nodes.find (key);
 
@@ -145,8 +137,18 @@ bool AcyclicGraph::remove (const std::string& key)
     nodes.erase (node);
     dirty.erase (key);
 
+    return true;
+}
+
+bool AcyclicGraph::remove (const std::string& key)
+{
+    if (! removeWithoutNotificationOrUpdate (key))
+        return false;
+
     if (listener)
         listener (key, Object());
+
+    updateRecurse (key);
 
     return true;
 }
