@@ -68,10 +68,8 @@
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>
       <FILE id="rXamNm" name="FileManager.hpp" compile="0" resource="0" file="Source/FileManager.hpp"/>
-      <FILE id="wSBaqB" name="KernelListView.cpp" compile="1" resource="0"
-            file="Source/KernelListView.cpp"/>
-      <FILE id="Jk18Et" name="KernelListView.hpp" compile="0" resource="0"
-            file="Source/KernelListView.hpp"/>
+      <FILE id="SDIy10" name="Loaders.cpp" compile="1" resource="0" file="Source/Loaders.cpp"/>
+      <FILE id="SXPmqk" name="Loaders.hpp" compile="0" resource="0" file="Source/Loaders.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IE8e5X" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="gnQguV" name="MainComponent.cpp" compile="1" resource="0"
@@ -82,12 +80,18 @@
             file="Source/MaterialIcons.cpp"/>
       <FILE id="dpeOzy" name="MaterialIcons.hpp" compile="0" resource="0"
             file="Source/MaterialIcons.hpp"/>
+      <FILE id="bFr0v1" name="NumericData.cpp" compile="1" resource="0" file="Source/NumericData.cpp"/>
+      <FILE id="RYCvus" name="NumericData.hpp" compile="0" resource="0" file="Source/NumericData.hpp"/>
       <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
       <FILE id="sOHeT2" name="SymbolDetailsView.cpp" compile="1" resource="0"
             file="Source/SymbolDetailsView.cpp"/>
       <FILE id="upcxqe" name="SymbolDetailsView.hpp" compile="0" resource="0"
             file="Source/SymbolDetailsView.hpp"/>
+      <FILE id="wSBaqB" name="SymbolListView.cpp" compile="1" resource="0"
+            file="Source/SymbolListView.cpp"/>
+      <FILE id="Jk18Et" name="SymbolListView.hpp" compile="0" resource="0"
+            file="Source/SymbolListView.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

@@ -1,6 +1,7 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
-#include "3rdParty/ndarray/ndarray.hpp" // Just to prove ndarray can be included
+#include "Kernel/Builtin.hpp"
+#include "Loaders.hpp"
 
 
 
@@ -336,79 +337,6 @@ FileDetailsView::Geometry FileDetailsView::computeGeometry() const
 
 
 //==============================================================================
-#include <fstream>
-#include "AsciiLoader.hpp"
-#include "Kernel/UserData.hpp"
-
-
-
-
-//==============================================================================
-class NumericArrayDouble1 : public mcl::UserData
-{
-public:
-    NumericArrayDouble1() {}
-    NumericArrayDouble1 (nd::ndarray<double, 1> data) : data (data) {}
-    NumericArrayDouble1 (const std::vector<double>& vecdata) : data (int (vecdata.size()))
-    {
-        std::memcpy (&data(0), &vecdata[0], vecdata.size() * sizeof (double));
-    }
-
-    std::string type() const override
-    {
-        return "NumericArrayDouble1";
-    }
-    std::string describe() const override
-    {
-        return "double [" + std::to_string (data.shape()[0]) + "]";
-    }
-    std::string serialize() const override
-    {
-        return "";
-    }
-    bool load (const std::string&) override
-    {
-        return false;
-    }
-    nd::ndarray<double, 1> data;
-};
-
-
-
-
-//==============================================================================
-static mcl::Object load_ascii (const mcl::Object::List& args, const mcl::Object::Dict&)
-{
-    std::fstream input (args.at(0).get<std::string>());
-    mcl::AsciiLoader loader (input);
-
-    if (! loader.getStatusMessage().empty())
-        throw std::runtime_error (loader.getStatusMessage());
-
-    auto columns = mcl::Object::dict();
-
-    for (int n = 0; n < loader.getNumColumns(); ++n)
-    {
-        auto user = std::make_shared<NumericArrayDouble1> (loader.getColumnData(n));
-        columns[loader.getColumnName(n)] = mcl::Object::data (user);
-    }
-    return columns;
-}
-
-static mcl::Object list (const mcl::Object::List& args, const mcl::Object::Dict&)
-{
-    return args;
-}
-
-static mcl::Object dict (const mcl::Object::List&, const mcl::Object::Dict& kwar)
-{
-    return kwar;
-}
-
-
-
-
-//==============================================================================
 MainComponent::MainComponent()
 {
     skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
@@ -456,9 +384,8 @@ MainComponent::MainComponent()
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
-    kernel.insert ("load-ascii", mcl::Object::Func (load_ascii));
-    kernel.insert ("list", mcl::Object::Func (list));
-    kernel.insert ("dict", mcl::Object::Func (dict));
+    kernel.import (mcl::Builtin::structures());
+    kernel.import (Loaders::loaders());
     kernel.insert ("test-data", mcl::Object::expr ("(load-ascii test)"));
     kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-ascii 4 3 2 1 3 4 4)))"));
 

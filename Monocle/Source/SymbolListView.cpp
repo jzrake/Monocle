@@ -1,11 +1,11 @@
-#include "KernelListView.hpp"
+#include "SymbolListView.hpp"
 #include "MaterialIcons.hpp"
 
 
 
 
 //==============================================================================
-KernelListView::KernelListView()
+SymbolListView::SymbolListView()
 {
     setModel (this);
     setOutlineThickness (0);
@@ -24,17 +24,17 @@ KernelListView::KernelListView()
     iconError      = material::util::icon (material::alert::ic_error, Colours::red);
 }
 
-void KernelListView::addListener (Listener* listener)
+void SymbolListView::addListener (Listener* listener)
 {
     listeners.add (listener);
 }
 
-void KernelListView::removeListener (Listener* listener)
+void SymbolListView::removeListener (Listener* listener)
 {
     listeners.remove (listener);
 }
 
-void KernelListView::setSymbolList (const std::vector<Status> &statusesToDisplay)
+void SymbolListView::setSymbolList (const std::vector<Status> &statusesToDisplay)
 {
     statuses = statusesToDisplay;
     updateContent();
@@ -43,7 +43,7 @@ void KernelListView::setSymbolList (const std::vector<Status> &statusesToDisplay
         selectRow (int (statuses.size()) - 1);
 }
 
-StringArray KernelListView::getSelectedSymbols() const
+StringArray SymbolListView::getSelectedSymbols() const
 {
     StringArray selectedSymbols;
 
@@ -53,7 +53,7 @@ StringArray KernelListView::getSelectedSymbols() const
     return selectedSymbols;
 }
 
-void KernelListView::updateSymbolStatus (const std::string& key, const Status& status)
+void SymbolListView::updateSymbolStatus (const std::string& key, const Status& status)
 {
     int row = findSymbol (key);
 
@@ -84,23 +84,23 @@ void KernelListView::updateSymbolStatus (const std::string& key, const Status& s
 }
 
 //==============================================================================
-void KernelListView::focusGained (FocusChangeType)
+void SymbolListView::focusGained (FocusChangeType)
 {
     repaint();
 }
 
-void KernelListView::focusLost (FocusChangeType)
+void SymbolListView::focusLost (FocusChangeType)
 {
     repaint();
 }
 
 //==============================================================================
-int KernelListView::getNumRows()
+int SymbolListView::getNumRows()
 {
     return int (statuses.size());
 }
 
-void KernelListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool selected)
+void SymbolListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool selected)
 {
     if (selected)
     {
@@ -136,7 +136,7 @@ void KernelListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
     if (iconR) iconR->drawWithin (g, iconRectR, RectanglePlacement::fillDestination, 1.f);
 }
 
-void KernelListView::listBoxItemClicked (int row, const MouseEvent& e)
+void SymbolListView::listBoxItemClicked (int row, const MouseEvent& e)
 {
     if (e.mods.isPopupMenu())
     {
@@ -153,40 +153,40 @@ void KernelListView::listBoxItemClicked (int row, const MouseEvent& e)
     }
 }
 
-void KernelListView::listBoxItemDoubleClicked (int row, const MouseEvent&)
+void SymbolListView::listBoxItemDoubleClicked (int row, const MouseEvent&)
 {
 }
 
-void KernelListView::backgroundClicked (const MouseEvent&)
+void SymbolListView::backgroundClicked (const MouseEvent&)
 {
     deselectAllRows();
 }
 
-void KernelListView::selectedRowsChanged (int)
+void SymbolListView::selectedRowsChanged (int)
 {
     listeners.call (&Listener::kernelListSelectionChanged, getSelectedSymbols());
 }
 
-void KernelListView::deleteKeyPressed (int)
+void SymbolListView::deleteKeyPressed (int)
 {
     sendDeleteSelectedSymbols();
 }
 
-void KernelListView::returnKeyPressed (int)
+void SymbolListView::returnKeyPressed (int)
 {
 }
 
-void KernelListView::listWasScrolled()
+void SymbolListView::listWasScrolled()
 {
 }
 
-String KernelListView::getTooltipForRow (int row)
+String SymbolListView::getTooltipForRow (int row)
 {
     return statuses[row].at ("error");
 }
 
 //==============================================================================
-void KernelListView::sendDeleteSelectedSymbols()
+void SymbolListView::sendDeleteSelectedSymbols()
 {
     auto newSelection = getSelectedRows().getRange(0).getStart();
     auto filesToDelete = getSelectedSymbols();
@@ -194,7 +194,7 @@ void KernelListView::sendDeleteSelectedSymbols()
     selectRow (newSelection);
 }
 
-int KernelListView::findSymbol (const std::string& key)
+int SymbolListView::findSymbol (const std::string& key)
 {
     int n = 0;
 
@@ -208,7 +208,7 @@ int KernelListView::findSymbol (const std::string& key)
     
 }
 
-Drawable* KernelListView::getIconForType (char type)
+Drawable* SymbolListView::getIconForType (char type)
 {
     switch (type)
     {

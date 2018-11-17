@@ -6,7 +6,7 @@
 
 
 //==============================================================================
-class KernelListView
+class SymbolListView
 : public ListBox
 , public ListBoxModel
 {
@@ -23,7 +23,7 @@ public:
     };
 
     //==========================================================================
-    KernelListView();
+    SymbolListView();
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setSymbolList (const std::vector<Status>& statusesToDisplay);

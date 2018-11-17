@@ -5,7 +5,7 @@
 #include "AppSkeleton.hpp"
 #include "FileManager.hpp"
 #include "Database.hpp"
-#include "KernelListView.hpp"
+#include "SymbolListView.hpp"
 #include "SymbolDetailsView.hpp"
 #include "Kernel/AcyclicGraph.hpp"
 
@@ -135,7 +135,7 @@ class MainComponent
 , public ApplicationCommandTarget
 , private FileManager::Listener
 , private FileListView::Listener
-, private KernelListView::Listener
+, private SymbolListView::Listener
 , private FileDetailsView::Listener
 , private FigureView::Listener
 {
@@ -184,7 +184,7 @@ private:
     FileListView      fileList;
     FileDetailsView   fileDetails;
     DualComponentView fileListAndDetail;
-    KernelListView    symbolList;
+    SymbolListView    symbolList;
     SymbolDetailsView symbolDetails;
     DualComponentView symbolListAndDetail;
 
