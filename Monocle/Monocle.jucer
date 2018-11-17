@@ -16,6 +16,8 @@
         <FILE id="eXB0R7" name="Expression.hpp" compile="0" resource="0" file="Source/Kernel/Expression.hpp"/>
         <FILE id="E0CqEq" name="Object.cpp" compile="1" resource="0" file="Source/Kernel/Object.cpp"/>
         <FILE id="ysWxCx" name="Object.hpp" compile="0" resource="0" file="Source/Kernel/Object.hpp"/>
+        <FILE id="ekRsGf" name="UserData.cpp" compile="1" resource="0" file="Source/Kernel/UserData.cpp"/>
+        <FILE id="rRv2Q2" name="UserData.hpp" compile="0" resource="0" file="Source/Kernel/UserData.hpp"/>
         <FILE id="VDlARO" name="Variant.cpp" compile="1" resource="0" file="Source/Kernel/Variant.cpp"/>
         <FILE id="Cv0NcY" name="Variant.hpp" compile="0" resource="0" file="Source/Kernel/Variant.hpp"/>
       </GROUP>

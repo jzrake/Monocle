@@ -117,6 +117,17 @@ private:
         return unpackString();
     }
 
+    void packData (const Data& data)
+    {
+        packString (data.v->serialize());
+    }
+
+    Data unpackData()
+    {
+        assert(false); // need to utilize custom de-serializer object, gets type from name
+        return Data();
+    }
+
     void packString (const std::string& str)
     {
         pack (str.size());
@@ -149,9 +160,9 @@ private:
             case 3: pack ('d'); pack (value.get<double>()); break;
             case 4: pack ('L'); packList (value.get<List>()); break;
             case 5: pack ('D'); packDict (value.get<Dict>()); break;
-            case 6: pack ('E'); packExpr (value.get<Expr>()); break;
-            case 7: pack ('F'); packString ("<function>"); break;
-            case 8: pack ('A'); packString ("<any>"); break;
+            case 6: pack ('U'); packData (value.get<Data>()); break;
+            case 7: pack ('E'); packExpr (value.get<Expr>()); break;
+            case 8: pack ('F'); packString ("<function>"); break;
             case 9: pack ('S'); packString (value.get<std::string>()); break;
         }
     }
@@ -166,9 +177,9 @@ private:
             case 'd': return unpack<double>();
             case 'L': return unpackList();
             case 'D': return unpackDict();
+            case 'U': return unpackData();
             case 'E': return unpackExpr();
             case 'F': return unpackString();
-            case 'A': return unpackString();
             case 'S': return unpackString();
         }
         throw;
@@ -198,9 +209,9 @@ char Object::type() const
         case 3: return 'd';
         case 4: return 'L';
         case 5: return 'D';
-        case 6: return 'E';
-        case 7: return 'F';
-        case 8: return 'A';
+        case 6: return 'U';
+        case 7: return 'E';
+        case 8: return 'F';
         case 9: return 'S';
     }
     return 0;
@@ -397,14 +408,4 @@ void Object::testSymbolResolution()
     assert (Object::dict()
             .with ("A", Object::Expr ("(add a b)"))
             .with ("B", Object::Expr ("(sub a b)")).resolve (scope)["B"] ==-1.0);
-}
-
-void Object::testAnyConstruction()
-{
-    struct Test {};
-    auto a = Object::any (123);
-    auto b = Object::any (Test());
-
-    assert(a.get_any<int>() == 123);
-    b.get_any<Test>();
 }

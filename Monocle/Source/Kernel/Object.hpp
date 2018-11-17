@@ -4,7 +4,7 @@
 #include <map>
 #include <set>
 #include "Variant.hpp"
-#include "Any.hpp"
+#include "UserData.hpp"
 
 namespace mcl { class Object; }
 
@@ -43,13 +43,13 @@ public:
         std::function<Object (const List&, const Dict&)> f = nullptr;
     };
 
-    struct Any
+    struct Data
     {
-        Any() {}
-        Any (const linb::any& v) : v (v) {}
-        bool operator==(const Any& other) const { return false; }
-        bool operator!=(const Any& other) const { return true; }
-        linb::any v;
+        Data() {}
+        Data (std::shared_ptr<UserData> v) : v (v) {}
+        bool operator==(const Data& other) const { return false; }
+        bool operator!=(const Data& other) const { return true; }
+        std::shared_ptr<UserData> v;
     };
 
     static Object none() { return None(); }
@@ -57,7 +57,6 @@ public:
     static Object list() { return List(); }
     static Object expr (const std::string& expr) { return Expr (expr); }
     static Object deserialize (const std::vector<char>&);
-    template <typename T> static Object any (const T& v) { return Any (linb::any (v)); }
 
     bool empty() const { return v.index() == 0; }
     char type() const;
@@ -66,7 +65,6 @@ public:
     template<typename T> Object (const T& v) : v (v) {}
     template <typename T> T& get() { return mpark::get<T>(v);}
     template <typename T> const T& get() const { return mpark::get<T>(v);}
-    template <typename T> const T& get_any() const { return linb::any_cast<const T&> (mpark::get<Any>(v).v); }
     template <typename T> void set (const T& w) { v.emplace<T>(w); }
     template <typename T> Object& operator= (const T& w) { v.emplace<T>(w); return *this; }
 
@@ -126,7 +124,6 @@ public:
 
     static void testSerialization();
     static void testSymbolResolution();
-    static void testAnyConstruction();
 
 private:
     class Serializer;
@@ -137,8 +134,8 @@ private:
     double,
     List,
     Dict,
+    Data,
     Expr,
     Func,
-    Any,
     std::string> v;
 };
