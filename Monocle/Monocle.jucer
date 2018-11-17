@@ -66,6 +66,14 @@
       <FILE id="KVlvbI" name="Database.hpp" compile="0" resource="0" file="Source/Database.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
+      <FILE id="NOjFft" name="FileDetailsView.cpp" compile="1" resource="0"
+            file="Source/FileDetailsView.cpp"/>
+      <FILE id="nUxx6R" name="FileDetailsView.hpp" compile="0" resource="0"
+            file="Source/FileDetailsView.hpp"/>
+      <FILE id="a82MUN" name="FileListView.cpp" compile="1" resource="0"
+            file="Source/FileListView.cpp"/>
+      <FILE id="A0MOFO" name="FileListView.hpp" compile="0" resource="0"
+            file="Source/FileListView.hpp"/>
       <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>
       <FILE id="rXamNm" name="FileManager.hpp" compile="0" resource="0" file="Source/FileManager.hpp"/>
       <FILE id="SDIy10" name="Loaders.cpp" compile="1" resource="0" file="Source/Loaders.cpp"/>
