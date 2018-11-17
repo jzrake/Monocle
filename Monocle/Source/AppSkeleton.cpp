@@ -1,5 +1,6 @@
 #include "AppSkeleton.hpp"
 #include "MaterialIcons.hpp"
+#define GAP_WIDTH 4
 
 
 
@@ -26,13 +27,35 @@ void DualComponentView::paintOverChildren (Graphics& g)
     if (content2)
     {
         g.setColour (Colours::lightgrey);
-        g.drawHorizontalLine (getHeight() - 300, 0, getWidth());
+        g.drawHorizontalLine (getHeight() - bottomHeight, 0, getWidth());
     }
 }
 
 void DualComponentView::resized()
 {
     layout();
+}
+
+void DualComponentView::mouseDown (const MouseEvent& e)
+{
+    bottomHeightAtMouseDown = bottomHeight;
+}
+
+void DualComponentView::mouseDrag (const MouseEvent& e)
+{
+    bottomHeight = jlimit (100, getHeight() - 200, bottomHeightAtMouseDown - e.getDistanceFromDragStartY());
+    layout();
+    repaint();
+}
+
+bool DualComponentView::hitTest (int x, int y)
+{
+    return x < getWidth() - GAP_WIDTH;
+}
+
+MouseCursor DualComponentView::getMouseCursor()
+{
+    return MouseCursor::UpDownResizeCursor;
 }
 
 void DualComponentView::resetContent()
@@ -46,11 +69,11 @@ void DualComponentView::resetContent()
 void DualComponentView::layout()
 {
     auto area = getLocalBounds();
-    
+
     if (content2)
-        content2->setBounds (area.removeFromBottom (300).withTrimmedTop (1));
+        content2->setBounds (area.removeFromBottom (bottomHeight));
     if (content1)
-        content1->setBounds (area);
+        content1->setBounds (area.withTrimmedBottom (GAP_WIDTH));
 }
 
 
@@ -175,27 +198,6 @@ AppSkeleton::~AppSkeleton()
 {
 }
 
-void AppSkeleton::paint (Graphics& g)
-{
-}
-
-void AppSkeleton::paintOverChildren (Graphics& g)
-{
-    auto geom = computeGeometry();
-
-    g.setColour (Colours::lightgrey);
-    g.drawHorizontalLine (geom.topNav.getBottom(), geom.topNav.getX(), geom.topNav.getRight());
-    g.drawVerticalLine (geom.leftNav.getRight(), geom.leftNav.getY(), geom.leftNav.getBottom());
-
-    if (sourceListVisible)
-        g.drawVerticalLine (geom.sourceList.getRight(), geom.sourceList.getY(), geom.sourceList.getBottom());
-}
-
-void AppSkeleton::resized()
-{
-    layout();
-}
-
 void AppSkeleton::setMainContent (Component& mainContentToShow)
 {
     addAndMakeVisible (mainContent = &mainContentToShow);
@@ -271,13 +273,69 @@ void AppSkeleton::addNavButton (const String& name, const String& svg)
     navButtons.add (std::move (button));
 }
 
+// ============================================================================
+void AppSkeleton::paint (Graphics& g)
+{
+}
+
+void AppSkeleton::paintOverChildren (Graphics& g)
+{
+    auto geom = computeGeometry();
+
+    g.setColour (Colours::lightgrey);
+    g.drawHorizontalLine (geom.topNav.getBottom(), geom.topNav.getX(), geom.topNav.getRight());
+    g.drawVerticalLine (geom.leftNav.getRight(), geom.leftNav.getY(), geom.leftNav.getBottom());
+
+    if (sourceListVisible)
+        g.drawVerticalLine (geom.verticalGap.getRight(), geom.verticalGap.getY(), geom.verticalGap.getBottom());
+}
+
+void AppSkeleton::resized()
+{
+    layout();
+}
+
+void AppSkeleton::mouseEnter (const MouseEvent& e)
+{
+    mouseIsAtRightEdgeOfSourceList = isMouseAtRightEdgeOfSourceList (e.position);
+}
+
+void AppSkeleton::mouseExit (const MouseEvent& e)
+{
+    mouseIsAtRightEdgeOfSourceList = isMouseAtRightEdgeOfSourceList (e.position);
+}
+
+void AppSkeleton::mouseMove (const MouseEvent& e)
+{
+    mouseIsAtRightEdgeOfSourceList = isMouseAtRightEdgeOfSourceList (e.position);
+}
+
+void AppSkeleton::mouseDown (const MouseEvent& e)
+{
+    sourceListWidthAtMouseDown = sourceListWidth;
+}
+
+void AppSkeleton::mouseDrag (const MouseEvent& e)
+{
+    sourceListWidth = jlimit (100, getWidth() - 200, sourceListWidthAtMouseDown + e.getDistanceFromDragStartX());
+    layout();
+    repaint();
+}
+
+MouseCursor AppSkeleton::getMouseCursor()
+{
+    return mouseIsAtRightEdgeOfSourceList ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor;
+}
+
+// ============================================================================
 AppSkeleton::Geometry AppSkeleton::computeGeometry() const
 {
     auto area = getLocalBounds();
     Geometry g;
     g.topNav      = area.removeFromTop (topNavHeight);
     g.leftNav     = area.removeFromLeft (leftNavWidth);
-    g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0).withTrimmedLeft (1).withTrimmedTop (1);;
+    g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0).withTrimmedLeft (1).withTrimmedTop (1);
+    g.verticalGap = Rectangle<int> (g.sourceList).removeFromRight (GAP_WIDTH);
     g.mainContent = area.withTrimmedLeft (1).withTrimmedTop (1);
     g.backdropButton = Rectangle<int> (g.topNav).removeFromRight (topNavHeight);
 
@@ -287,6 +345,12 @@ AppSkeleton::Geometry AppSkeleton::computeGeometry() const
         g.mainContent.translate (0, 200);
     }
     return g;
+}
+
+bool AppSkeleton::isMouseAtRightEdgeOfSourceList (const Point<float>& p) const
+{
+    auto geom = computeGeometry();
+    return geom.verticalGap.contains (p.x, p.y);
 }
 
 void AppSkeleton::showSourceList()

@@ -8,7 +8,7 @@
 KernelListView::KernelListView()
 {
     setModel (this);
-    setOutlineThickness (2);
+    setOutlineThickness (0);
     setMultipleSelectionEnabled (true);
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
 
@@ -75,7 +75,8 @@ void KernelListView::updateSymbolStatus (const std::string& key, const Status& s
         else // symbol is not in the list box
         {
             statuses.push_back (status);
-            std::sort (statuses.begin(), statuses.end(), [] (const auto& a, const auto& b) { return a.at ("key") < b.at ("key"); });
+            auto s = [] (const auto& a, const auto& b) { return a.at ("key") < b.at ("key"); };
+            std::sort (statuses.begin(), statuses.end(), s);
             updateContent();
         }
     }

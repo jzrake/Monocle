@@ -13,11 +13,17 @@ public:
     void setContent2 (Component& contentFor2);
     void paintOverChildren (Graphics&) override;
     void resized() override;
+    bool hitTest (int x, int y) override;
+    void mouseDown (const MouseEvent&) override;
+    void mouseDrag (const MouseEvent&) override;
+    MouseCursor getMouseCursor() override;
 private:
     void resetContent();
     void layout();
     WeakReference<Component> content1;
     WeakReference<Component> content2;
+    int bottomHeight = 300;
+    int bottomHeightAtMouseDown = 0;
 };
 
 
@@ -39,14 +45,12 @@ public:
         Rectangle<int> mainContent;
         Rectangle<int> backdrop;
         Rectangle<int> backdropButton;
+        Rectangle<int> verticalGap;
     };
 
     // ========================================================================
     AppSkeleton();
     ~AppSkeleton();
-    void paint (Graphics&) override;
-    void paintOverChildren (Graphics&) override;
-    void resized() override;
 
     // ========================================================================
     void setMainContent (Component& mainContentToShow);
@@ -57,8 +61,20 @@ public:
     void toggleNavPagesRevealed();
     void toggleBackdropRevealed();
 
+    // ========================================================================
+    void paint (Graphics&) override;
+    void paintOverChildren (Graphics&) override;
+    void resized() override;
+    void mouseEnter (const MouseEvent&) override;
+    void mouseExit (const MouseEvent&) override;
+    void mouseMove (const MouseEvent&) override;
+    void mouseDown (const MouseEvent&) override;
+    void mouseDrag (const MouseEvent&) override;
+    MouseCursor getMouseCursor() override;
+
 private:
     Geometry computeGeometry() const;
+    bool isMouseAtRightEdgeOfSourceList (const Point<float>& p) const;
     void showSourceList();
     void hideSourceList();
     void updatePageVisibility();
@@ -70,7 +86,9 @@ private:
     std::unique_ptr<BackdropButton> backdropButton;
 
     bool sourceListVisible = false;
-    int topNavHeight = 40;
-    int leftNavWidth = 60;
+    bool mouseIsAtRightEdgeOfSourceList = false;
+    int topNavHeight    = 40;
+    int leftNavWidth    = 60;
     int sourceListWidth = 250;
+    int sourceListWidthAtMouseDown = 0;
 };

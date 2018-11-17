@@ -9,7 +9,7 @@
 FileListView::FileListView()
 {
     setModel (this);
-    setOutlineThickness (2);
+    setOutlineThickness (0);
     setMultipleSelectionEnabled (true);
     setColour (ListBox::ColourIds::outlineColourId, Colours::transparentBlack);
 
