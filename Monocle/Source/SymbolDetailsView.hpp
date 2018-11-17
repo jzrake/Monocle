@@ -23,6 +23,7 @@ public:
 
     SymbolDetailsView();
     void setViewedObject (const std::string& key, const mcl::Object& objectToView);
+    const std::string& getCurrentSymbol() const;
 
     void focusGained (FocusChangeType) override;
     void focusLost (FocusChangeType) override;

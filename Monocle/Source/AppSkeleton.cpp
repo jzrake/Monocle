@@ -23,6 +23,7 @@ MouseCursor DualComponentView::Resizer::getMouseCursor()
 //==============================================================================
 DualComponentView::DualComponentView()
 {
+    resizer.addMouseListener (this, false);
 }
 
 void DualComponentView::setContent1 (Component& contentFor1)

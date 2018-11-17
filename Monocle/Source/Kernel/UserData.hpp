@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 
-namespace mcl { class Builtin; }
+namespace mcl { class UserData; }
 
 
 
 
 // ============================================================================
-class UserData
+class mcl::UserData
 {
 public:
     virtual ~UserData() {}

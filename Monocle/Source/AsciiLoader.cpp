@@ -1,7 +1,7 @@
-#include "AsciiLoader.hpp"
 #include <sstream>
+#include "AsciiLoader.hpp"
 using namespace mcl;
-using namespace juce;
+//using namespace juce;
 
 
 
@@ -45,7 +45,7 @@ AsciiLoader::AsciiLoader (std::istream& stream)
             {
                 for (int i = 0; i < numColumns; ++i)
                 {
-                    names.push_back ("column" + std::to_string(i));
+                    names.push_back ("Col " + std::to_string(i));
                 }
             }
 
@@ -56,7 +56,7 @@ AsciiLoader::AsciiLoader (std::istream& stream)
             }
             else if (! row.empty())
             {
-                status = "Missing data on line " + String (fileLine);
+                status = "Missing data on line " + std::to_string (fileLine);
             }
         }
     };
@@ -99,12 +99,7 @@ std::string AsciiLoader::getColumnName (int index) const
     return names.at (index);
 }
 
-bool AsciiLoader::hasColumnWithName (std::string name) const
-{
-    return std::find (names.begin(), names.end(), name) != names.end();
-}
-
-String AsciiLoader::getStatusMessage() const
+std::string AsciiLoader::getStatusMessage() const
 {
     return status;
 }

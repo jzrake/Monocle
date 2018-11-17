@@ -80,6 +80,7 @@ void KernelListView::updateSymbolStatus (const std::string& key, const Status& s
             updateContent();
         }
     }
+    listeners.call (&Listener::kernelListSelectionChanged, getSelectedSymbols());
 }
 
 //==============================================================================

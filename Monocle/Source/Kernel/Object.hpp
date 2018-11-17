@@ -49,12 +49,14 @@ public:
         Data (std::shared_ptr<UserData> v) : v (v) {}
         bool operator==(const Data& other) const { return false; }
         bool operator!=(const Data& other) const { return true; }
+        std::string describe() const { return v->describe(); }
         std::shared_ptr<UserData> v;
     };
 
     static Object none() { return None(); }
     static Object dict() { return Dict(); }
     static Object list() { return List(); }
+    static Object data (std::shared_ptr<UserData> data) { return Data (data); }
     static Object expr (const std::string& expr) { return Expr (expr); }
     static Object deserialize (const std::vector<char>&);
 

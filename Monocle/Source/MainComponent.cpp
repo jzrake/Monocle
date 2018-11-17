@@ -338,18 +338,61 @@ FileDetailsView::Geometry FileDetailsView::computeGeometry() const
 //==============================================================================
 #include <fstream>
 #include "AsciiLoader.hpp"
+#include "Kernel/UserData.hpp"
 
+
+
+
+//==============================================================================
+class NumericArrayDouble1 : public mcl::UserData
+{
+public:
+    NumericArrayDouble1() {}
+    NumericArrayDouble1 (nd::ndarray<double, 1> data) : data (data) {}
+    NumericArrayDouble1 (const std::vector<double>& vecdata) : data (int (vecdata.size()))
+    {
+        std::memcpy (&data(0), &vecdata[0], vecdata.size() * sizeof (double));
+    }
+
+    std::string type() const override
+    {
+        return "NumericArrayDouble1";
+    }
+    std::string describe() const override
+    {
+        return "double [" + std::to_string (data.shape()[0]) + "]";
+    }
+    std::string serialize() const override
+    {
+        return "";
+    }
+    bool load (const std::string&) override
+    {
+        return false;
+    }
+    nd::ndarray<double, 1> data;
+};
+
+
+
+
+//==============================================================================
 static mcl::Object load_ascii (const mcl::Object::List& args, const mcl::Object::Dict&)
 {
-    File f (args.at(0).get<std::string>());
-
-    std::fstream input (f.getFullPathName().toStdString());
+    std::fstream input (args.at(0).get<std::string>());
     mcl::AsciiLoader loader (input);
 
-    if (loader.getStatusMessage().isNotEmpty())
-        throw std::runtime_error (loader.getStatusMessage().toStdString());
+    if (! loader.getStatusMessage().empty())
+        throw std::runtime_error (loader.getStatusMessage());
 
-    return f.getLastModificationTime().toString (false, true).toStdString();
+    auto columns = mcl::Object::dict();
+
+    for (int n = 0; n < loader.getNumColumns(); ++n)
+    {
+        auto user = std::make_shared<NumericArrayDouble1> (loader.getColumnData(n));
+        columns[loader.getColumnName(n)] = mcl::Object::data (user);
+    }
+    return columns;
 }
 
 static mcl::Object list (const mcl::Object::List& args, const mcl::Object::Dict&)
@@ -407,6 +450,9 @@ MainComponent::MainComponent()
     {
         auto status = kernel.status (key);
         symbolList.updateSymbolStatus (key, status);
+
+        if (symbolDetails.getCurrentSymbol() == key)
+            symbolDetails.setViewedObject (key, val);
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });

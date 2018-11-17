@@ -49,6 +49,7 @@ void SymbolDetailsView::SymbolItem::paintItem (Graphics& g, int width, int heigh
     else if (object.type() == 'd') descr = std::to_string (object.get<double>());
     else if (object.type() == 'L') descr = "List";
     else if (object.type() == 'D') descr = "Dict";
+    else if (object.type() == 'U') descr = object.get<mcl::Object::Data>().describe();
     else if (object.type() == 'F') descr = "Func";
     else if (object.type() == 'S') descr = object.get<std::string>();
     else                           descr = "Object";
@@ -80,9 +81,15 @@ void SymbolDetailsView::setViewedObject (const std::string& key, const mcl::Obje
     root = objectToView.empty() ? nullptr : std::make_unique<SymbolItem> (key, objectToView);
 
     setRootItem (root.get());
-    
+
     if (opennessStates.find (currentKey) != opennessStates.end())
-        restoreOpennessState (*opennessStates.at (currentKey), true);
+        if (opennessStates.at (currentKey))
+            restoreOpennessState (*opennessStates.at (currentKey), true);
+}
+
+const std::string& SymbolDetailsView::getCurrentSymbol() const
+{
+    return currentKey;
 }
 
 void SymbolDetailsView::focusGained (FocusChangeType)
