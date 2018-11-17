@@ -4,6 +4,25 @@
 
 
 
+//==============================================================================
+class DualComponentView : public Component
+{
+public:
+    DualComponentView();
+    void setContent1 (Component& contentFor1);
+    void setContent2 (Component& contentFor2);
+    void paintOverChildren (Graphics&) override;
+    void resized() override;
+private:
+    void resetContent();
+    void layout();
+    WeakReference<Component> content1;
+    WeakReference<Component> content2;
+};
+
+
+
+
 // ============================================================================
 class AppSkeleton : public Component
 {
@@ -11,6 +30,7 @@ public:
     class NavButton;
     class BackdropButton;
 
+    // ========================================================================
     struct Geometry
     {
         Rectangle<int> topNav;
@@ -21,6 +41,7 @@ public:
         Rectangle<int> backdropButton;
     };
 
+    // ========================================================================
     AppSkeleton();
     ~AppSkeleton();
     void paint (Graphics&) override;

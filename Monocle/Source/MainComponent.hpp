@@ -6,6 +6,7 @@
 #include "FileManager.hpp"
 #include "Database.hpp"
 #include "KernelListView.hpp"
+#include "SymbolDetailsView.hpp"
 #include "Kernel/AcyclicGraph.hpp"
 
 
@@ -122,24 +123,6 @@ private:
 
 
 //==============================================================================
-class DualComponentView : public Component
-{
-public:
-    DualComponentView();
-    void setContent1 (Component& contentFor1);
-    void setContent2 (Component& contentFor2);
-    void resized() override;
-private:
-    void resetContent();
-    void layout();
-    WeakReference<Component> content1;
-    WeakReference<Component> content2;
-};
-
-
-
-
-//==============================================================================
 class MainComponent
 : public Component
 , public ApplicationCommandTarget
@@ -192,9 +175,11 @@ private:
     FigureView        figure;
     TextEditor        notesPage;
     FileListView      fileList;
-    FileDetailsView   fileDetail;
+    FileDetailsView   fileDetails;
     DualComponentView fileListAndDetail;
-    KernelListView    kernelList;
+    KernelListView    symbolList;
+    SymbolDetailsView symbolDetails;
+    DualComponentView symbolListAndDetail;
 
     //==========================================================================
     FileManager fileManager;

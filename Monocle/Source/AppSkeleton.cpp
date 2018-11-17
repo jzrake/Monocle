@@ -4,6 +4,58 @@
 
 
 
+//==============================================================================
+DualComponentView::DualComponentView()
+{
+}
+
+void DualComponentView::setContent1 (Component& contentFor1)
+{
+    content1 = &contentFor1;
+    resetContent();
+}
+
+void DualComponentView::setContent2 (Component& contentFor2)
+{
+    content2 = &contentFor2;
+    resetContent();
+}
+
+void DualComponentView::paintOverChildren (Graphics& g)
+{
+    if (content2)
+    {
+        g.setColour (Colours::lightgrey);
+        g.drawHorizontalLine (getHeight() - 300, 0, getWidth());
+    }
+}
+
+void DualComponentView::resized()
+{
+    layout();
+}
+
+void DualComponentView::resetContent()
+{
+    removeAllChildren();
+    addAndMakeVisible (content1);
+    addAndMakeVisible (content2);
+    layout();
+}
+
+void DualComponentView::layout()
+{
+    auto area = getLocalBounds();
+    
+    if (content2)
+        content2->setBounds (area.removeFromBottom (300).withTrimmedTop (1));
+    if (content1)
+        content1->setBounds (area);
+}
+
+
+
+
 // ============================================================================
 class AppSkeleton::NavButton : public Button
 {

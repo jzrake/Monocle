@@ -4,6 +4,7 @@
 
 
 
+
 //==============================================================================
 class KernelListView
 : public ListBox
@@ -63,3 +64,4 @@ private:
     std::unique_ptr<Drawable> iconRightArrow;
     std::unique_ptr<Drawable> iconError;
 };
+

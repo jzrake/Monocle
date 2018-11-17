@@ -47,6 +47,10 @@
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>
       <FILE id="rXamNm" name="FileManager.hpp" compile="0" resource="0" file="Source/FileManager.hpp"/>
+      <FILE id="wSBaqB" name="KernelListView.cpp" compile="1" resource="0"
+            file="Source/KernelListView.cpp"/>
+      <FILE id="Jk18Et" name="KernelListView.hpp" compile="0" resource="0"
+            file="Source/KernelListView.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IE8e5X" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="gnQguV" name="MainComponent.cpp" compile="1" resource="0"
@@ -59,6 +63,10 @@
             file="Source/MaterialIcons.hpp"/>
       <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
+      <FILE id="sOHeT2" name="SymbolDetailsView.cpp" compile="1" resource="0"
+            file="Source/SymbolDetailsView.cpp"/>
+      <FILE id="upcxqe" name="SymbolDetailsView.hpp" compile="0" resource="0"
+            file="Source/SymbolDetailsView.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

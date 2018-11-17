@@ -318,55 +318,12 @@ FileDetailsView::Geometry FileDetailsView::computeGeometry() const
 
 
 //==============================================================================
-DualComponentView::DualComponentView()
-{
-}
-
-void DualComponentView::setContent1 (Component& contentFor1)
-{
-    content1 = &contentFor1;
-    resetContent();
-}
-
-void DualComponentView::setContent2 (Component& contentFor2)
-{
-    content2 = &contentFor2;
-    resetContent();
-}
-
-void DualComponentView::resized()
-{
-    layout();
-}
-
-void DualComponentView::resetContent()
-{
-    removeAllChildren();
-    addAndMakeVisible (content1);
-    addAndMakeVisible (content2);
-    layout();
-}
-
-void DualComponentView::layout()
-{
-    auto area = getLocalBounds();
-
-    if (content2)
-        content2->setBounds (area.removeFromBottom (150));
-    if (content1)
-        content1->setBounds (area);
-}
-
-
-
-
-//==============================================================================
 #include <fstream>
 #include "AsciiLoader.hpp"
 
-static mcl::Object load_ascii (const mcl::Object::List& arg, const mcl::Object::Dict&)
+static mcl::Object load_ascii (const mcl::Object::List& args, const mcl::Object::Dict&)
 {
-    File f (arg.at(0).get<std::string>());
+    File f (args.at(0).get<std::string>());
 
     std::fstream input (f.getFullPathName().toStdString());
     mcl::AsciiLoader loader (input);
@@ -375,6 +332,16 @@ static mcl::Object load_ascii (const mcl::Object::List& arg, const mcl::Object::
         throw std::runtime_error (loader.getStatusMessage().toStdString());
 
     return f.getLastModificationTime().toString (false, true).toStdString();
+}
+
+static mcl::Object list (const mcl::Object::List& args, const mcl::Object::Dict&)
+{
+    return args;
+}
+
+static mcl::Object dict (const mcl::Object::List&, const mcl::Object::Dict& kwar)
+{
+    return kwar;
 }
 
 
@@ -390,7 +357,7 @@ MainComponent::MainComponent()
     skeleton.setMainContent (figure);
     skeleton.setNavPage ("Notes", notesPage);
     skeleton.setNavPage ("Files", fileListAndDetail);
-    skeleton.setNavPage ("Symbols", kernelList);
+    skeleton.setNavPage ("Symbols", symbolListAndDetail);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -399,31 +366,39 @@ MainComponent::MainComponent()
     notesPage.setFont (Font ("Optima", 14, 0));
 
     fileListAndDetail.setContent1 (fileList);
-    fileListAndDetail.setContent2 (fileDetail);
+    fileListAndDetail.setContent2 (fileDetails);
+
+    symbolListAndDetail.setContent1 (symbolList);
+    symbolListAndDetail.setContent2 (symbolDetails);
 
     fileManager.setPollingInterval (100);
     figure     .setModel (model = FigureModel::createExample());
 
     fileManager.addListener (this);
     fileList   .addListener (this);
-    kernelList .addListener (this);
-    fileDetail .addListener (this);
+    symbolList .addListener (this);
+    fileDetails.addListener (this);
     figure     .addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
 
+    // Initial kernel configuration
+    // ========================================================================
     kernel.setListener ([this] (const std::string& key, const mcl::Object& val)
     {
         auto status = kernel.status (key);
-        kernelList.updateSymbolStatus (key, status);
+        symbolList.updateSymbolStatus (key, status);
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
     kernel.insert ("load-ascii", mcl::Object::Func (load_ascii));
+    kernel.insert ("list", mcl::Object::Func (list));
+    kernel.insert ("dict", mcl::Object::Func (dict));
     kernel.insert ("test-data", mcl::Object::expr ("(load-ascii test)"));
+    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-ascii 4 3 2 1 3 4 4)))"));
 
-    kernelList.setSymbolList (kernel.status (kernel.select()));
+    symbolList.setSymbolList (kernel.status (kernel.select()));
 }
 
 MainComponent::~MainComponent()
@@ -484,7 +459,7 @@ bool MainComponent::perform (const InvocationInfo& info)
 void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
     fileList.updateFileDisplayStatus (file);
-    fileDetail.updateFileDetailsIfShowing (file);
+    fileDetails.updateFileDetailsIfShowing (file);
     kernel.touch (File (file).getFileNameWithoutExtension().toStdString());
 }
 
@@ -509,12 +484,16 @@ void MainComponent::fileListFilesRemoved (const StringArray& files)
 
 void MainComponent::fileListSelectionChanged (const StringArray& files)
 {
-    fileDetail.setCurrentlyActiveFiles (files, fileManager.getFilterNames (files));
+    fileDetails.setCurrentlyActiveFiles (files, fileManager.getFilterNames (files));
 }
 
 //==========================================================================
 void MainComponent::kernelListSelectionChanged (const StringArray& symbols)
 {
+    if (symbols.size() == 1)
+        symbolDetails.setViewedObject (symbols[0].toStdString(), kernel.concrete (symbols[0].toStdString()));
+    else
+        symbolDetails.setViewedObject ("", mcl::Object());
 }
 
 void MainComponent::kernelListSymbolsRemoved (const StringArray& symbols)
@@ -529,7 +508,7 @@ void MainComponent::filterNameChanged (const String& newName)
     for (const auto& file : fileList.getSelectedFullPathNames())
     {
         fileManager.setFilterName (file, newName);
-        fileDetail.setFilterIsValid (newName == "Ascii");
+        fileDetails.setFilterIsValid (newName == "Ascii");
     }
 }
 
