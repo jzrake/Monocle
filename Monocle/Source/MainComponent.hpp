@@ -51,7 +51,7 @@ private:
     void kernelListSymbolsRemoved (const StringArray& symbols) override;
 
     //==========================================================================
-    void filterNameChanged (const String& newName) override;
+    // void filterNameChanged (const String& newName) override;
 
     //==========================================================================
     void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;

@@ -220,6 +220,7 @@ AcyclicGraph::Status AcyclicGraph::status (const std::string& key) const
         Status s;
         Object dummy;
         s["key"] = key;
+        s["doc"] = "";
         s["expr"] = "";
         s["type"] = 'n';
         s["descr"] = "";
@@ -231,6 +232,7 @@ AcyclicGraph::Status AcyclicGraph::status (const std::string& key) const
     const Node& node = nodes.at (key);
     Status s;
     s["key"] = key;
+    s["doc"] = node.concrete.type() == 'F' ? node.concrete.get<Object::Func>().doc : "";
     s["expr"] = node.abstract.expression();
     s["type"] = node.concrete.type();
     s["descr"] = node.concrete.type() == 'S' ? "'" + node.concrete.get<std::string>() + "'" : "";

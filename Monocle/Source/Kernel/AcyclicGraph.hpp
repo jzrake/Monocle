@@ -122,6 +122,7 @@ public:
     /** Return a dictionary describing the symbols:
 
         key ..... the symbol's key name
+        doc ..... a docstring, if symbol is a function
         type .... a single character corresponding to the concrete object type
         expr .... the expression string if the abstract object is an expression
         descr ... a succinct string description of the concrete object (not yet implemented)

@@ -24,12 +24,6 @@ void FileManager::setPollingInterval (int millisecondsBetweenPolling)
     startTimer (millisecondsBetweenPolling);
 }
 
-void FileManager::setFilterName (const String &filename, const String &filter)
-{
-    auto n = statuses.indexOf (File (filename));
-    statuses.getReference(n).filter = filter;
-}
-
 void FileManager::setUniqueKey (const String &filename, const std::string &key)
 {
     auto n = statuses.indexOf (File (filename));
@@ -66,16 +60,6 @@ Array<File> FileManager::getFiles() const
     for (const auto& status : statuses)
         files.add (status.file);
     return files;
-}
-
-StringArray FileManager::getFilterNames (const StringArray& filenames) const
-{
-    StringArray filters;
-
-    for (const auto& status : statuses)
-        if (filenames.contains (status.file.getFullPathName()))
-            filters.add (status.filter);
-    return filters;
 }
 
 

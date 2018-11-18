@@ -21,14 +21,12 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setPollingInterval (int millisecondsBetweenPolling);
-    void setFilterName (const String& filename, const String& filter);
     void setUniqueKey (const String& filename, const std::string& key);
     void addFile (File);
     void removeFile (File);
     void insertFiles (const StringArray& filenames, int index);
     void removeFiles (const StringArray& filenames);
     Array<File> getFiles() const;
-    StringArray getFilterNames (const StringArray& filenames) const;
 
 private:
     // ========================================================================
@@ -41,7 +39,6 @@ private:
         File file;
         Time modified;
         bool existed = false;
-        String filter;
         std::string uniqueKey;
     };
 

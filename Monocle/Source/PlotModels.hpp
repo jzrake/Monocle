@@ -1,6 +1,9 @@
 #pragma once
 #include "JuceHeader.h"
 #include "Numerical/TabulatedFunction.hpp"
+#include "3rdParty/ndarray/ndarray.hpp"
+#include "Kernel/UserData.hpp"
+#include "Kernel/Object.hpp"
 
 
 
@@ -24,16 +27,22 @@ struct ColourMap
 
 
 //==============================================================================
-struct LinePlotModel
+struct LinePlotModel : public mcl::UserData
 {
-    Array<double> x;
-    Array<double> y;
+    nd::ndarray<double, 1> x;
+    nd::ndarray<double, 1> y;
     float         lineWidth    = 1.f;
     float         markerSize   = 1.f;
     Colour        lineColour   = Colours::black;
     Colour        markerColour = Colours::black;
     LineStyle     lineStyle    = LineStyle::solid;
     MarkerStyle   markerStyle  = MarkerStyle::none;
+
+    //==========================================================================
+    std::string type() const override { return "LinePlotModel"; }
+    std::string describe() const override { return "LinePlotModel"; }
+    std::string serialize() const override { return ""; }
+    bool load (const std::string&) override { return false; }
 };
 
 
@@ -97,7 +106,7 @@ struct ImagePlotModel
 
 
 //==============================================================================
-struct FigureModel
+struct FigureModel : public mcl::UserData
 {
     Array<LinePlotModel>    linePlots;
     Array<FillBetweenModel> fillBetweens;
@@ -131,6 +140,26 @@ struct FigureModel
     Rectangle<int> getLeftMargin (const Rectangle<int>& area) const;
     Rectangle<int> getRightMargin (const Rectangle<int>& area) const;
     Rectangle<double> getDomain() const;
-    
+
+    //==========================================================================
+    std::string type() const override { return "FigureModel"; }
+    std::string describe() const override { return "FigureModel"; }
+    std::string serialize() const override { return ""; }
+    bool load (const std::string&) override { return false; }
+
     static FigureModel createExample();
+};
+
+
+
+
+//==========================================================================
+class PlotModels
+{
+public:
+    using Object = mcl::Object;
+
+    static Object::Dict plot_models();
+    static Object line_plot (const Object::List&, const Object::Dict&);
+    static Object figure (const Object::List&, const Object::Dict&);
 };

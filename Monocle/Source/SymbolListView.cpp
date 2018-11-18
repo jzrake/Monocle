@@ -109,9 +109,11 @@ void SymbolListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
     }
 
     auto key     =   statuses[row].at ("key");
-    auto descr   =   statuses[row].at ("descr");
+    auto type    =   statuses[row].at ("type");
+    auto expr    =   statuses[row].at ("expr");
     auto isExpr  = ! statuses[row].at ("expr").empty();
     auto isError = ! statuses[row].at ("error").empty();
+    auto extra   = std::string();
 
     auto iconAreaL = Rectangle<float> (0, 0, h, h);
     auto iconAreaC = Rectangle<float> (w - 2 * h, 0, h, h);
@@ -126,10 +128,12 @@ void SymbolListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
 
     if (isError)
         iconR = iconError.get();
+    else if (isExpr)
+        extra = " = " + expr;
 
     g.setColour (Colours::black);
     g.setFont (Font ("Monaco", 12, 0));
-    g.drawText (key + (descr.empty() ? "" : " = " + descr), h, 0, w, h, Justification::centredLeft);
+    g.drawText (key + extra, h, 0, w - 3 * h, h, Justification::centredLeft);
 
     if (iconL) iconL->drawWithin (g, iconRectL, RectanglePlacement::fillDestination, 1.f);
     if (iconC) iconC->drawWithin (g, iconRectC, RectanglePlacement::fillDestination, 1.f);
@@ -182,7 +186,7 @@ void SymbolListView::listWasScrolled()
 
 String SymbolListView::getTooltipForRow (int row)
 {
-    return statuses[row].at ("error");
+    return statuses[row].at ("error") + statuses[row].at ("doc");
 }
 
 //==============================================================================

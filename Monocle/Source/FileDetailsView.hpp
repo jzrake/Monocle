@@ -12,7 +12,7 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void filterNameChanged (const String& newName) = 0;
+        // virtual void filterNameChanged (const String& newName) = 0;
     };
 
     struct Geometry
@@ -26,8 +26,8 @@ public:
     FileDetailsView();
     void addListener (Listener*);
     void removeListener (Listener*);
-    void setCurrentlyActiveFiles (const StringArray& names, const StringArray& filters);
-    void setFilterIsValid (bool isValid);
+    void setCurrentlyActiveFiles (const StringArray& names);
+    // void setFilterIsValid (bool isValid);
     void updateFileDetailsIfShowing (File file);
 
     //==============================================================================
@@ -39,9 +39,9 @@ private:
     Geometry computeGeometry() const;
 
     ListenerList<Listener> listeners;
-    TextEditor filterNameEditor;
-    std::unique_ptr<Drawable> filterKnown;
-    std::unique_ptr<Drawable> filterUnknown;
+    // TextEditor filterNameEditor;
+    // std::unique_ptr<Drawable> filterKnown;
+    // std::unique_ptr<Drawable> filterUnknown;
 
     StringArray currentFilenames;
     bool filterIsCurrentlyValid = false;

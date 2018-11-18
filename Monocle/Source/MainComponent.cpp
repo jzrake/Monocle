@@ -56,6 +56,7 @@ MainComponent::MainComponent()
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
     kernel.import (mcl::Builtin::structures());
     kernel.import (Loaders::loaders());
+    kernel.import (PlotModels::plot_models());
     kernel.insert ("test-data", mcl::Object::expr ("(load-txt test)"));
     kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
 
@@ -145,7 +146,7 @@ void MainComponent::fileListFilesRemoved (const StringArray& files)
 
 void MainComponent::fileListSelectionChanged (const StringArray& files)
 {
-    fileDetails.setCurrentlyActiveFiles (files, fileManager.getFilterNames (files));
+    fileDetails.setCurrentlyActiveFiles (files);
 }
 
 //==========================================================================
@@ -164,14 +165,14 @@ void MainComponent::kernelListSymbolsRemoved (const StringArray& symbols)
 }
 
 //==========================================================================
-void MainComponent::filterNameChanged (const String& newName)
-{
-    for (const auto& file : fileList.getSelectedFullPathNames())
-    {
-        fileManager.setFilterName (file, newName);
-        fileDetails.setFilterIsValid (newName == "Ascii");
-    }
-}
+//void MainComponent::filterNameChanged (const String& newName)
+//{
+//    for (const auto& file : fileList.getSelectedFullPathNames())
+//    {
+//        fileManager.setFilterName (file, newName);
+//        fileDetails.setFilterIsValid (newName == "Ascii");
+//    }
+//}
 
 //==========================================================================
 void MainComponent::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)

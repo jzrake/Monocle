@@ -193,14 +193,17 @@ void FigureView::PlotArea::paintLinePlot (Graphics& g, const LinePlotModel& line
 {
     jassert (linePlot.x.size() == linePlot.y.size());
 
+    if (linePlot.x.empty())
+        return;
+
     Path p;
-    p.startNewSubPath (fromDomainX (linePlot.x.getFirst()),
-                       fromDomainY (linePlot.y.getFirst()));
+    p.startNewSubPath (fromDomainX (linePlot.x(0)),
+                       fromDomainY (linePlot.y(0)));
 
     for (int n = 1; n < linePlot.x.size(); ++n)
     {
-        p.lineTo (fromDomainX (linePlot.x.getUnchecked (n)),
-                  fromDomainY (linePlot.y.getUnchecked (n)));
+        p.lineTo (fromDomainX (linePlot.x(n)),
+                  fromDomainY (linePlot.y(n)));
     }
     g.setColour (linePlot.lineColour);
     g.strokePath (p, PathStrokeType (linePlot.lineWidth));

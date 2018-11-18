@@ -37,10 +37,11 @@ public:
     struct Func
     {
         Func() {}
-        Func (std::function<Object (const List&, const Dict&)> f) : f (f) {}
+        Func (std::function<Object (const List&, const Dict&)> f, const std::string& doc="") : f (f), doc (doc) {}
         bool operator==(const Func& other) const { return false; }
         bool operator!=(const Func& other) const { return true; }
         std::function<Object (const List&, const Dict&)> f = nullptr;
+        std::string doc;
     };
 
     struct Data

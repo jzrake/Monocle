@@ -66,13 +66,42 @@ FigureModel FigureModel::createExample()
     FigureModel model;
     LinePlotModel linePlot;
 
+    nd::ndarray<double, 1> x (200);
+    nd::ndarray<double, 1> y (200);
+
     for (int n = 0; n < 200; ++n)
     {
         double t = 2 * M_PI * n / 200.0;
-        linePlot.x.add (cos (t));
-        linePlot.y.add (sin (t));
+        x(n) = std::cos(t);
+        y(n) = std::sin(t);
     }
+
     linePlot.lineWidth = 4;
+    linePlot.x.become(x);
+    linePlot.y.become(y);
     model.linePlots.add (linePlot);
     return model;
+}
+
+
+
+
+//==============================================================================
+using namespace mcl;
+
+Object::Dict PlotModels::plot_models()
+{
+    Object::Dict m;
+    m["line-plot"] = Object::Func (line_plot, "(x:double[n] y:double[n])");
+    return m;
+}
+
+Object PlotModels::line_plot (const Object::List& args, const Object::Dict&)
+{
+    return Object::data (std::make_shared<LinePlotModel>());
+}
+
+Object PlotModels::figure (const Object::List& args, const Object::Dict&)
+{
+    return Object::data (std::make_shared<FigureModel>());
 }
