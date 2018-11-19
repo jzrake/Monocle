@@ -62,6 +62,25 @@ String SymbolDetailsView::SymbolItem::getUniqueName() const
     return String (getIndexInParent());
 }
 
+//==============================================================================
+void SymbolDetailsView::SymbolItem::itemClicked (const MouseEvent& e)
+{
+    if (isSelected() && e.mods.isPopupMenu())
+    {
+//        PopupMenu menu;
+//        menu.addItem (1, "Create Line Plot");
+//        menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
+//        {
+//            auto tree = dynamic_cast<SymbolDetailsView*> (getOwnerView());
+//            tree->listeners.call (&Listener::symbolDetailsWantsNewDefinition, 1, tree->getSelectedKeys());
+//        });
+    }
+}
+
+void SymbolDetailsView::SymbolItem::itemSelectionChanged (bool isNowSelected)
+{
+    DBG(key << " selected ? " << int (isNowSelected));
+}
 
 
 
@@ -69,6 +88,18 @@ String SymbolDetailsView::SymbolItem::getUniqueName() const
 SymbolDetailsView::SymbolDetailsView()
 {
     setIndentSize (12);
+    setMultiSelectEnabled (true);
+    setRootItemVisible (false);
+}
+
+void SymbolDetailsView::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void SymbolDetailsView::removeListener(Listener* listener)
+{
+    listeners.remove (listener);
 }
 
 void SymbolDetailsView::setViewedObject (const std::string& key, const mcl::Object& objectToView)
@@ -92,6 +123,17 @@ const std::string& SymbolDetailsView::getCurrentSymbol() const
     return currentKey;
 }
 
+StringArray SymbolDetailsView::getSelectedKeys() const
+{
+    StringArray res;
+    res.ensureStorageAllocated (getNumSelectedItems());
+
+    for (int n = 0; n < getNumSelectedItems(); ++n)
+        res.add (dynamic_cast<SymbolItem*> (getSelectedItem (n))->key);
+    return res;
+}
+
+//==============================================================================
 void SymbolDetailsView::focusGained (FocusChangeType)
 {
     repaint();

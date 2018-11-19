@@ -18,8 +18,8 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void kernelListSelectionChanged (const StringArray& symbols) = 0;
-        virtual void kernelListSymbolsRemoved (const StringArray& symbols) = 0;
+        virtual void symbolListSelectionChanged (const StringArray& symbols) = 0;
+        virtual void symbolListSymbolsRemoved (const StringArray& symbols) = 0;
     };
 
     //==========================================================================

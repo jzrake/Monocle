@@ -80,7 +80,7 @@ void SymbolListView::updateSymbolStatus (const std::string& key, const Status& s
             updateContent();
         }
     }
-    listeners.call (&Listener::kernelListSelectionChanged, getSelectedSymbols());
+    listeners.call (&Listener::symbolListSelectionChanged, getSelectedSymbols());
 }
 
 //==============================================================================
@@ -168,7 +168,7 @@ void SymbolListView::backgroundClicked (const MouseEvent&)
 
 void SymbolListView::selectedRowsChanged (int)
 {
-    listeners.call (&Listener::kernelListSelectionChanged, getSelectedSymbols());
+    listeners.call (&Listener::symbolListSelectionChanged, getSelectedSymbols());
 }
 
 void SymbolListView::deleteKeyPressed (int)
@@ -194,7 +194,7 @@ void SymbolListView::sendDeleteSelectedSymbols()
 {
     auto newSelection = getSelectedRows().getRange(0).getStart();
     auto filesToDelete = getSelectedSymbols();
-    listeners.call (&Listener::kernelListSymbolsRemoved, getSelectedSymbols());
+    listeners.call (&Listener::symbolListSymbolsRemoved, getSelectedSymbols());
     selectRow (newSelection);
 }
 

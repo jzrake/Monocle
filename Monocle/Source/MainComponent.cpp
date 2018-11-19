@@ -33,11 +33,12 @@ MainComponent::MainComponent()
     fileManager.setPollingInterval (100);
     figure     .setModel (model = FigureModel::createExample());
 
-    fileManager.addListener (this);
-    fileList   .addListener (this);
-    symbolList .addListener (this);
-    fileDetails.addListener (this);
-    figure     .addListener (this);
+    fileManager  .addListener (this);
+    fileList     .addListener (this);
+    symbolList   .addListener (this);
+    symbolDetails.addListener (this);
+    fileDetails  .addListener (this);
+    figure       .addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
@@ -57,7 +58,7 @@ MainComponent::MainComponent()
     kernel.import (mcl::Builtin::builtin());
     kernel.import (Loaders::loaders());
     kernel.import (PlotModels::plot_models());
-//    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
+    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
     kernel.insert ("data1", mcl::Object::expr ("(load-txt test)"));
     kernel.insert ("plot1", mcl::Object::expr ("(line-plot (attr data1 'A') (attr data1 'B'))"));
     kernel.insert ("fig1", mcl::Object::expr ("(figure plot1)"));
@@ -155,18 +156,55 @@ void MainComponent::fileListSelectionChanged (const StringArray& files)
 }
 
 //==========================================================================
-void MainComponent::kernelListSelectionChanged (const StringArray& symbols)
+void MainComponent::symbolListSelectionChanged (const StringArray& symbols)
 {
+#if 0
+    // Option 1
+    // ---------------------
     if (symbols.size() == 1)
         symbolDetails.setViewedObject (symbols[0].toStdString(), kernel.concrete (symbols[0].toStdString()));
     else
         symbolDetails.setViewedObject ("", mcl::Object());
+
+    // Option 2
+    // ---------------------
+#elseif 0
+    auto keys = std::vector<std::string>();
+    auto vals = std::vector<mcl::Object>();
+
+    for (const auto& key : symbols)
+    {
+        keys.push_back (key.toStdString());
+        vals.push_back (kernel.concrete (key.toStdString()));
+    }
+
+    // Option 3
+    // ---------------------
+#else
+    auto combinedKey = std::string();
+    auto combinedVal = mcl::Object::Dict();
+
+    for (const auto& key : symbols)
+    {
+        combinedKey += key.toStdString();
+        combinedVal[key.toStdString()] = kernel.concrete (key.toStdString());
+    }
+
+    symbolDetails.setViewedObject (combinedKey, combinedVal);
+#endif
 }
 
-void MainComponent::kernelListSymbolsRemoved (const StringArray& symbols)
+void MainComponent::symbolListSymbolsRemoved (const StringArray& symbols)
 {
     for (const auto& key : symbols)
         kernel.remove (key.toStdString());
+}
+
+void MainComponent::symbolDetailsWantsNewDefinition (int code, const StringArray& argumentKeys)
+{
+//    auto key = argumentKeys[0] + "-" + argumentKeys[1];
+//    auto def = "(line-plot " + argumentKeys[0] + " " + argumentKeys[1] + ")";
+//    kernel.insert (key.toStdString(), mcl::Object::expr (def.toStdString()));
 }
 
 //==========================================================================

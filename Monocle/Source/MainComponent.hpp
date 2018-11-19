@@ -21,6 +21,7 @@ class MainComponent
 , private FileManager::Listener
 , private FileListView::Listener
 , private SymbolListView::Listener
+, private SymbolDetailsView::Listener
 , private FileDetailsView::Listener
 , private FigureView::Listener
 {
@@ -47,8 +48,11 @@ private:
     void fileListSelectionChanged (const StringArray& files) override;
 
     //==========================================================================
-    void kernelListSelectionChanged (const StringArray& symbols) override;
-    void kernelListSymbolsRemoved (const StringArray& symbols) override;
+    void symbolListSelectionChanged (const StringArray& symbols) override;
+    void symbolListSymbolsRemoved (const StringArray& symbols) override;
+
+    //==========================================================================
+    void symbolDetailsWantsNewDefinition (int code, const StringArray& argumentKeys) override;
 
     //==========================================================================
     // void filterNameChanged (const String& newName) override;
