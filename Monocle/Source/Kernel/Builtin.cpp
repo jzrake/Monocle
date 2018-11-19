@@ -6,13 +6,79 @@ using namespace mcl;
 
 
 // ============================================================================
-Object::Dict Builtin::structures()
+Object::Dict Builtin::builtin()
 {
-    using F = Object::Func;
     auto m = Object::Dict();
-    m["list"] = F ([] (const Object& a, const Object& b) { return a; });
-    m["dict"] = F ([] (const Object& a, const Object& b) { return b; });
+    m["item" ] = Object::Func (item);
+    m["attr" ] = Object::Func (attr);
+    m["list" ] = Object::Func (list);
+    m["dict" ] = Object::Func (dict);
+    m["join" ] = Object::Func (join);
+    m["merge"] = Object::Func (merge);
+    m["range"] = Object::Func (range);
     return m;
+}
+
+Object Builtin::item (const Object::List& args, const Object::Dict&)
+{
+    auto L = Builtin::check<Object::List> (args, 0);
+    auto I = Builtin::check<int> (args, 1);
+    return L[I];
+}
+
+Object Builtin::attr (const Object::List& args, const Object::Dict&)
+{
+    auto D = Builtin::check<Object::Dict> (args, 0);
+    auto I = Builtin::check<std::string> (args, 1);
+    return D[I];
+}
+
+Object Builtin::list (const Object::List& args, const Object::Dict&)
+{
+    return args;
+}
+
+Object Builtin::dict (const Object::List&, const Object::Dict& kwar)
+{
+    return kwar;
+}
+
+Object Builtin::join (const Object::List& args, const Object::Dict&)
+{
+    auto res = Object::List();
+    int m = 0;
+
+    for (int n = 0; n < args.size(); ++n)
+        for (const auto& entry : Builtin::check<Object::List> (args, n))
+            res[m++] = entry;
+
+    return res;
+}
+
+Object Builtin::merge (const Object::List& args, const Object::Dict&)
+{
+    auto res = Object::Dict();
+
+    for (int n = 0; n < args.size(); ++n)
+        for (const auto& entry : Builtin::check<Object::Dict> (args, n))
+            res[entry.first] = entry.second;
+
+    return res;
+}
+
+Object Builtin::range (const Object::List& args, const Object::Dict&)
+{
+    auto l0 = check<int>(args, 0);
+    auto l1 = check<int>(args, 1);
+    auto x0 = std::min (l0, l1);
+    auto x1 = std::max (l0, l1);
+
+    Object::List L;
+
+    for (int x = x0; x < x1; ++x)
+        L.push_back (x);
+
+    return L;
 }
 
 

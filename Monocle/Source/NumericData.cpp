@@ -5,29 +5,34 @@
 
 
 //==============================================================================
-NumericArrayDouble1::NumericArrayDouble1() {}
-NumericArrayDouble1::NumericArrayDouble1 (nd::ndarray<double, 1> array) : array (array) {}
-NumericArrayDouble1::NumericArrayDouble1 (const std::vector<double>& vec) : array (int (vec.size()))
+ArrayDouble1::ArrayDouble1() {}
+ArrayDouble1::ArrayDouble1 (nd::ndarray<double, 1> array) : array (array) {}
+ArrayDouble1::ArrayDouble1 (const std::vector<double>& vec) : array (int (vec.size()))
 {
     std::memcpy (&array(0), &vec[0], vec.size() * sizeof (double));
 }
 
-std::string NumericArrayDouble1::type() const
+nd::ndarray<double, 1>& ArrayDouble1::get()
 {
-    return "NumericArrayDouble1";
+    return array;
 }
 
-std::string NumericArrayDouble1::describe() const
+std::string ArrayDouble1::type() const
+{
+    return "ArrayDouble1";
+}
+
+std::string ArrayDouble1::describe() const
 {
     return "double [" + std::to_string (array.shape()[0]) + "]";
 }
 
-std::string NumericArrayDouble1::serialize() const
+std::string ArrayDouble1::serialize() const
 {
     return "";
 }
 
-bool NumericArrayDouble1::load (const std::string&)
+bool ArrayDouble1::load (const std::string&)
 {
     return false;
 }

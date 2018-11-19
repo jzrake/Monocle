@@ -3,18 +3,6 @@
 
 
 
-// Experimental:
-// =============================================================================
-template <>
-struct VariantConverter<FigureModel>
-{
-    static FigureModel fromVar (const var& v) { return FigureModel(); }
-    static var toVar (const FigureModel& t)   { return var(); }
-};
-
-
-
-
 //==============================================================================
 Rectangle<int> FigureModel::getTopMargin (const Rectangle<int>& area) const
 {
@@ -87,6 +75,9 @@ FigureModel FigureModel::createExample()
 
 
 //==============================================================================
+#include "NumericData.hpp"
+#include "Kernel/Builtin.hpp"
+
 using namespace mcl;
 
 Object::Dict PlotModels::plot_models()
@@ -98,7 +89,12 @@ Object::Dict PlotModels::plot_models()
 
 Object PlotModels::line_plot (const Object::List& args, const Object::Dict&)
 {
-    return Object::data (std::make_shared<LinePlotModel>());
+    auto model = std::make_shared<LinePlotModel>();
+    auto x = Builtin::check_user_data<ArrayDouble1> (args, 0);
+    auto y = Builtin::check_user_data<ArrayDouble1> (args, 1);
+    model->x.become (x.get());
+    model->y.become (y.get());
+    return Object::data (model);
 }
 
 Object PlotModels::figure (const Object::List& args, const Object::Dict&)

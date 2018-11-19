@@ -54,11 +54,16 @@ MainComponent::MainComponent()
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
-    kernel.import (mcl::Builtin::structures());
+    kernel.import (mcl::Builtin::builtin());
     kernel.import (Loaders::loaders());
     kernel.import (PlotModels::plot_models());
-    kernel.insert ("test-data", mcl::Object::expr ("(load-txt test)"));
-    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
+//    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
+    kernel.insert ("data1", mcl::Object::expr ("(load-txt test)"));
+    kernel.insert ("plot1", mcl::Object::expr ("(line-plot (attr data1 'A') (attr data1 'B'))"));
+    kernel.insert ("fig1", mcl::Object::expr ("(figure plot1)"));
+
+    //kernel.insert ("fig1", mcl::Object::expr ("(figure plot1 limits=fig1:limits title=fig1:title xlabel=fig1:xlabel ylabel=fig1:ylabel margins=fig:margins)"));
+    //kernel.insert ("fig1", mcl::Object::expr ("(concat (figure plot1) fig1:format)"));
 
     symbolList.setSymbolList (kernel.status (kernel.select()));
 }

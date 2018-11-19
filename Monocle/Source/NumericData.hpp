@@ -6,17 +6,17 @@
 
 
 // ============================================================================
-class NumericArrayDouble1 : public mcl::UserData
+class ArrayDouble1 : public mcl::UserData
 {
 public:
-    NumericArrayDouble1();
-    NumericArrayDouble1 (nd::ndarray<double, 1> array);
-    NumericArrayDouble1 (const std::vector<double>& vec);
+    ArrayDouble1();
+    ArrayDouble1 (nd::ndarray<double, 1> array);
+    ArrayDouble1 (const std::vector<double>& vec);
+    nd::ndarray<double, 1>& get();
     std::string type() const override;
     std::string describe() const override;
     std::string serialize() const override;
     bool load (const std::string&) override;
-    nd::ndarray<double, 1> get();
 private:
     nd::ndarray<double, 1> array;
 };
