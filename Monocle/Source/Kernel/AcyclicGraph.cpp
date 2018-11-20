@@ -18,10 +18,7 @@ void AcyclicGraph::setErrorLog (ErrorLog errorLogToInvoke)
 
 bool AcyclicGraph::insert (const std::string& key, const Object& value, const std::set<std::string>& incoming)
 {
-    if (wouldCreateCycle (key, incoming))
-    {
-        throw std::invalid_argument ("AcyclicGraph: would create a reference cycle");
-    }
+    throwIfWouldCreateCycle (key, incoming);
 
     /*
      getOutgoingEdges is O(N) if it's not already in the graph.
@@ -401,6 +398,14 @@ bool AcyclicGraph::wouldCreateCycle (const std::string& source, const std::set<s
             return true;
 
     return false;
+}
+
+void AcyclicGraph::throwIfWouldCreateCycle (const std::string& source, const std::set<std::string>& incoming) const
+{
+    if (wouldCreateCycle (source, incoming))
+    {
+        throw std::invalid_argument ("AcyclicGraph: would create a reference cycle");
+    }
 }
 
 void AcyclicGraph::mark (const std::string& key)

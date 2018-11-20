@@ -200,6 +200,7 @@ public:
         whether any of the proposed dependencies depend on a node named source.
     */
     bool wouldCreateCycle (const std::string& source, const std::set<std::string>& incoming) const;
+    void throwIfWouldCreateCycle (const std::string& source, const std::set<std::string>& incoming) const;
 
     static void testTopologies();
 

@@ -18,12 +18,13 @@
 class DefinitionEditor : public Component, public TextEditor::Listener
 {
 public:
+    using Validator = std::function<std::string(const std::string& key, const std::string& expression)>;
+
     class Listener
     {
     public:
         virtual ~Listener() {}
-        virtual void definitionEditorCommitDefinition (const std::string& key, const std::string& expression) = 0;
-        virtual void definitionEditorCommited() = 0;
+        virtual void definitionEditorCommited (const std::string& key, const std::string& expression) = 0;
         virtual void definitionEditorCanceled() = 0;
     };
 
@@ -34,16 +35,20 @@ public:
         Rectangle<int> editorArea;
         Rectangle<int> equalsSignArea;
         Rectangle<int> listArea;
+        Rectangle<int> validationMessageArea;
     };
 
     //==========================================================================
     DefinitionEditor();
+    void setValidator (Validator validatorToUse);
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void addPart (const String& part);
     void cancel();
     void commit();
     bool isCommittable() const;
+    std::string getKey() const;
+    std::string getExpression() const;
 
     //==========================================================================
     void resized() override;
@@ -57,6 +62,7 @@ public:
 
 private:
     Geometry computeGeometry() const;
+    Validator validator;
     ListenerList<Listener> listeners;
     Font font;
     StringArray parts;
@@ -111,8 +117,7 @@ private:
     void symbolDetailsItemPunched (const std::string& expression) override;
 
     //==========================================================================
-    void definitionEditorCommitDefinition (const std::string& key, const std::string& expression) override;
-    void definitionEditorCommited() override;
+    void definitionEditorCommited (const std::string& key, const std::string& expression) override;
     void definitionEditorCanceled() override;
 
     //==========================================================================

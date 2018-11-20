@@ -1,6 +1,7 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
 #include "Kernel/Builtin.hpp"
+#include "Kernel/Expression.hpp"
 #include "Loaders.hpp"
 
 
@@ -26,6 +27,11 @@ DefinitionEditor::DefinitionEditor()
     addAndMakeVisible (symbolNameEditor);
 }
 
+void DefinitionEditor::setValidator (Validator validatorToUse)
+{
+    validator = validatorToUse;
+}
+
 void DefinitionEditor::addListener (Listener* listener)
 {
     listeners.add (listener);
@@ -46,22 +52,32 @@ void DefinitionEditor::cancel()
 {
     parts.clear();
     symbolNameEditor.clear();
-    repaint();
     listeners.call (&Listener::definitionEditorCanceled);
+    repaint();
 }
 
 void DefinitionEditor::commit()
 {
     jassert (isCommittable());
-    parts.clear();
+    listeners.call (&Listener::definitionEditorCommited, getKey(), getExpression());
     symbolNameEditor.clear();
+    parts.clear();
     repaint();
-    listeners.call (&Listener::definitionEditorCommited);
 }
 
 bool DefinitionEditor::isCommittable() const
 {
-    return ! symbolNameEditor.isEmpty() && ! parts.isEmpty();
+    return validator (getKey(), getExpression()).empty();
+}
+
+std::string DefinitionEditor::getKey() const
+{
+    return symbolNameEditor.getText().toStdString();;
+}
+
+std::string DefinitionEditor::getExpression() const
+{
+    return ("(" + parts.joinIntoString (" ") + ")").toStdString();
 }
 
 //==============================================================================
@@ -82,10 +98,20 @@ void DefinitionEditor::paint (Graphics& g)
     cancelIcon->drawWithin (g, geom.cancelIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
 
     if (isCommittable())
+    {
         commitIcon->drawWithin (g, geom.commitIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
-
+    }
     g.drawMultiLineText (parts.joinIntoString ("\n"), geom.listArea.getX(), geom.listArea.getY(), geom.listArea.getWidth());
     g.drawText (" = ", geom.equalsSignArea, Justification::centredLeft);
+
+    if (validator)
+    {
+        g.setColour (Colours::red);
+        g.drawMultiLineText (validator (getKey(), getExpression()),
+                             geom.validationMessageArea.getX(),
+                             geom.validationMessageArea.getY(),
+                             geom.validationMessageArea.getWidth());
+    }
 }
 
 void DefinitionEditor::mouseDown (const MouseEvent& e)
@@ -96,9 +122,10 @@ void DefinitionEditor::mouseDown (const MouseEvent& e)
     }
     else if (computeGeometry().commitIconArea.toFloat().contains (e.position))
     {
-        auto expr = ("(" + parts.joinIntoString (" ") + ")").toStdString();
-        listeners.call (&Listener::definitionEditorCommitDefinition, symbolNameEditor.getText().toStdString(), expr);
-        commit();
+        if (isCommittable())
+        {
+            commit();
+        }
     }
 }
 
@@ -131,6 +158,10 @@ DefinitionEditor::Geometry DefinitionEditor::computeGeometry() const
     g.editorArea     = Rectangle<int> (g.commitIconArea.getRight() + rowHeight / 4, rowTop, 100, rowHeight);
     g.equalsSignArea = Rectangle<int> (g.editorArea.getRight(), rowTop, font.getStringWidth (" = "), rowHeight);
     g.listArea       = getLocalBounds().withTrimmedLeft (g.equalsSignArea.getRight()).reduced (0, 14);
+    g.validationMessageArea = Rectangle<int>::leftTopRightBottom (rowHeight / 2,
+                                                                  g.editorArea.getBottom() + rowHeight,
+                                                                  g.equalsSignArea.getRight(),
+                                                                  getHeight());
     return g;
 }
 
@@ -164,6 +195,22 @@ MainComponent::MainComponent()
 
     fileManager.setPollingInterval (100);
     figure     .setModel (model = FigureModel::createExample());
+
+    definitionEditor.setValidator ([this] (const auto& key, const auto& expr) -> std::string
+    {
+        if (key.empty() || expr.empty())
+        {
+            return " ";
+        }
+        try {
+            auto e = mcl::Expression (expr);
+            kernel.throwIfWouldCreateCycle (key, e.symbols());
+        }
+        catch (std::exception& e) {
+            return e.what();
+        }
+        return std::string();
+    });
 
     fileManager     .addListener (this);
     fileList        .addListener (this);
@@ -199,6 +246,7 @@ MainComponent::MainComponent()
 
     //kernel.insert ("fig1", mcl::Object::expr ("(figure plot1 limits=fig1:limits title=fig1:title xlabel=fig1:xlabel ylabel=fig1:ylabel margins=fig:margins)"));
     //kernel.insert ("fig1", mcl::Object::expr ("(concat (figure plot1) fig1:format)"));
+    kernel.insert ("A", mcl::Object::expr ("(B C D)"));
 
     symbolList.setSymbolList (kernel.status (kernel.select()));
 }
@@ -334,13 +382,9 @@ void MainComponent::symbolDetailsItemPunched (const std::string& expression)
 }
 
 //==========================================================================
-void MainComponent::definitionEditorCommitDefinition (const std::string& key, const std::string& expression)
+void MainComponent::definitionEditorCommited (const std::string& key, const std::string& expression)
 {
     kernel.insert (key, mcl::Object::expr (expression));
-}
-
-void MainComponent::definitionEditorCommited()
-{
     skeleton.setBackdropRevealed (false);
 }
 
