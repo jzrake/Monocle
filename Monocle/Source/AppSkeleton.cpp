@@ -179,6 +179,7 @@ public:
 
     void buttonStateChanged() override
     {
+        findParentComponentOfClass<AppSkeleton>()->updatePageVisibility();
         findParentComponentOfClass<AppSkeleton>()->layout();
     }
 
@@ -346,8 +347,8 @@ AppSkeleton::Geometry AppSkeleton::computeGeometry() const
 
     if (backdropButton->getToggleState())
     {
-        g.backdrop = g.mainContent.withBottom (200);
-        g.mainContent.translate (0, 200);
+        g.backdrop = g.mainContent.withBottom (backdropHeight + topNavHeight);
+        g.mainContent.translate (0, backdropHeight);
     }
     return g;
 }
@@ -400,6 +401,17 @@ void AppSkeleton::updatePageVisibility()
             page->setVisible (button->getToggleState());
 
     for (const auto& button : navButtons)
+    {
         if (auto backdrop = button->backdrop)
-            backdrop->setVisible (button->getToggleState());
+        {
+            auto shouldBeVisible = button->getToggleState() && backdropButton->getToggleState();
+            auto isCurrentlyVisible = backdrop->isVisible();
+            backdrop->setVisible (shouldBeVisible);
+
+            if (shouldBeVisible && ! isCurrentlyVisible)
+            {
+                backdrop->grabKeyboardFocus();
+            }
+        }
+    }
 }

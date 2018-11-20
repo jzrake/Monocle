@@ -167,8 +167,9 @@ void SymbolListView::listBoxItemClicked (int row, const MouseEvent& e)
     }
 }
 
-void SymbolListView::listBoxItemDoubleClicked (int row, const MouseEvent&)
+void SymbolListView::listBoxItemDoubleClicked (int, const MouseEvent&)
 {
+    listeners.call (&Listener::symbolListSymbolPunched, getSelectedSymbols()[0]);
 }
 
 void SymbolListView::backgroundClicked (const MouseEvent&)

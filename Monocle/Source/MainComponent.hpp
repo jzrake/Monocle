@@ -15,20 +15,54 @@
 
 
 //==============================================================================
-class DefinitionEditor : public Component
+class DefinitionEditor : public Component, public TextEditor::Listener
 {
 public:
+    class Listener
+    {
+    public:
+        virtual ~Listener() {}
+        virtual void definitionEditorCommitDefinition (const std::string& key, const std::string& expression) = 0;
+        virtual void definitionEditorCommited() = 0;
+        virtual void definitionEditorCanceled() = 0;
+    };
+
+    struct Geometry
+    {
+        Rectangle<int> cancelIconArea;
+        Rectangle<int> commitIconArea;
+        Rectangle<int> editorArea;
+        Rectangle<int> equalsSignArea;
+        Rectangle<int> listArea;
+    };
+
     //==========================================================================
     DefinitionEditor();
+    void addListener (Listener* listener);
+    void removeListener (Listener* listener);
     void addPart (const String& part);
-    void clear();
+    void cancel();
+    void commit();
+    bool isCommittable() const;
 
     //==========================================================================
+    void resized() override;
     void paint (Graphics& g) override;
+    void mouseDown (const MouseEvent&) override;
+
+    //==========================================================================
+    void textEditorTextChanged (TextEditor&) override;
+    void textEditorReturnKeyPressed (TextEditor&) override;
+    void textEditorEscapeKeyPressed (TextEditor&) override;
 
 private:
+    Geometry computeGeometry() const;
+    ListenerList<Listener> listeners;
     Font font;
     StringArray parts;
+    TextEditor symbolNameEditor;
+    std::unique_ptr<Drawable> cancelIcon;
+    std::unique_ptr<Drawable> commitIcon;
 };
 
 
@@ -43,6 +77,7 @@ class MainComponent
 , private SymbolListView::Listener
 , private SymbolDetailsView::Listener
 , private FileDetailsView::Listener
+, private DefinitionEditor::Listener
 , private FigureView::Listener
 {
 public:
@@ -76,7 +111,9 @@ private:
     void symbolDetailsItemPunched (const std::string& expression) override;
 
     //==========================================================================
-    // void filterNameChanged (const String& newName) override;
+    void definitionEditorCommitDefinition (const std::string& key, const std::string& expression) override;
+    void definitionEditorCommited() override;
+    void definitionEditorCanceled() override;
 
     //==========================================================================
     void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;

@@ -101,5 +101,6 @@ private:
     int topNavHeight    = 40;
     int leftNavWidth    = 60;
     int sourceListWidth = 250;
+    int backdropHeight  = 200;
     int sourceListWidthAtMouseDown = 0;
 };

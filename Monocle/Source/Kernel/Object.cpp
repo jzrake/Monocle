@@ -1,4 +1,5 @@
 #include <set>
+#include <cassert>
 #include "Object.hpp"
 #include "Expression.hpp"
 #define BINARY_DATA_HEADER "mcl::Object"

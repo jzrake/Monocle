@@ -9,22 +9,65 @@
 //==============================================================================
 DefinitionEditor::DefinitionEditor()
 {
-    setSize (300, 10);
-    font = Font ("Monaco", 10, 0);
+    font = Font ("Monaco", 14, 0);
+
+    symbolNameEditor.setMultiLine (false);
+    symbolNameEditor.setReturnKeyStartsNewLine (false);
+    symbolNameEditor.setBorder ({0, 0, 0, 0});
+    symbolNameEditor.setTextToShowWhenEmpty ("Symbol name", Colours::lightgrey);
+    symbolNameEditor.setFont (font);
+    symbolNameEditor.addListener (this);
+    symbolNameEditor.setVisible (false);
+    symbolNameEditor.setColour (TextEditor::ColourIds::outlineColourId, Colours::lightgrey);
+
+    cancelIcon = material::util::icon (material::navigation::ic_cancel, Colours::grey);
+    commitIcon = material::util::icon (material::navigation::ic_check, Colours::green);
+
+    addAndMakeVisible (symbolNameEditor);
+}
+
+void DefinitionEditor::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void DefinitionEditor::removeListener (Listener* listener)
+{
+    listeners.add (listener);
 }
 
 void DefinitionEditor::addPart (const String& part)
 {
     parts.add (part);
-    setVisible (true);
-    setSize (getWidth(), parts.size() * font.getHeight() + 18);
     repaint();
 }
 
-void DefinitionEditor::clear()
+void DefinitionEditor::cancel()
 {
     parts.clear();
-    setVisible (false);
+    symbolNameEditor.clear();
+    repaint();
+    listeners.call (&Listener::definitionEditorCanceled);
+}
+
+void DefinitionEditor::commit()
+{
+    jassert (isCommittable());
+    parts.clear();
+    symbolNameEditor.clear();
+    repaint();
+    listeners.call (&Listener::definitionEditorCommited);
+}
+
+bool DefinitionEditor::isCommittable() const
+{
+    return ! symbolNameEditor.isEmpty() && ! parts.isEmpty();
+}
+
+//==============================================================================
+void DefinitionEditor::resized()
+{
+    symbolNameEditor.setBounds (computeGeometry().editorArea);
 }
 
 void DefinitionEditor::paint (Graphics& g)
@@ -34,7 +77,61 @@ void DefinitionEditor::paint (Graphics& g)
     g.drawRect (getLocalBounds());
     g.setColour (Colours::black);
     g.setFont (font);
-    g.drawMultiLineText (parts.joinIntoString ("\n"), 4, 14, getWidth());
+    auto geom = computeGeometry();
+
+    cancelIcon->drawWithin (g, geom.cancelIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
+
+    if (isCommittable())
+        commitIcon->drawWithin (g, geom.commitIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
+
+    g.drawMultiLineText (parts.joinIntoString ("\n"), geom.listArea.getX(), geom.listArea.getY(), geom.listArea.getWidth());
+    g.drawText (" = ", geom.equalsSignArea, Justification::centredLeft);
+}
+
+void DefinitionEditor::mouseDown (const MouseEvent& e)
+{
+    if (computeGeometry().cancelIconArea.toFloat().contains (e.position))
+    {
+        cancel();
+    }
+    else if (computeGeometry().commitIconArea.toFloat().contains (e.position))
+    {
+        auto expr = ("(" + parts.joinIntoString (" ") + ")").toStdString();
+        listeners.call (&Listener::definitionEditorCommitDefinition, symbolNameEditor.getText().toStdString(), expr);
+        commit();
+    }
+}
+
+//==============================================================================
+void DefinitionEditor::textEditorTextChanged (TextEditor&)
+{
+    repaint();
+}
+
+void DefinitionEditor::textEditorReturnKeyPressed (TextEditor&)
+{
+    if (isCommittable())
+        commit();
+}
+
+void DefinitionEditor::textEditorEscapeKeyPressed (TextEditor&)
+{
+    cancel();
+}
+
+//==============================================================================
+DefinitionEditor::Geometry DefinitionEditor::computeGeometry() const
+{
+    int rowHeight = 22;
+    int rowTop = (getHeight() - rowHeight) / 2;
+
+    Geometry g;
+    g.cancelIconArea = Rectangle<int> (rowHeight / 4, rowTop, rowHeight, rowHeight);
+    g.commitIconArea = Rectangle<int> (g.cancelIconArea.getRight(), rowTop, rowHeight, rowHeight);
+    g.editorArea     = Rectangle<int> (g.commitIconArea.getRight() + rowHeight / 4, rowTop, 100, rowHeight);
+    g.equalsSignArea = Rectangle<int> (g.editorArea.getRight(), rowTop, font.getStringWidth (" = "), rowHeight);
+    g.listArea       = getLocalBounds().withTrimmedLeft (g.equalsSignArea.getRight()).reduced (0, 14);
+    return g;
 }
 
 
@@ -51,6 +148,7 @@ MainComponent::MainComponent()
     skeleton.setNavPage ("Notes", notesPage);
     skeleton.setNavPage ("Files", fileListAndDetail);
     skeleton.setNavPage ("Symbols", symbolListAndDetail);
+    skeleton.setBackdrop ("Symbols", definitionEditor);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -67,12 +165,13 @@ MainComponent::MainComponent()
     fileManager.setPollingInterval (100);
     figure     .setModel (model = FigureModel::createExample());
 
-    fileManager  .addListener (this);
-    fileList     .addListener (this);
-    symbolList   .addListener (this);
-    symbolDetails.addListener (this);
-    fileDetails  .addListener (this);
-    figure       .addListener (this);
+    fileManager     .addListener (this);
+    fileList        .addListener (this);
+    symbolList      .addListener (this);
+    symbolDetails   .addListener (this);
+    fileDetails     .addListener (this);
+    definitionEditor.addListener (this);
+    figure          .addListener (this);
 
     addAndMakeVisible (skeleton);
     addChildComponent (definitionEditor);
@@ -115,7 +214,7 @@ void MainComponent::paint (Graphics& g)
 void MainComponent::resized()
 {
     skeleton.setBounds (getLocalBounds());
-    definitionEditor.setCentreRelative (0.5f, 0.5f);
+    // definitionEditor.setCentreRelative (0.5f, 0.5f);
 }
 
 //==========================================================================
@@ -225,22 +324,30 @@ void MainComponent::symbolListSymbolsRemoved (const StringArray& symbols)
 void MainComponent::symbolListSymbolPunched (const String& symbol)
 {
     definitionEditor.addPart (symbol);
+    skeleton.setBackdropRevealed (true);
 }
 
 void MainComponent::symbolDetailsItemPunched (const std::string& expression)
 {
     definitionEditor.addPart (expression);
+    skeleton.setBackdropRevealed (true);
 }
 
 //==========================================================================
-//void MainComponent::filterNameChanged (const String& newName)
-//{
-//    for (const auto& file : fileList.getSelectedFullPathNames())
-//    {
-//        fileManager.setFilterName (file, newName);
-//        fileDetails.setFilterIsValid (newName == "Ascii");
-//    }
-//}
+void MainComponent::definitionEditorCommitDefinition (const std::string& key, const std::string& expression)
+{
+    kernel.insert (key, mcl::Object::expr (expression));
+}
+
+void MainComponent::definitionEditorCommited()
+{
+    skeleton.setBackdropRevealed (false);
+}
+
+void MainComponent::definitionEditorCanceled()
+{
+    skeleton.setBackdropRevealed (false);
+}
 
 //==========================================================================
 void MainComponent::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
