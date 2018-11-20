@@ -20,6 +20,7 @@ public:
         virtual ~Listener() {}
         virtual void symbolListSelectionChanged (const StringArray& symbols) = 0;
         virtual void symbolListSymbolsRemoved (const StringArray& symbols) = 0;
+        virtual void symbolListSymbolPunched (const String& symbol) = 0;
     };
 
     //==========================================================================
@@ -33,6 +34,7 @@ public:
     //==========================================================================
     void focusGained (FocusChangeType) override;
     void focusLost (FocusChangeType) override;
+    bool keyPressed (const KeyPress&) override;
 
     //==========================================================================
     int getNumRows() override;

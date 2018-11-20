@@ -22,6 +22,57 @@ SymbolDetailsView::SymbolItem::SymbolItem (const std::string& key, const mcl::Ob
             addSubItem (new SymbolItem (item.first, item.second));
 }
 
+String SymbolDetailsView::SymbolItem::getExpressionForPathInSymbol() const
+{
+    struct PathComponent
+    {
+        PathComponent (const std::string& key) : key (key) {}
+        PathComponent (int index) : index (index) {}
+        std::string key;
+        int index = -1;
+    };
+
+    std::vector<PathComponent> components;
+    auto item = this;
+
+    while (item)
+    {
+        if (item->key.front() == '[' && item->key.back() == ']')
+        {
+            components.push_back (atoi (item->key.substr (1, item->key.size() - 2).data()));
+        }
+        else
+        {
+            components.push_back (item->key);
+        }
+        item = dynamic_cast<SymbolItem*> (item->getParentItem());
+    }
+    String expr = "()";
+
+    for (const auto& c : components)
+    {
+        if (c.key == components.back().key)
+        {
+            expr = expr.replace ("()", c.key);
+        }
+        else if (c.key.empty())
+        {
+            expr = expr.replace ("()", "(item () " + String (c.index) + ")");
+        }
+        else
+        {
+            expr = expr.replace ("()", "(attr () '" + c.key + "')");
+        }
+    }
+    return expr;
+}
+
+//==============================================================================
+String SymbolDetailsView::SymbolItem::getUniqueName() const
+{
+    return String (getIndexInParent());
+}
+
 bool SymbolDetailsView::SymbolItem::mightContainSubItems()
 {
     return object.type() == 'L' || object.type() == 'D';
@@ -57,30 +108,20 @@ void SymbolDetailsView::SymbolItem::paintItem (Graphics& g, int width, int heigh
     g.drawText (key + " = " + descr, 0, 0, width, height, Justification::centredLeft);
 }
 
-String SymbolDetailsView::SymbolItem::getUniqueName() const
-{
-    return String (getIndexInParent());
-}
-
-//==============================================================================
 void SymbolDetailsView::SymbolItem::itemClicked (const MouseEvent& e)
 {
-    if (isSelected() && e.mods.isPopupMenu())
-    {
-//        PopupMenu menu;
-//        menu.addItem (1, "Create Line Plot");
-//        menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
-//        {
-//            auto tree = dynamic_cast<SymbolDetailsView*> (getOwnerView());
-//            tree->listeners.call (&Listener::symbolDetailsWantsNewDefinition, 1, tree->getSelectedKeys());
-//        });
-    }
+}
+
+void SymbolDetailsView::SymbolItem::itemDoubleClicked (const MouseEvent& e)
+{
+    auto tree = dynamic_cast<SymbolDetailsView*> (getOwnerView());
+    tree->listeners.call (&Listener::symbolDetailsItemPunched, getExpressionForPathInSymbol().toStdString());
 }
 
 void SymbolDetailsView::SymbolItem::itemSelectionChanged (bool isNowSelected)
 {
-    DBG(key << " selected ? " << int (isNowSelected));
 }
+
 
 
 
@@ -88,8 +129,8 @@ void SymbolDetailsView::SymbolItem::itemSelectionChanged (bool isNowSelected)
 SymbolDetailsView::SymbolDetailsView()
 {
     setIndentSize (12);
-    setMultiSelectEnabled (true);
-    setRootItemVisible (false);
+    setMultiSelectEnabled (false);
+    setRootItemVisible (true);
 }
 
 void SymbolDetailsView::addListener (Listener* listener)
@@ -147,4 +188,15 @@ void SymbolDetailsView::focusLost (FocusChangeType)
 void SymbolDetailsView::focusOfChildComponentChanged (FocusChangeType)
 {
     repaint();
+}
+
+bool SymbolDetailsView::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress::spaceKey)
+    {
+        auto item = dynamic_cast<SymbolItem*> (getSelectedItem (0));
+        listeners.call (&Listener::symbolDetailsItemPunched, item->getExpressionForPathInSymbol().toStdString());
+        return true;
+    }
+    return TreeView::keyPressed (key);
 }

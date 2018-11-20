@@ -15,7 +15,7 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void symbolDetailsWantsNewDefinition (int code, const StringArray& argumentKeys) = 0;
+        virtual void symbolDetailsItemPunched (const std::string& expression) = 0;
     };
 
     //==========================================================================
@@ -23,12 +23,14 @@ public:
     {
     public:
         SymbolItem (const std::string& key, const mcl::Object& object);
-        bool mightContainSubItems() override;
-        void paintItem (Graphics& g, int width, int height) override;
-        String getUniqueName() const override;
+        String getExpressionForPathInSymbol() const;
 
         //==========================================================================
+        String getUniqueName() const override;
+        bool mightContainSubItems() override;
+        void paintItem (Graphics& g, int width, int height) override;
         void itemClicked (const MouseEvent&) override;
+        void itemDoubleClicked (const MouseEvent&) override;
         void itemSelectionChanged (bool isNowSelected) override;
 
         //==========================================================================
@@ -36,6 +38,7 @@ public:
         mcl::Object object;
     };
 
+    //==============================================================================
     SymbolDetailsView();
     void addListener (Listener*);
     void removeListener (Listener*);
@@ -47,6 +50,7 @@ public:
     void focusGained (FocusChangeType) override;
     void focusLost (FocusChangeType) override;
     void focusOfChildComponentChanged (FocusChangeType) override;
+    bool keyPressed (const KeyPress& key) override;
 
 private:
     ListenerList<Listener> listeners;

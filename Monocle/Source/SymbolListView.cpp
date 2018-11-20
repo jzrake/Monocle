@@ -94,6 +94,16 @@ void SymbolListView::focusLost (FocusChangeType)
     repaint();
 }
 
+bool SymbolListView::keyPressed (const KeyPress& key)
+{
+    if (getNumSelectedRows() == 1 && key == KeyPress::spaceKey)
+    {
+        listeners.call (&Listener::symbolListSymbolPunched, getSelectedSymbols()[0]);
+        return true;
+    }
+    return ListBox::keyPressed (key);
+}
+
 //==============================================================================
 int SymbolListView::getNumRows()
 {
@@ -128,7 +138,7 @@ void SymbolListView::paintListBoxItem (int row, Graphics& g, int w, int h, bool 
 
     if (isError)
         iconR = iconError.get();
-    else if (isExpr)
+    if (isExpr)
         extra = " = " + expr;
 
     g.setColour (Colours::black);

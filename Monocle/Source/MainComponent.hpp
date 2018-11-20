@@ -15,6 +15,26 @@
 
 
 //==============================================================================
+class DefinitionEditor : public Component
+{
+public:
+    //==========================================================================
+    DefinitionEditor();
+    void addPart (const String& part);
+    void clear();
+
+    //==========================================================================
+    void paint (Graphics& g) override;
+
+private:
+    Font font;
+    StringArray parts;
+};
+
+
+
+
+//==============================================================================
 class MainComponent
 : public Component
 , public ApplicationCommandTarget
@@ -50,9 +70,10 @@ private:
     //==========================================================================
     void symbolListSelectionChanged (const StringArray& symbols) override;
     void symbolListSymbolsRemoved (const StringArray& symbols) override;
+    void symbolListSymbolPunched (const String& symbol) override;
 
     //==========================================================================
-    void symbolDetailsWantsNewDefinition (int code, const StringArray& argumentKeys) override;
+    void symbolDetailsItemPunched (const std::string& expression) override;
 
     //==========================================================================
     // void filterNameChanged (const String& newName) override;
@@ -74,6 +95,7 @@ private:
     SymbolListView    symbolList;
     SymbolDetailsView symbolDetails;
     DualComponentView symbolListAndDetail;
+    DefinitionEditor  definitionEditor;
 
     //==========================================================================
     FileManager fileManager;

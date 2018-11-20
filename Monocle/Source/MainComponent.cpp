@@ -7,6 +7,40 @@
 
 
 //==============================================================================
+DefinitionEditor::DefinitionEditor()
+{
+    setSize (300, 10);
+    font = Font ("Monaco", 10, 0);
+}
+
+void DefinitionEditor::addPart (const String& part)
+{
+    parts.add (part);
+    setVisible (true);
+    setSize (getWidth(), parts.size() * font.getHeight() + 18);
+    repaint();
+}
+
+void DefinitionEditor::clear()
+{
+    parts.clear();
+    setVisible (false);
+}
+
+void DefinitionEditor::paint (Graphics& g)
+{
+    g.fillAll (Colours::lightgrey);
+    g.setColour (Colours::black);
+    g.drawRect (getLocalBounds());
+    g.setColour (Colours::black);
+    g.setFont (font);
+    g.drawMultiLineText (parts.joinIntoString ("\n"), 4, 14, getWidth());
+}
+
+
+
+
+//==============================================================================
 MainComponent::MainComponent()
 {
     skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
@@ -41,6 +75,7 @@ MainComponent::MainComponent()
     figure       .addListener (this);
 
     addAndMakeVisible (skeleton);
+    addChildComponent (definitionEditor);
     setSize (800, 600);
 
     // Initial kernel configuration
@@ -80,6 +115,7 @@ void MainComponent::paint (Graphics& g)
 void MainComponent::resized()
 {
     skeleton.setBounds (getLocalBounds());
+    definitionEditor.setCentreRelative (0.5f, 0.5f);
 }
 
 //==========================================================================
@@ -158,29 +194,16 @@ void MainComponent::fileListSelectionChanged (const StringArray& files)
 //==========================================================================
 void MainComponent::symbolListSelectionChanged (const StringArray& symbols)
 {
-#if 0
-    // Option 1
+#if 1
+    // Load a single symbol at once
     // ---------------------
     if (symbols.size() == 1)
         symbolDetails.setViewedObject (symbols[0].toStdString(), kernel.concrete (symbols[0].toStdString()));
     else
         symbolDetails.setViewedObject ("", mcl::Object());
-
-    // Option 2
-    // ---------------------
-#elseif 0
-    auto keys = std::vector<std::string>();
-    auto vals = std::vector<mcl::Object>();
-
-    for (const auto& key : symbols)
-    {
-        keys.push_back (key.toStdString());
-        vals.push_back (kernel.concrete (key.toStdString()));
-    }
-
-    // Option 3
-    // ---------------------
 #else
+    // Load many symbols at once
+    // ---------------------
     auto combinedKey = std::string();
     auto combinedVal = mcl::Object::Dict();
 
@@ -189,7 +212,6 @@ void MainComponent::symbolListSelectionChanged (const StringArray& symbols)
         combinedKey += key.toStdString();
         combinedVal[key.toStdString()] = kernel.concrete (key.toStdString());
     }
-
     symbolDetails.setViewedObject (combinedKey, combinedVal);
 #endif
 }
@@ -200,11 +222,14 @@ void MainComponent::symbolListSymbolsRemoved (const StringArray& symbols)
         kernel.remove (key.toStdString());
 }
 
-void MainComponent::symbolDetailsWantsNewDefinition (int code, const StringArray& argumentKeys)
+void MainComponent::symbolListSymbolPunched (const String& symbol)
 {
-//    auto key = argumentKeys[0] + "-" + argumentKeys[1];
-//    auto def = "(line-plot " + argumentKeys[0] + " " + argumentKeys[1] + ")";
-//    kernel.insert (key.toStdString(), mcl::Object::expr (def.toStdString()));
+    definitionEditor.addPart (symbol);
+}
+
+void MainComponent::symbolDetailsItemPunched (const std::string& expression)
+{
+    definitionEditor.addPart (expression);
 }
 
 //==========================================================================
