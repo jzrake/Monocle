@@ -72,6 +72,8 @@ public:
     void setBackdropRevealed (bool shouldBackdropBeRevealed);
     void toggleNavPagesRevealed();
     void toggleBackdropRevealed();
+    void openNavSection (const String& name);
+    String getCurrentNavSectionName() const;
 
     // ========================================================================
     void paint (Graphics&) override;

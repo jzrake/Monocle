@@ -281,6 +281,32 @@ void AppSkeleton::toggleNavPagesRevealed()
     }
 }
 
+void AppSkeleton::openNavSection (const String& name)
+{
+    if (name.isNotEmpty())
+    {
+        for (const auto& button : navButtons)
+            if (button->getName() == name && ! button->getToggleState())
+                button->triggerClick();
+    }
+//    else
+//    {
+//        for (const auto& button : navButtons)
+//            if (button->getToggleState())
+//                button->triggerClick();
+//
+//    }
+}
+
+String AppSkeleton::getCurrentNavSectionName() const
+{
+    for (const auto& button : navButtons)
+        if (button->getToggleState())
+            return button->getName();
+
+    return String();
+}
+
 void AppSkeleton::toggleBackdropRevealed()
 {
     backdropButton->triggerClick();

@@ -79,6 +79,7 @@ private:
 class MainComponent
 : public Component
 , public ApplicationCommandTarget
+, public FileDragAndDropTarget
 , private FileManager::Listener
 , private FileListView::Listener
 , private SymbolListView::Listener
@@ -99,6 +100,13 @@ public:
     void getAllCommands (Array<CommandID>& commands) override;
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform (const InvocationInfo& info) override;
+
+    //==========================================================================
+    bool isInterestedInFileDrag (const StringArray& files) override;
+    void fileDragEnter (const StringArray& files, int x, int y) override;
+    void fileDragMove (const StringArray& files, int x, int y) override;
+    void fileDragExit (const StringArray& files) override;
+    void filesDropped (const StringArray& files, int x, int y) override;
 
 private:
     //==========================================================================

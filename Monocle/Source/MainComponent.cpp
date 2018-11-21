@@ -316,6 +316,29 @@ bool MainComponent::perform (const InvocationInfo& info)
 }
 
 //==========================================================================
+bool MainComponent::isInterestedInFileDrag (const StringArray& files)
+{
+    return true;
+}
+
+void MainComponent::fileDragEnter (const StringArray& files, int x, int y)
+{
+    skeleton.openNavSection ("Files");
+}
+
+void MainComponent::fileDragMove (const StringArray& files, int x, int y)
+{
+}
+
+void MainComponent::fileDragExit (const StringArray& files)
+{
+}
+
+void MainComponent::filesDropped (const StringArray& files, int x, int y)
+{
+}
+
+//==========================================================================
 void MainComponent::fileManagerFileChangedOnDisk (File file)
 {
     fileList.updateFileDisplayStatus (file);
