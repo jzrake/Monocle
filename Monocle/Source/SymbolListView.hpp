@@ -21,6 +21,7 @@ public:
         virtual void symbolListSelectionChanged (const StringArray& symbols) = 0;
         virtual void symbolListSymbolsRemoved (const StringArray& symbols) = 0;
         virtual void symbolListSymbolPunched (const String& symbol) = 0;
+        virtual void symbolListExpressionShouldBeEdited (const String& symbol) = 0;
     };
 
     //==========================================================================

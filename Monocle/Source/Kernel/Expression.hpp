@@ -24,7 +24,9 @@ public:
             const char* s = nullptr;
         };
 
-        char type = 0;            /**< 0 for None, otherwise one of ['b', 'i', 'd', 's'] or ['S', 'E', 'O'] */
+        char type = 0;            /**< 0 for None, otherwise one of ['b', 'i', 'd', 's'] or ['S', 'E'] */
+        const char* st = nullptr; /**< start of this part's source */
+        const char* en = nullptr; /**< end of this part's source */
         const char* kw = nullptr; /**< keyword name if keyword argument */
         const char* id = nullptr; /**< symbol name if symbol in scope */
         const char* er = nullptr; /**< error string if any occurred */
@@ -34,10 +36,9 @@ public:
         size_t idlen = 0;         /**< id length if symbol */
 
         std::vector<Part> parts;  /**< Non-empty if and only if this is an expression */
-        std::string source;       /**< Non-empty only if this is a part of a composite */
-        Object value;             /**< Non-empty only if this is a part of a composite */
 
         static Part error (const char* message);
+        std::string source() const;
         std::string str() const;
         std::string symbol() const;
         std::string keyword() const;
@@ -59,12 +60,12 @@ public:
 
     /** Construct an expression programmatically from a single part.
      */
-    Expression (Part root);
+    // Expression (Part root);
 
     /** Construct an expression programmatically from a list of parts, instead of
         using the lisp-like language as in the constructor above.
      */
-    Expression (std::initializer_list<Part> parts);
+    // Expression (std::initializer_list<Part> parts);
 
     /** Evaluate an expression from the given scope. Throws std::runtime_error
         if the evaluation fails for any reason.
@@ -79,6 +80,10 @@ public:
     /** Return a collection of symbols referenced by the expression.
      */
     std::set<std::string> symbols() const;
+
+    /* Return the list parts below the root.
+     */
+    std::vector<std::string> getListParts() const;
 
     static void testParser();
     static void testProgrammaticConstruction();

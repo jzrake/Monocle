@@ -43,6 +43,7 @@ public:
     void setValidator (Validator validatorToUse);
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
+    void setSymbolToEdit (const std::string& key, const std::string& expression);
     void addPart (const String& part);
     void cancel();
     void commit();
@@ -112,6 +113,7 @@ private:
     void symbolListSelectionChanged (const StringArray& symbols) override;
     void symbolListSymbolsRemoved (const StringArray& symbols) override;
     void symbolListSymbolPunched (const String& symbol) override;
+    void symbolListExpressionShouldBeEdited (const String& symbol) override;
 
     //==========================================================================
     void symbolDetailsItemPunched (const std::string& expression) override;

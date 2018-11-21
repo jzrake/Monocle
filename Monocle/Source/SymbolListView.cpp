@@ -156,11 +156,14 @@ void SymbolListView::listBoxItemClicked (int row, const MouseEvent& e)
     {
         PopupMenu menu;
         menu.addItem (1, String ("Remove symbol") + (getNumSelectedRows() > 1 ? "s" : ""));
-        menu.showMenuAsync(PopupMenu::Options(), [this] (int code)
+        menu.addItem (2, "Edit Symbol Definition", ! statuses[row].at ("expr").empty());
+
+        menu.showMenuAsync(PopupMenu::Options(), [row, this] (int code)
         {
             switch (code)
             {
                 case 1: sendDeleteSelectedSymbols(); break;
+                case 2: listeners.call (&Listener::symbolListExpressionShouldBeEdited, statuses[row].at ("key")); break;
                 default: break;
             }
         });
@@ -189,6 +192,8 @@ void SymbolListView::deleteKeyPressed (int)
 
 void SymbolListView::returnKeyPressed (int)
 {
+    if (getNumSelectedRows() == 1 && ! statuses[getSelectedRow()].at ("expr").empty())
+        listeners.call (&Listener::symbolListExpressionShouldBeEdited, statuses[getSelectedRow()].at ("key"));
 }
 
 void SymbolListView::listWasScrolled()

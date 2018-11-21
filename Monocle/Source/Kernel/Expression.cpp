@@ -6,39 +6,37 @@ using namespace mcl;
 
 
 // ============================================================================
-Expression::Part Expression::symbol (const std::string& name)
-{
-    for (auto c : name)
-        if (! isSymbolCharacter(c))
-            throw std::invalid_argument ("Expression::symbol: invalid symbol name");
+//Expression::Part Expression::symbol (const std::string& name)
+//{
+//    for (auto c : name)
+//        if (! isSymbolCharacter(c))
+//            throw std::invalid_argument ("Expression::symbol: invalid symbol name");
+//
+//    Part part;
+//    part.id = part.source.data();
+//    part.kw = nullptr;
+//    part.kwlen = 0;
+//    part.type = 'S';
+//    part.idlen = name.size();
+//    return part;
+//}
 
-    Part part;
-    part.source = name;
-    part.id = part.source.data();
-    part.kw = nullptr;
-    part.kwlen = 0;
-    part.type = 'S';
-    part.idlen = name.size();
-    part.value = Object::none();
-    return part;
-}
-
-Expression::Part Expression::object (const Object& value, const std::string& keyword)
-{
-    for (auto c : keyword)
-        if (! isSymbolCharacter(c))
-            throw std::invalid_argument ("Expression::symbol: invalid keyword name");
-
-    Part part;
-    part.source = keyword;
-    part.id = nullptr;
-    part.kw = part.source.data();
-    part.kwlen = keyword.size();
-    part.type = 'O';
-    part.idlen = 0;
-    part.value = value;
-    return part;
-}
+//Expression::Part Expression::object (const Object& value, const std::string& keyword)
+//{
+//    for (auto c : keyword)
+//        if (! isSymbolCharacter(c))
+//            throw std::invalid_argument ("Expression::symbol: invalid keyword name");
+//
+//    Part part;
+//    part.source = keyword;
+//    part.id = nullptr;
+//    part.kw = part.source.data();
+//    part.kwlen = keyword.size();
+//    part.type = 'O';
+//    part.idlen = 0;
+//    part.value = value;
+//    return part;
+//}
 
 Expression::Expression (const std::string& expression)
 {
@@ -52,21 +50,21 @@ Expression::Expression (const std::string& expression)
     }
 }
 
-Expression::Expression (Part root) : root (root)
-{
-}
+//Expression::Expression (Part root) : root (root)
+//{
+//}
 
-Expression::Expression (std::initializer_list<Part> parts)
-{
-    root.source = std::string();
-    root.id = nullptr;
-    root.kw = nullptr;
-    root.kwlen = 0;
-    root.type = 'E';
-    root.idlen = 0;
-    root.value = Object::none();
-    root.parts = parts;
-}
+//Expression::Expression (std::initializer_list<Part> parts)
+//{
+//    root.source = std::string();
+//    root.id = nullptr;
+//    root.kw = nullptr;
+//    root.kwlen = 0;
+//    root.type = 'E';
+//    root.idlen = 0;
+//    root.value = Object::none();
+//    root.parts = parts;
+//}
 
 Object Expression::evaluate (const Object::Dict& scope) const
 {
@@ -81,6 +79,17 @@ Object Expression::evaluate (Object::Scope scope) const
 std::set<std::string> Expression::symbols() const
 {
     return root.symbols();
+}
+
+std::vector<std::string> Expression::getListParts() const
+{
+    auto p = std::vector<std::string>();
+
+    for (const auto& part : root.parts)
+    {
+        p.push_back (part.source());
+    }
+    return p;
 }
 
 
@@ -163,6 +172,8 @@ Expression::Part Expression::parseNumber (const char*& c)
     }
 
     Part part;
+    part.st = start;
+    part.en = c;
 
     if (isdec || isexp)
     {
@@ -187,6 +198,8 @@ Expression::Part Expression::parseSymbol (const char*& c)
     }
 
     Part part;
+    part.st = start;
+    part.en = c;
     part.id = start;
     part.type = 'S';
     part.idlen = c - start;
@@ -216,6 +229,8 @@ Expression::Part Expression::parseSingleQuotedString (const char*& c)
         return Part::error ("Syntax error: non-whitespace character following single-quoted string");
     }
     Part part;
+    part.st = start + 1;
+    part.en = c;
     part.s = start + 1;
     part.type = 's';
     part.slen = c - start - 2;
@@ -225,6 +240,7 @@ Expression::Part Expression::parseSingleQuotedString (const char*& c)
 Expression::Part Expression::parseExpression (const char*& c)
 {
     Part part;
+    part.st = c;
 
     assert (*c == '(');
     ++c;
@@ -254,6 +270,7 @@ Expression::Part Expression::parseExpression (const char*& c)
     ++c;
 
     part.type = 'E';
+    part.en = c;
     return part;
 }
 
@@ -312,6 +329,11 @@ Expression::Part Expression::Part::error (const char* message)
     return part;
 }
 
+std::string Expression::Part::source() const
+{
+    return std::string (st, en);
+}
+
 std::string Expression::Part::str() const
 {
     return std::string (s, s + slen);
@@ -358,7 +380,6 @@ Object Expression::Part::evaluate (Object::Scope scope) const
         case 'd': return d;
         case 's': return str();
         case 'S': return scope (symbol());
-        case 'O': return value.resolve (scope);
         case 'E':
         {
             if (parts.size() == 0)
@@ -475,21 +496,24 @@ void Expression::testParser()
     s.emplace ("a", 1.0);
     s.emplace ("b", 2.0);
     s.emplace ("add", Object::Func ([] (const Object::List& ar, const Object::Dict& kw)
-                                    {
-                                        return ar.at (0).get<double>() + ar.at (1).get<double>();
-                                    }));
+    {
+        return ar.at (0).get<double>() + ar.at (1).get<double>();
+    }));
 
     assert (Expression ("a").evaluate (s).get<double>() == 1.0);
     assert (Expression ("b").evaluate (s).get<double>() == 2.0);
     assert (Expression ("(add a b)").evaluate (s).get<double>() == 3.0);
+    assert (Expression ("(add a b)").root.parts[0].source() == "add");
+    assert (Expression ("(add a b)").root.parts[1].source() == "a");
+    assert (Expression ("(add a b)").root.parts[2].source() == "b");
 }
 
 void Expression::testProgrammaticConstruction()
 {
-    Object::Dict scope;
-    scope["a"] = 12;
-    scope["f"] = Object::Func ([] (auto, auto) { return 10; });
-    assert (Expression::symbol ("a").parts.empty());
-    assert (Expression (Expression::symbol ("a")).evaluate (scope) == 12);
-    assert (Expression ({Expression::symbol ("f")}).evaluate (scope) == 10);
+//    Object::Dict scope;
+//    scope["a"] = 12;
+//    scope["f"] = Object::Func ([] (auto, auto) { return 10; });
+//    assert (Expression::symbol ("a").parts.empty());
+//    assert (Expression (Expression::symbol ("a")).evaluate (scope) == 12);
+//    assert (Expression ({Expression::symbol ("f")}).evaluate (scope) == 10);
 }

@@ -401,17 +401,6 @@ void AppSkeleton::updatePageVisibility()
             page->setVisible (button->getToggleState());
 
     for (const auto& button : navButtons)
-    {
         if (auto backdrop = button->backdrop)
-        {
-            auto shouldBeVisible = button->getToggleState() && backdropButton->getToggleState();
-            auto isCurrentlyVisible = backdrop->isVisible();
-            backdrop->setVisible (shouldBeVisible);
-
-            if (shouldBeVisible && ! isCurrentlyVisible)
-            {
-                backdrop->grabKeyboardFocus();
-            }
-        }
-    }
+            backdrop->setVisible (button->getToggleState() && backdropButton->getToggleState());
 }

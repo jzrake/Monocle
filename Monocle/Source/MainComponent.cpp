@@ -42,6 +42,17 @@ void DefinitionEditor::removeListener (Listener* listener)
     listeners.add (listener);
 }
 
+void DefinitionEditor::setSymbolToEdit (const std::string& key, const std::string& expression)
+{
+    symbolNameEditor.setText (key);
+    parts.clear();
+
+    for (const auto& part : mcl::Expression (expression).getListParts())
+        parts.add (part);
+
+    repaint();
+}
+
 void DefinitionEditor::addPart (const String& part)
 {
     parts.add (part);
@@ -88,25 +99,22 @@ void DefinitionEditor::resized()
 
 void DefinitionEditor::paint (Graphics& g)
 {
-    g.fillAll (Colours::lightgrey);
-    g.setColour (Colours::black);
-    g.drawRect (getLocalBounds());
-    g.setColour (Colours::black);
-    g.setFont (font);
     auto geom = computeGeometry();
 
-    cancelIcon->drawWithin (g, geom.cancelIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
+    g.fillAll (Colours::lightgrey);
+    g.setColour (Colours::black);
+    g.setFont (font);
 
-    if (isCommittable())
-    {
-        commitIcon->drawWithin (g, geom.commitIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
-    }
-    g.drawMultiLineText (parts.joinIntoString ("\n"), geom.listArea.getX(), geom.listArea.getY(), geom.listArea.getWidth());
+    if (true)            cancelIcon->drawWithin (g, geom.cancelIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
+    if (isCommittable()) commitIcon->drawWithin (g, geom.commitIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
+
+    g.drawMultiLineText (parts.joinIntoString ("\n"), geom.listArea.getX(), geom.listArea.getY(), 10000);
     g.drawText (" = ", geom.equalsSignArea, Justification::centredLeft);
 
     if (validator)
     {
-        g.setColour (Colours::red);
+        g.setColour (Colours::darkred);
+        g.setFont (font.withHeight (10));
         g.drawMultiLineText (validator (getKey(), getExpression()),
                              geom.validationMessageArea.getX(),
                              geom.validationMessageArea.getY(),
@@ -223,6 +231,8 @@ MainComponent::MainComponent()
     addAndMakeVisible (skeleton);
     addChildComponent (definitionEditor);
     setSize (800, 600);
+
+    mcl::Expression::testParser();
 
     // Initial kernel configuration
     // ========================================================================
@@ -375,6 +385,14 @@ void MainComponent::symbolListSymbolPunched (const String& symbol)
     skeleton.setBackdropRevealed (true);
 }
 
+void MainComponent::symbolListExpressionShouldBeEdited (const String& key)
+{
+    definitionEditor.setSymbolToEdit (key.toStdString(), kernel.abstract (key.toStdString()).get<mcl::Object::Expr>().source);
+    skeleton.setBackdropRevealed (true);
+    definitionEditor.grabKeyboardFocus();
+}
+
+//==========================================================================
 void MainComponent::symbolDetailsItemPunched (const std::string& expression)
 {
     definitionEditor.addPart (expression);
