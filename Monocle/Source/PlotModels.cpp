@@ -83,7 +83,8 @@ using namespace mcl;
 Object::Dict PlotModels::plot_models()
 {
     Object::Dict m;
-    m["line-plot"] = Object::Func (line_plot, "(x:double[n] y:double[n])");
+    m["line-plot"] = Object::Func (line_plot, "(line-plot x:{array} y:{array})");
+    m["figure"] = Object::Func (figure, "(figure plots... format={dict})");
     return m;
 }
 
@@ -94,10 +95,22 @@ Object PlotModels::line_plot (const Object::List& args, const Object::Dict&)
     auto y = Builtin::check_user_data<ArrayDouble1> (args, 1);
     model->x.become (x.get());
     model->y.become (y.get());
+
+    if (model->x.size() != model->y.size())
+    {
+        throw std::runtime_error ("x and y have different sizes");
+    }
     return Object::data (model);
 }
 
 Object PlotModels::figure (const Object::List& args, const Object::Dict&)
 {
-    return Object::data (std::make_shared<FigureModel>());
+    auto fig = std::make_shared<FigureModel>();
+
+    for (int n = 0; n < args.size(); ++n)
+    {
+        auto plotModel = Builtin::check_user_data<LinePlotModel> (args, n);
+        fig->linePlots.add (plotModel);
+    }
+    return Object::data (fig);
 }

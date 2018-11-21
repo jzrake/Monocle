@@ -70,7 +70,14 @@ public:
     template <typename T> const T& get() const { return mpark::get<T>(v);}
     template <typename T> void set (const T& w) { v.emplace<T>(w); }
     template <typename T> Object& operator= (const T& w) { v.emplace<T>(w); return *this; }
-
+    template <typename T> const T& get_data() const
+    {
+        if (auto data = dynamic_cast<T*> (mpark::get<mcl::Object::Data>(v).v.get()))
+        {
+            return *data;
+        }
+        throw mpark::bad_variant_access();
+    }
     bool operator== (const Object& other) const { return v == other.v; }
     bool operator!= (const Object& other) const { return v != other.v; }
     const Object& operator[] (const char* index) const;

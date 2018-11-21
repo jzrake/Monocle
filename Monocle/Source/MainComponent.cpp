@@ -3,6 +3,7 @@
 #include "Kernel/Builtin.hpp"
 #include "Kernel/Expression.hpp"
 #include "Loaders.hpp"
+#include "NumericData.hpp"
 
 
 
@@ -39,7 +40,7 @@ void DefinitionEditor::addListener (Listener* listener)
 
 void DefinitionEditor::removeListener (Listener* listener)
 {
-    listeners.add (listener);
+    listeners.remove (listener);
 }
 
 void DefinitionEditor::setSymbolToEdit (const std::string& key, const std::string& expression)
@@ -88,6 +89,8 @@ std::string DefinitionEditor::getKey() const
 
 std::string DefinitionEditor::getExpression() const
 {
+    if (parts.size() == 1)
+        return parts.joinIntoString (" ").toStdString();
     return ("(" + parts.joinIntoString (" ") + ")").toStdString();
 }
 
@@ -242,20 +245,40 @@ MainComponent::MainComponent()
 
         if (symbolDetails.getCurrentSymbol() == key)
             symbolDetails.setViewedObject (key, val);
+
+        if (key == "F")
+        {
+            try {
+                figure.setModel (model = val.get_data<FigureModel>());
+            }
+            catch (...) {
+            }
+        }
     });
 
     kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
     kernel.import (mcl::Builtin::builtin());
     kernel.import (Loaders::loaders());
     kernel.import (PlotModels::plot_models());
-    kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
-    kernel.insert ("data1", mcl::Object::expr ("(load-txt test)"));
-    kernel.insert ("plot1", mcl::Object::expr ("(line-plot (attr data1 'A') (attr data1 'B'))"));
-    kernel.insert ("fig1", mcl::Object::expr ("(figure plot1)"));
 
-    //kernel.insert ("fig1", mcl::Object::expr ("(figure plot1 limits=fig1:limits title=fig1:title xlabel=fig1:xlabel ylabel=fig1:ylabel margins=fig:margins)"));
-    //kernel.insert ("fig1", mcl::Object::expr ("(concat (figure plot1) fig1:format)"));
-    kernel.insert ("A", mcl::Object::expr ("(B C D)"));
+    // kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
+    // kernel.insert ("fig1", mcl::Object::expr ("(figure plot1)"));
+    // kernel.insert ("A", mcl::Object::expr ("(B C D)"));
+
+    nd::ndarray<double, 1> x (200);
+    nd::ndarray<double, 1> y (200);
+
+    for (int n = 0; n < 200; ++n)
+    {
+        double t = 2 * M_PI * n / 200.0;
+        x(n) = std::cos(t);
+        y(n) = std::sin(t);
+    }
+    kernel.insert ("x", mcl::Object::data (std::make_shared<ArrayDouble1>(x)));
+    kernel.insert ("y", mcl::Object::data (std::make_shared<ArrayDouble1>(y)));
+    kernel.insert ("L", mcl::Object::Expr ("(line-plot x y)"));
+    kernel.insert ("F", mcl::Object::Expr ("(figure L)"));
+    kernel.insert ("data", mcl::Object::expr ("(load-txt test)"));
 
     symbolList.setSymbolList (kernel.status (kernel.select()));
 }
