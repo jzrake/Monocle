@@ -149,7 +149,7 @@ private:
 
 
 // ============================================================================
-class AppSkeleton::BackdropButton : public Button
+class AppSkeleton::BackdropButton : public Button, public Value::Listener
 {
 public:
     // ========================================================================
@@ -158,6 +158,7 @@ public:
         setTooltip ("Toggle backdrop");
         setClickingTogglesState (true);
         setWantsKeyboardFocus (false);
+        getToggleStateValue().addListener (this);
         more = material::util::icon (material::navigation::ic_expand_more, Colours::darkgrey);
         less = material::util::icon (material::navigation::ic_expand_less, Colours::darkgrey);
     }
@@ -177,10 +178,10 @@ public:
         d->drawWithin (g, area, RectanglePlacement::stretchToFit, 1.0f);
     }
 
-    void buttonStateChanged() override
+    void valueChanged (Value&) override
     {
         findParentComponentOfClass<AppSkeleton>()->updatePageVisibility();
-        findParentComponentOfClass<AppSkeleton>()->layout();
+        findParentComponentOfClass<AppSkeleton>()->layout (true);
     }
 
 private:
@@ -194,9 +195,24 @@ private:
 
 
 // ============================================================================
+class AppSkeleton::TopNavComponent : public Component
+{
+public:
+    void paint (Graphics& g) override
+    {
+        g.fillAll (Colours::white);
+    }
+};
+
+
+
+
+// ============================================================================
 AppSkeleton::AppSkeleton()
 {
-    backdropButton = std::make_unique<BackdropButton>();
+    topNavComponent = std::make_unique<TopNavComponent>();
+    backdropButton  = std::make_unique<BackdropButton>();
+    addAndMakeVisible (*topNavComponent);
     addAndMakeVisible (*backdropButton);
 }
 
@@ -231,7 +247,7 @@ void AppSkeleton::setBackdrop (const String& name, Component& backdrop)
         if (button->getName() == name)
         {
             button->backdrop = &backdrop;
-            addChildComponent (&backdrop);
+            addChildComponent (&backdrop, 0);
             updatePageVisibility();
             return;
         }
@@ -343,11 +359,12 @@ AppSkeleton::Geometry AppSkeleton::computeGeometry() const
     g.sourceList  = area.removeFromLeft (sourceListVisible ? sourceListWidth : 0).withTrimmedLeft (1).withTrimmedTop (1);
     g.verticalGap = Rectangle<int> (g.sourceList).removeFromRight (GAP_WIDTH);
     g.mainContent = area.withTrimmedLeft (1).withTrimmedTop (1);
+    g.backdrop    = g.mainContent.withHeight (backdropHeight).translated (0, -backdropHeight);
     g.backdropButton = Rectangle<int> (g.topNav).removeFromRight (topNavHeight);
 
     if (backdropButton->getToggleState())
     {
-        g.backdrop = g.mainContent.withBottom (backdropHeight + topNavHeight);
+        g.backdrop.translate (0, backdropHeight);
         g.mainContent.translate (0, backdropHeight);
     }
     return g;
@@ -373,8 +390,16 @@ void AppSkeleton::hideSourceList()
     repaint();
 }
 
-void AppSkeleton::layout()
+void AppSkeleton::layout (bool animate)
 {
+    auto setBounds = [animate] (Component* c, const Rectangle<int>& b)
+    {
+        if (animate)
+            Desktop::getInstance().getAnimator().animateComponent (c, b, 1.f, 150, false, 1, 0);
+        else
+            c->setBounds (b);
+    };
+
     auto geom = computeGeometry();
 
     for (const auto& button : navButtons)
@@ -386,11 +411,12 @@ void AppSkeleton::layout()
 
     for (const auto& button : navButtons)
         if (auto backdrop = button->backdrop)
-            backdrop->setBounds (geom.backdrop);
+            setBounds (backdrop, geom.backdrop);
 
     if (mainContent)
-        mainContent->setBounds (geom.mainContent);
+        setBounds (mainContent, geom.mainContent);
 
+    topNavComponent->setBounds (geom.topNav);
     backdropButton->setBounds (geom.backdropButton);
 }
 
@@ -402,5 +428,5 @@ void AppSkeleton::updatePageVisibility()
 
     for (const auto& button : navButtons)
         if (auto backdrop = button->backdrop)
-            backdrop->setVisible (button->getToggleState() && backdropButton->getToggleState());
+            backdrop->setVisible (button->getToggleState());
 }

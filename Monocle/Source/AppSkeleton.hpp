@@ -46,6 +46,7 @@ class AppSkeleton : public Component
 public:
     class NavButton;
     class BackdropButton;
+    class TopNavComponent;
 
     // ========================================================================
     struct Geometry
@@ -89,12 +90,13 @@ private:
     void showSourceList();
     void hideSourceList();
     void updatePageVisibility();
-    void layout();
+    void layout (bool animate=false);
 
     WeakReference<Component> mainContent;
     WeakReference<Component> lastNavButtonClosed;
     Array<std::unique_ptr<NavButton>> navButtons;
     std::unique_ptr<BackdropButton> backdropButton;
+    std::unique_ptr<TopNavComponent> topNavComponent;
 
     bool sourceListVisible = false;
     bool mouseIsAtRightEdgeOfSourceList = false;

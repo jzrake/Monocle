@@ -229,7 +229,6 @@ MainComponent::MainComponent()
     figure          .addListener (this);
 
     addAndMakeVisible (skeleton);
-    addChildComponent (definitionEditor);
     setSize (800, 600);
 
     mcl::Expression::testParser();
@@ -404,11 +403,13 @@ void MainComponent::definitionEditorCommited (const std::string& key, const std:
 {
     kernel.insert (key, mcl::Object::expr (expression));
     skeleton.setBackdropRevealed (false);
+    symbolList.grabKeyboardFocus();
 }
 
 void MainComponent::definitionEditorCanceled()
 {
     skeleton.setBackdropRevealed (false);
+    symbolList.grabKeyboardFocus();
 }
 
 //==========================================================================
