@@ -262,18 +262,6 @@ MainComponent::MainComponent()
     kernel.import (Loaders::loaders());
     kernel.import (PlotModels::plot_models());
 
-//    nd::ndarray<double, 1> x (200);
-//    nd::ndarray<double, 1> y (200);
-//
-//    for (int n = 0; n < 200; ++n)
-//    {
-//        double t = 2 * M_PI * n / 200.0;
-//        x(n) = std::cos(t);
-//        y(n) = std::sin(t);
-//    }
-//    kernel.insert ("x", mcl::Object::data (std::make_shared<ArrayDouble1>(x)));
-//    kernel.insert ("y", mcl::Object::data (std::make_shared<ArrayDouble1>(y)));
-
     kernel.insert ("L", mcl::Object::Expr ("(line-plot x y)"));
     kernel.insert ("F", mcl::Object::Expr ("(figure L)"));
 
@@ -291,7 +279,6 @@ void MainComponent::paint (Graphics& g)
 void MainComponent::resized()
 {
     skeleton.setBounds (getLocalBounds());
-    // definitionEditor.setCentreRelative (0.5f, 0.5f);
 }
 
 //==========================================================================
@@ -414,26 +401,10 @@ void MainComponent::fileListWantsToApplyFilter (const StringArray& files, const 
 //==========================================================================
 void MainComponent::symbolListSelectionChanged (const StringArray& symbols)
 {
-#if 1
-    // Load a single symbol at once
-    // ---------------------
     if (symbols.size() == 1)
         symbolDetails.setViewedObject (symbols[0].toStdString(), kernel.concrete (symbols[0].toStdString()));
     else
         symbolDetails.setViewedObject ("", mcl::Object());
-#else
-    // Load many symbols at once
-    // ---------------------
-    auto combinedKey = std::string();
-    auto combinedVal = mcl::Object::Dict();
-
-    for (const auto& key : symbols)
-    {
-        combinedKey += key.toStdString();
-        combinedVal[key.toStdString()] = kernel.concrete (key.toStdString());
-    }
-    symbolDetails.setViewedObject (combinedKey, combinedVal);
-#endif
 }
 
 void MainComponent::symbolListSymbolsRemoved (const StringArray& symbols)
