@@ -62,6 +62,12 @@ Array<File> FileManager::getFiles() const
     return files;
 }
 
+std::string FileManager::getUniqueKey (const String& filename) const
+{
+    auto n = statuses.indexOf (File (filename));
+    return statuses.getReference(n).uniqueKey;
+}
+
 
 
 

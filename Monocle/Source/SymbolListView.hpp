@@ -29,6 +29,8 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setSymbolList (const std::vector<Status>& statusesToDisplay);
+    void addKeyToSelection (const String& key);
+    void selectOnlyKeys (const StringArray& keys);
     StringArray getSelectedSymbols() const;
     void updateSymbolStatus (const std::string& key, const Status& status);
 

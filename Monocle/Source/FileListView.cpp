@@ -124,14 +124,16 @@ void FileListView::listBoxItemClicked (int row, const MouseEvent& e)
     {
         PopupMenu menu;
         menu.addItem (1, String ("Remove file") + (getNumSelectedRows() > 1 ? "s" : ""));
+        menu.addItem (2, "Load as Ascii Table");
         menu.showMenuAsync(PopupMenu::Options(), [this] (int code)
-                           {
-                               switch (code)
-                               {
-                                   case 1: sendDeleteSelectedFiles(); break;
-                                   default: break;
-                               }
-                           });
+        {
+            switch (code)
+            {
+                case 1: sendDeleteSelectedFiles(); break;
+                case 2: sendApplyFilter ("load-ascii"); break;
+                default: break;
+            }
+        });
     }
 }
 
@@ -209,4 +211,9 @@ void FileListView::sendDeleteSelectedFiles()
     auto filesToDelete = getSelectedFullPathNames();
     selectRow (newSelection);
     listeners.call (&Listener::fileListFilesRemoved, filesToDelete);
+}
+
+void FileListView::sendApplyFilter (const String& name)
+{
+    listeners.call (&Listener::fileListWantsToApplyFilter, getSelectedFullPathNames(), name);
 }

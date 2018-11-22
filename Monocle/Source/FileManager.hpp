@@ -27,6 +27,7 @@ public:
     void insertFiles (const StringArray& filenames, int index);
     void removeFiles (const StringArray& filenames);
     Array<File> getFiles() const;
+    std::string getUniqueKey (const String& filename) const;
 
 private:
     // ========================================================================

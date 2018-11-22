@@ -252,6 +252,7 @@ MainComponent::MainComponent()
                 figure.setModel (model = val.get_data<FigureModel>());
             }
             catch (...) {
+                figure.setModel (model = FigureModel::createExample());
             }
         }
     });
@@ -261,24 +262,20 @@ MainComponent::MainComponent()
     kernel.import (Loaders::loaders());
     kernel.import (PlotModels::plot_models());
 
-    // kernel.insert ("test-object", mcl::Object::expr ("(list (dict a=123 b=543) 2 3 (list 5 6 7 (list 6 7 8 9 10 2 load-txt 4 3 2 1 3 4 4)))"));
-    // kernel.insert ("fig1", mcl::Object::expr ("(figure plot1)"));
-    // kernel.insert ("A", mcl::Object::expr ("(B C D)"));
+//    nd::ndarray<double, 1> x (200);
+//    nd::ndarray<double, 1> y (200);
+//
+//    for (int n = 0; n < 200; ++n)
+//    {
+//        double t = 2 * M_PI * n / 200.0;
+//        x(n) = std::cos(t);
+//        y(n) = std::sin(t);
+//    }
+//    kernel.insert ("x", mcl::Object::data (std::make_shared<ArrayDouble1>(x)));
+//    kernel.insert ("y", mcl::Object::data (std::make_shared<ArrayDouble1>(y)));
 
-    nd::ndarray<double, 1> x (200);
-    nd::ndarray<double, 1> y (200);
-
-    for (int n = 0; n < 200; ++n)
-    {
-        double t = 2 * M_PI * n / 200.0;
-        x(n) = std::cos(t);
-        y(n) = std::sin(t);
-    }
-    kernel.insert ("x", mcl::Object::data (std::make_shared<ArrayDouble1>(x)));
-    kernel.insert ("y", mcl::Object::data (std::make_shared<ArrayDouble1>(y)));
     kernel.insert ("L", mcl::Object::Expr ("(line-plot x y)"));
     kernel.insert ("F", mcl::Object::Expr ("(figure L)"));
-    kernel.insert ("data", mcl::Object::expr ("(load-txt test)"));
 
     symbolList.setSymbolList (kernel.status (kernel.select()));
 }
@@ -376,14 +373,19 @@ void MainComponent::fileListFilesInserted (const StringArray& files, int index)
     fileList.setFileList (fileManager.getFiles());
 
     for (const auto& file : files)
-        kernel.insert (File (file).getFileNameWithoutExtension().toStdString(), file.toStdString());
+    {
+        auto key = File (file).getFileNameWithoutExtension().toStdString();
+        fileManager.setUniqueKey (file, key);
+        kernel.insert (key, file.toStdString());
+    }
 }
 
 void MainComponent::fileListFilesRemoved (const StringArray& files)
 {
     for (const auto& file : files)
-        kernel.remove (File (file).getFileNameWithoutExtension().toStdString());
-
+    {
+        kernel.remove (fileManager.getUniqueKey (file));
+    }
     fileManager.removeFiles (files);
     fileList.setFileList (fileManager.getFiles());
 }
@@ -391,6 +393,22 @@ void MainComponent::fileListFilesRemoved (const StringArray& files)
 void MainComponent::fileListSelectionChanged (const StringArray& files)
 {
     fileDetails.setCurrentlyActiveFiles (files);
+}
+
+void MainComponent::fileListWantsToApplyFilter (const StringArray& files, const String& name)
+{
+    if (! files.isEmpty())
+    {
+        skeleton.openNavSection ("Symbols");
+        symbolList.deselectAllRows();
+    }
+    for (const auto& file : files)
+    {
+        auto fileKey = fileManager.getUniqueKey (file);
+        auto newSymbol = fileKey + "-data";
+        kernel.insert (newSymbol, mcl::Object::expr ("(load-txt " + fileKey + ")"));
+        symbolList.addKeyToSelection (newSymbol);
+    }
 }
 
 //==========================================================================
@@ -442,6 +460,12 @@ void MainComponent::symbolDetailsItemPunched (const std::string& expression)
 {
     definitionEditor.addPart (expression);
     skeleton.setBackdropRevealed (true);
+}
+
+void MainComponent::symbolDetailsWantsNewDefinition (const std::string& key, const std::string& expression)
+{
+    kernel.insert (key, mcl::Object::expr (expression));
+    symbolList.selectOnlyKeys ({key});
 }
 
 //==========================================================================

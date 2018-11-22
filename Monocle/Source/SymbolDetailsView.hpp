@@ -16,6 +16,7 @@ public:
     public:
         virtual ~Listener() {}
         virtual void symbolDetailsItemPunched (const std::string& expression) = 0;
+        virtual void symbolDetailsWantsNewDefinition (const std::string& key, const std::string& expression) = 0;
     };
 
     //==========================================================================
@@ -44,6 +45,8 @@ public:
     void removeListener (Listener*);
     void setViewedObject (const std::string& key, const mcl::Object& objectToView);
     const std::string& getCurrentSymbol() const;
+    std::string createExpressionFromSelectedSymbols (const std::string& head) const;
+    StringArray getExpressionsForPathsInSelectedSymbols (const String& keyToPrepend="") const;
     StringArray getSelectedKeys() const;
 
     //==============================================================================

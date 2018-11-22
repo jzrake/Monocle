@@ -110,6 +110,26 @@ void SymbolDetailsView::SymbolItem::paintItem (Graphics& g, int width, int heigh
 
 void SymbolDetailsView::SymbolItem::itemClicked (const MouseEvent& e)
 {
+    if (e.mods.isPopupMenu())
+    {
+        auto tree = dynamic_cast<SymbolDetailsView*> (getOwnerView());
+
+        PopupMenu menu;
+        menu.addItem (1, "Create Line Plot", tree->getNumSelectedItems() == 2);
+
+        menu.showMenuAsync (PopupMenu::Options(), [tree, this] (int code)
+        {
+            switch (code)
+            {
+                case 1:
+                    tree->listeners.call (&Listener::symbolDetailsWantsNewDefinition,
+                                          "linePlot",
+                                          tree->createExpressionFromSelectedSymbols ("line-plot"));
+                    break;
+                default: break;
+            }
+        });
+    }
 }
 
 void SymbolDetailsView::SymbolItem::itemDoubleClicked (const MouseEvent& e)
@@ -129,7 +149,7 @@ void SymbolDetailsView::SymbolItem::itemSelectionChanged (bool isNowSelected)
 SymbolDetailsView::SymbolDetailsView()
 {
     setIndentSize (12);
-    setMultiSelectEnabled (false);
+    setMultiSelectEnabled (true);
     setRootItemVisible (true);
 }
 
@@ -162,6 +182,27 @@ void SymbolDetailsView::setViewedObject (const std::string& key, const mcl::Obje
 const std::string& SymbolDetailsView::getCurrentSymbol() const
 {
     return currentKey;
+}
+
+std::string SymbolDetailsView::createExpressionFromSelectedSymbols (const std::string &head) const
+{
+    return ("(" + getExpressionsForPathsInSelectedSymbols (head).joinIntoString (" ") + ")").toStdString();
+}
+
+StringArray SymbolDetailsView::getExpressionsForPathsInSelectedSymbols (const String& keyToPrepend) const
+{
+    StringArray expressions;
+
+    for (int n = 0; n < getNumSelectedItems(); ++n)
+    {
+        auto item = dynamic_cast<SymbolItem*> (getSelectedItem(n));
+        expressions.add (item->getExpressionForPathInSymbol());
+    }
+
+    if (keyToPrepend.isNotEmpty())
+        expressions.insert (0, keyToPrepend);
+
+    return expressions;
 }
 
 StringArray SymbolDetailsView::getSelectedKeys() const

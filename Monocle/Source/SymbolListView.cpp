@@ -43,6 +43,28 @@ void SymbolListView::setSymbolList (const std::vector<Status> &statusesToDisplay
         selectRow (int (statuses.size()) - 1);
 }
 
+void SymbolListView::addKeyToSelection (const String& key)
+{
+    for (int n = 0; n < getNumRows(); ++n)
+    {
+        if (statuses[n].at ("key") == key)
+        {
+            selectRow (n, false, false);
+            return;
+        }
+    }
+}
+
+void SymbolListView::selectOnlyKeys (const StringArray& keys)
+{
+    deselectAllRows();
+
+    for (const auto& key : keys)
+    {
+        addKeyToSelection (key);
+    }
+}
+
 StringArray SymbolListView::getSelectedSymbols() const
 {
     StringArray selectedSymbols;

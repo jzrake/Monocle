@@ -116,6 +116,7 @@ private:
     void fileListFilesInserted (const StringArray& files, int index) override;
     void fileListFilesRemoved (const StringArray& files) override;
     void fileListSelectionChanged (const StringArray& files) override;
+    void fileListWantsToApplyFilter (const StringArray& files, const String& name) override;
 
     //==========================================================================
     void symbolListSelectionChanged (const StringArray& symbols) override;
@@ -125,6 +126,7 @@ private:
 
     //==========================================================================
     void symbolDetailsItemPunched (const std::string& expression) override;
+    void symbolDetailsWantsNewDefinition (const std::string& key, const std::string& expression) override;
 
     //==========================================================================
     void definitionEditorCommited (const std::string& key, const std::string& expression) override;

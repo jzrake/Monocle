@@ -20,6 +20,7 @@ public:
         virtual void fileListFilesInserted (const StringArray& files, int index) = 0;
         virtual void fileListFilesRemoved (const StringArray& files) = 0;
         virtual void fileListSelectionChanged (const StringArray& files) = 0;
+        virtual void fileListWantsToApplyFilter (const StringArray& files, const String& name) = 0;
     };
 
     //==========================================================================
@@ -57,6 +58,7 @@ public:
 private:
     void startSelectedFilesAsProcess();
     void sendDeleteSelectedFiles();
+    void sendApplyFilter (const String& name);
 
     class DropOutline : public Component
     {

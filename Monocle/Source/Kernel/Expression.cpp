@@ -229,7 +229,7 @@ Expression::Part Expression::parseSingleQuotedString (const char*& c)
         return Part::error ("Syntax error: non-whitespace character following single-quoted string");
     }
     Part part;
-    part.st = start + 1;
+    part.st = start;
     part.en = c;
     part.s = start + 1;
     part.type = 's';
