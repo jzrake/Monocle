@@ -4,6 +4,16 @@
   <MAINGROUP id="fvSsVB" name="Monocle">
     <GROUP id="{09AE327B-DBED-6613-8257-BC56EFBB0B95}" name="Source">
       <GROUP id="{5E218EDD-6D3B-C109-F1AE-84C0376E9ACE}" name="3rdParty">
+        <GROUP id="{D61518B9-3509-2759-10C9-201460B8C8A4}" name="crt-kernel">
+          <FILE id="CJAp6a" name="any.hpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/any.hpp"/>
+          <FILE id="htH8Zs" name="catch.cpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/catch.cpp"/>
+          <FILE id="l9yO0c" name="catch.hpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/catch.hpp"/>
+          <FILE id="qchvSK" name="kernel.hpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/kernel.hpp"/>
+          <FILE id="eW1VVC" name="main.cpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/main.cpp"/>
+          <FILE id="B4ql8N" name="Makefile" compile="0" resource="0" file="Source/3rdParty/crt-kernel/Makefile"/>
+          <FILE id="T6pIGO" name="README.md" compile="0" resource="0" file="Source/3rdParty/crt-kernel/README.md"/>
+          <FILE id="vwKLEI" name="test.cpp" compile="0" resource="0" file="Source/3rdParty/crt-kernel/test.cpp"/>
+        </GROUP>
         <GROUP id="{29366588-E833-1EBB-9CAD-61DB16896DFD}" name="ndarray">
           <GROUP id="{B298AC27-21FC-19EF-3E3A-B61FF89AA752}" name="include">
             <FILE id="Kx6HJG" name="ndarray.hpp" compile="0" resource="0" file="Source/3rdParty/ndarray/include/ndarray.hpp"/>
@@ -22,25 +32,9 @@
           <FILE id="P8nA34" name="test.cpp" compile="0" resource="0" file="Source/3rdParty/ndarray/test.cpp"/>
         </GROUP>
       </GROUP>
-      <GROUP id="{588E0634-C112-C22B-B33A-F9BEB2C84216}" name="Kernel">
-        <FILE id="NFnZHZ" name="AcyclicGraph.cpp" compile="1" resource="0"
-              file="Source/Kernel/AcyclicGraph.cpp"/>
-        <FILE id="nRRPxh" name="AcyclicGraph.hpp" compile="0" resource="0"
-              file="Source/Kernel/AcyclicGraph.hpp"/>
-        <FILE id="A7wbdo" name="Any.cpp" compile="1" resource="0" file="Source/Kernel/Any.cpp"/>
-        <FILE id="aoRsoP" name="Any.hpp" compile="0" resource="0" file="Source/Kernel/Any.hpp"/>
-        <FILE id="iNBUFA" name="Builtin.cpp" compile="1" resource="0" file="Source/Kernel/Builtin.cpp"/>
-        <FILE id="PO9Ohv" name="Builtin.hpp" compile="0" resource="0" file="Source/Kernel/Builtin.hpp"/>
-        <FILE id="cRp9eO" name="Expression.cpp" compile="1" resource="0" file="Source/Kernel/Expression.cpp"/>
-        <FILE id="eXB0R7" name="Expression.hpp" compile="0" resource="0" file="Source/Kernel/Expression.hpp"/>
-        <FILE id="E0CqEq" name="Object.cpp" compile="1" resource="0" file="Source/Kernel/Object.cpp"/>
-        <FILE id="ysWxCx" name="Object.hpp" compile="0" resource="0" file="Source/Kernel/Object.hpp"/>
-        <FILE id="ekRsGf" name="UserData.cpp" compile="1" resource="0" file="Source/Kernel/UserData.cpp"/>
-        <FILE id="rRv2Q2" name="UserData.hpp" compile="0" resource="0" file="Source/Kernel/UserData.hpp"/>
-        <FILE id="VDlARO" name="Variant.cpp" compile="1" resource="0" file="Source/Kernel/Variant.cpp"/>
-        <FILE id="Cv0NcY" name="Variant.hpp" compile="0" resource="0" file="Source/Kernel/Variant.hpp"/>
-      </GROUP>
       <GROUP id="{F49D8A21-69C6-54A1-A3F8-37566B99E7EE}" name="Numerical">
+        <FILE id="VBIWTG" name="AsciiLoader.cpp" compile="1" resource="0" file="Source/Numerical/AsciiLoader.cpp"/>
+        <FILE id="lImDDb" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/Numerical/AsciiLoader.hpp"/>
         <FILE id="orBKPt" name="NewtonRaphesonSolver.cpp" compile="1" resource="0"
               file="Source/Numerical/NewtonRaphesonSolver.cpp"/>
         <FILE id="BCtUFj" name="NewtonRaphesonSolver.hpp" compile="0" resource="0"
@@ -60,24 +54,8 @@
       </GROUP>
       <FILE id="u8gK2D" name="AppSkeleton.cpp" compile="1" resource="0" file="Source/AppSkeleton.cpp"/>
       <FILE id="ptcxxb" name="AppSkeleton.hpp" compile="0" resource="0" file="Source/AppSkeleton.hpp"/>
-      <FILE id="tItiDi" name="AsciiLoader.cpp" compile="1" resource="0" file="Source/AsciiLoader.cpp"/>
-      <FILE id="ciUL8K" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/AsciiLoader.hpp"/>
-      <FILE id="hzLcyF" name="Database.cpp" compile="1" resource="0" file="Source/Database.cpp"/>
-      <FILE id="KVlvbI" name="Database.hpp" compile="0" resource="0" file="Source/Database.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
-      <FILE id="NOjFft" name="FileDetailsView.cpp" compile="1" resource="0"
-            file="Source/FileDetailsView.cpp"/>
-      <FILE id="nUxx6R" name="FileDetailsView.hpp" compile="0" resource="0"
-            file="Source/FileDetailsView.hpp"/>
-      <FILE id="a82MUN" name="FileListView.cpp" compile="1" resource="0"
-            file="Source/FileListView.cpp"/>
-      <FILE id="A0MOFO" name="FileListView.hpp" compile="0" resource="0"
-            file="Source/FileListView.hpp"/>
-      <FILE id="BSWggp" name="FileManager.cpp" compile="1" resource="0" file="Source/FileManager.cpp"/>
-      <FILE id="rXamNm" name="FileManager.hpp" compile="0" resource="0" file="Source/FileManager.hpp"/>
-      <FILE id="SDIy10" name="Loaders.cpp" compile="1" resource="0" file="Source/Loaders.cpp"/>
-      <FILE id="SXPmqk" name="Loaders.hpp" compile="0" resource="0" file="Source/Loaders.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IE8e5X" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="gnQguV" name="MainComponent.cpp" compile="1" resource="0"
@@ -88,18 +66,8 @@
             file="Source/MaterialIcons.cpp"/>
       <FILE id="dpeOzy" name="MaterialIcons.hpp" compile="0" resource="0"
             file="Source/MaterialIcons.hpp"/>
-      <FILE id="bFr0v1" name="NumericData.cpp" compile="1" resource="0" file="Source/NumericData.cpp"/>
-      <FILE id="RYCvus" name="NumericData.hpp" compile="0" resource="0" file="Source/NumericData.hpp"/>
       <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
-      <FILE id="sOHeT2" name="SymbolDetailsView.cpp" compile="1" resource="0"
-            file="Source/SymbolDetailsView.cpp"/>
-      <FILE id="upcxqe" name="SymbolDetailsView.hpp" compile="0" resource="0"
-            file="Source/SymbolDetailsView.hpp"/>
-      <FILE id="wSBaqB" name="SymbolListView.cpp" compile="1" resource="0"
-            file="Source/SymbolListView.cpp"/>
-      <FILE id="Jk18Et" name="SymbolListView.hpp" compile="0" resource="0"
-            file="Source/SymbolListView.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

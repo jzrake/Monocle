@@ -4,3 +4,6 @@
 [submodule "Monocle/Source/3rdParty/ndarray"]
 	path = Monocle/Source/3rdParty/ndarray
 	url = https://github.com/jzrake/ndarray.git
+[submodule "Monocle/Source/3rdParty/crt-kernel"]
+	path = Monocle/Source/3rdParty/crt-kernel
+	url = https://github.com/jzrake/crt-kernel

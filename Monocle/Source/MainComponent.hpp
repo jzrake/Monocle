@@ -3,74 +3,7 @@
 #include "PlotModels.hpp"
 #include "FigureView.hpp"
 #include "AppSkeleton.hpp"
-#include "FileManager.hpp"
-#include "Database.hpp"
-#include "FileListView.hpp"
-#include "FileDetailsView.hpp"
-#include "SymbolListView.hpp"
-#include "SymbolDetailsView.hpp"
-#include "Kernel/AcyclicGraph.hpp"
-
-
-
-
-//==============================================================================
-class DefinitionEditor : public Component, public TextEditor::Listener
-{
-public:
-    using Validator = std::function<std::string(const std::string& key, const std::string& expression)>;
-
-    class Listener
-    {
-    public:
-        virtual ~Listener() {}
-        virtual void definitionEditorCommited (const std::string& key, const std::string& expression) = 0;
-        virtual void definitionEditorCanceled() = 0;
-    };
-
-    struct Geometry
-    {
-        Rectangle<int> cancelIconArea;
-        Rectangle<int> commitIconArea;
-        Rectangle<int> editorArea;
-        Rectangle<int> equalsSignArea;
-        Rectangle<int> listArea;
-        Rectangle<int> validationMessageArea;
-    };
-
-    //==========================================================================
-    DefinitionEditor();
-    void setValidator (Validator validatorToUse);
-    void addListener (Listener* listener);
-    void removeListener (Listener* listener);
-    void setSymbolToEdit (const std::string& key, const std::string& expression);
-    void addPart (const String& part);
-    void cancel();
-    void commit();
-    bool isCommittable() const;
-    std::string getKey() const;
-    std::string getExpression() const;
-
-    //==========================================================================
-    void resized() override;
-    void paint (Graphics& g) override;
-    void mouseDown (const MouseEvent&) override;
-
-    //==========================================================================
-    void textEditorTextChanged (TextEditor&) override;
-    void textEditorReturnKeyPressed (TextEditor&) override;
-    void textEditorEscapeKeyPressed (TextEditor&) override;
-
-private:
-    Geometry computeGeometry() const;
-    Validator validator;
-    ListenerList<Listener> listeners;
-    Font font;
-    StringArray parts;
-    TextEditor symbolNameEditor;
-    std::unique_ptr<Drawable> cancelIcon;
-    std::unique_ptr<Drawable> commitIcon;
-};
+#include "3rdParty/crt-kernel/kernel.hpp"
 
 
 
@@ -80,12 +13,6 @@ class MainComponent
 : public Component
 , public ApplicationCommandTarget
 , public FileDragAndDropTarget
-, private FileManager::Listener
-, private FileListView::Listener
-, private SymbolListView::Listener
-, private SymbolDetailsView::Listener
-, private FileDetailsView::Listener
-, private DefinitionEditor::Listener
 , private FigureView::Listener
 {
 public:
@@ -110,29 +37,6 @@ public:
 
 private:
     //==========================================================================
-    void fileManagerFileChangedOnDisk (File) override;
-
-    //==========================================================================
-    void fileListFilesInserted (const StringArray& files, int index) override;
-    void fileListFilesRemoved (const StringArray& files) override;
-    void fileListSelectionChanged (const StringArray& files) override;
-    void fileListWantsToApplyFilter (const StringArray& files, const String& name) override;
-
-    //==========================================================================
-    void symbolListSelectionChanged (const StringArray& symbols) override;
-    void symbolListSymbolsRemoved (const StringArray& symbols) override;
-    void symbolListSymbolPunched (const String& symbol) override;
-    void symbolListExpressionShouldBeEdited (const String& symbol) override;
-
-    //==========================================================================
-    void symbolDetailsItemPunched (const std::string& expression) override;
-    void symbolDetailsWantsNewDefinition (const std::string& key, const std::string& expression) override;
-
-    //==========================================================================
-    void definitionEditorCommited (const std::string& key, const std::string& expression) override;
-    void definitionEditorCanceled() override;
-
-    //==========================================================================
     void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
     void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) override;
     void figureViewSetXlabel (FigureView* figure, const String& value) override;
@@ -140,19 +44,13 @@ private:
     void figureViewSetTitle (FigureView* figure, const String& value) override;
 
     //==========================================================================
+    class KernelView;
+
     AppSkeleton       skeleton;
     FigureView        figure;
     TextEditor        notesPage;
-    FileListView      fileList;
-    FileDetailsView   fileDetails;
-    DualComponentView fileListAndDetail;
-    SymbolListView    symbolList;
-    SymbolDetailsView symbolDetails;
-    DualComponentView symbolListAndDetail;
-    DefinitionEditor  definitionEditor;
+    std::unique_ptr<KernelView> kernelView;
 
     //==========================================================================
-    FileManager fileManager;
     FigureModel model;
-    mcl::AcyclicGraph kernel;
 };

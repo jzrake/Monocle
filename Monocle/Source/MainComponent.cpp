@@ -1,180 +1,97 @@
 #include "MainComponent.hpp"
 #include "MaterialIcons.hpp"
-#include "Kernel/Builtin.hpp"
-#include "Kernel/Expression.hpp"
-#include "Loaders.hpp"
-#include "NumericData.hpp"
 
 
 
-
-//==============================================================================
-DefinitionEditor::DefinitionEditor()
+static var builtin_list (var::NativeFunctionArgs args)
 {
-    font = Font ("Monaco", 14, 0);
-
-    symbolNameEditor.setMultiLine (false);
-    symbolNameEditor.setReturnKeyStartsNewLine (false);
-    symbolNameEditor.setBorder ({0, 0, 0, 0});
-    symbolNameEditor.setTextToShowWhenEmpty ("Symbol name", Colours::lightgrey);
-    symbolNameEditor.setFont (font);
-    symbolNameEditor.addListener (this);
-    symbolNameEditor.setVisible (false);
-    symbolNameEditor.setColour (TextEditor::ColourIds::outlineColourId, Colours::lightgrey);
-
-    cancelIcon = material::util::icon (material::navigation::ic_cancel, Colours::grey);
-    commitIcon = material::util::icon (material::navigation::ic_check, Colours::green);
-
-    addAndMakeVisible (symbolNameEditor);
+    return Array<var>(args.arguments, args.numArguments);
 }
 
-void DefinitionEditor::setValidator (Validator validatorToUse)
+static var builtin_dict (var::NativeFunctionArgs args)
 {
-    validator = validatorToUse;
+    return args.thisObject;
 }
 
-void DefinitionEditor::addListener (Listener* listener)
+
+
+// ============================================================================
+class VarCallAdapter
 {
-    listeners.add (listener);
-}
+public:
+    using ObjectType = var;
+    using list_t = std::vector<ObjectType>;
+    using dict_t = std::unordered_map<std::string, ObjectType>;
+    using func_t = std::function<ObjectType(list_t, dict_t)>;
 
-void DefinitionEditor::removeListener (Listener* listener)
-{
-    listeners.remove (listener);
-}
-
-void DefinitionEditor::setSymbolToEdit (const std::string& key, const std::string& expression)
-{
-    symbolNameEditor.setText (key);
-    parts.clear();
-
-    for (const auto& part : mcl::Expression (expression).getListParts())
-        parts.add (part);
-
-    repaint();
-}
-
-void DefinitionEditor::addPart (const String& part)
-{
-    parts.add (part);
-    repaint();
-}
-
-void DefinitionEditor::cancel()
-{
-    parts.clear();
-    symbolNameEditor.clear();
-    listeners.call (&Listener::definitionEditorCanceled);
-    repaint();
-}
-
-void DefinitionEditor::commit()
-{
-    jassert (isCommittable());
-    listeners.call (&Listener::definitionEditorCommited, getKey(), getExpression());
-    symbolNameEditor.clear();
-    parts.clear();
-    repaint();
-}
-
-bool DefinitionEditor::isCommittable() const
-{
-    return validator (getKey(), getExpression()).empty();
-}
-
-std::string DefinitionEditor::getKey() const
-{
-    return symbolNameEditor.getText().toStdString();;
-}
-
-std::string DefinitionEditor::getExpression() const
-{
-    if (parts.size() == 1)
-        return parts.joinIntoString (" ").toStdString();
-    return ("(" + parts.joinIntoString (" ") + ")").toStdString();
-}
-
-//==============================================================================
-void DefinitionEditor::resized()
-{
-    symbolNameEditor.setBounds (computeGeometry().editorArea);
-}
-
-void DefinitionEditor::paint (Graphics& g)
-{
-    auto geom = computeGeometry();
-
-    g.fillAll (Colours::lightgrey);
-    g.setColour (Colours::black);
-    g.setFont (font);
-
-    if (true)            cancelIcon->drawWithin (g, geom.cancelIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
-    if (isCommittable()) commitIcon->drawWithin (g, geom.commitIconArea.reduced (5).toFloat(), RectanglePlacement::stretchToFit, 1.f);
-
-    g.drawMultiLineText (parts.joinIntoString ("\n"), geom.listArea.getX(), geom.listArea.getY(), 10000);
-    g.drawText (" = ", geom.equalsSignArea, Justification::centredLeft);
-
-    if (validator)
+    template<typename Mapping>
+    static ObjectType call(const Mapping& scope,
+                           const std::string& key,
+                           const list_t& args,
+                           const dict_t& kwar)
     {
-        g.setColour (Colours::darkred);
-        g.setFont (font.withHeight (10));
-        g.drawMultiLineText (validator (getKey(), getExpression()),
-                             geom.validationMessageArea.getX(),
-                             geom.validationMessageArea.getY(),
-                             geom.validationMessageArea.getWidth());
-    }
-}
+        auto self = new DynamicObject;
 
-void DefinitionEditor::mouseDown (const MouseEvent& e)
-{
-    if (computeGeometry().cancelIconArea.toFloat().contains (e.position))
-    {
-        cancel();
-    }
-    else if (computeGeometry().commitIconArea.toFloat().contains (e.position))
-    {
-        if (isCommittable())
+        for (const auto& kw : kwar)
         {
-            commit();
+            self->setProperty (String (kw.first), kw.second);
         }
+        auto f = scope.at(key).getNativeFunction();
+        auto a = var::NativeFunctionArgs (var (self), &args[0], int (args.size()));
+        return f(a);
     }
-}
+};
+using Kernel = crt::kernel<var, VarCallAdapter>;
+
+
+
+
+class RuleView : public TreeViewItem
+{
+public:
+    RuleView (const std::string& key) : key (key)
+    {
+        setDrawsInLeftMargin (true);
+    }
+
+    //==========================================================================
+    String getUniqueName() const override { return key; }
+    bool mightContainSubItems() override { return false; }
+    void paintItem (Graphics& g, int width, int height) override
+    {
+        if (isSelected())
+        {
+            g.fillAll (Colours::lightblue);
+        }
+        g.setColour (Colours::black);
+        g.drawText (key, 0, 0, width, height, Justification::centredLeft);
+    };
+    void itemClicked (const MouseEvent&) override {}
+    void itemDoubleClicked (const MouseEvent&) override {}
+    void itemSelectionChanged (bool isNowSelected) override {}
+
+    //==========================================================================
+    std::string key;
+};
+
+
+
 
 //==============================================================================
-void DefinitionEditor::textEditorTextChanged (TextEditor&)
+class MainComponent::KernelView : public TreeView
 {
-    repaint();
-}
-
-void DefinitionEditor::textEditorReturnKeyPressed (TextEditor&)
-{
-    if (isCommittable())
-        commit();
-}
-
-void DefinitionEditor::textEditorEscapeKeyPressed (TextEditor&)
-{
-    cancel();
-}
-
-//==============================================================================
-DefinitionEditor::Geometry DefinitionEditor::computeGeometry() const
-{
-    int rowHeight = 22;
-    int rowTop = (getHeight() - rowHeight) / 2;
-
-    Geometry g;
-    g.cancelIconArea = Rectangle<int> (rowHeight / 4, rowTop, rowHeight, rowHeight);
-    g.commitIconArea = Rectangle<int> (g.cancelIconArea.getRight(), rowTop, rowHeight, rowHeight);
-    g.editorArea     = Rectangle<int> (g.commitIconArea.getRight() + rowHeight / 4, rowTop, 100, rowHeight);
-    g.equalsSignArea = Rectangle<int> (g.editorArea.getRight(), rowTop, font.getStringWidth (" = "), rowHeight);
-    g.listArea       = getLocalBounds().withTrimmedLeft (g.equalsSignArea.getRight()).reduced (0, 14);
-    g.validationMessageArea = Rectangle<int>::leftTopRightBottom (rowHeight / 2,
-                                                                  g.editorArea.getBottom() + rowHeight,
-                                                                  g.equalsSignArea.getRight(),
-                                                                  getHeight());
-    return g;
-}
+public:
+    KernelView()
+    {
+        kernel.insert ("list", var::NativeFunction (builtin_list));
+        kernel.insert ("dict", var::NativeFunction (builtin_dict));
+        root = std::make_unique<RuleView>("Thing");
+        setRootItem (root.get());
+    }
+private:
+    std::unique_ptr<RuleView> root;
+    Kernel kernel;
+};
 
 
 
@@ -182,15 +99,15 @@ DefinitionEditor::Geometry DefinitionEditor::computeGeometry() const
 //==============================================================================
 MainComponent::MainComponent()
 {
+    kernelView = std::make_unique<KernelView>();
+
     skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
     skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
     skeleton.setMainContent (figure);
     skeleton.setNavPage ("Notes", notesPage);
-    skeleton.setNavPage ("Files", fileListAndDetail);
-    skeleton.setNavPage ("Symbols", symbolListAndDetail);
-    skeleton.setBackdrop ("Symbols", definitionEditor);
+    skeleton.setNavPage ("Symbols", *kernelView);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -198,74 +115,11 @@ MainComponent::MainComponent()
     notesPage.setTextToShowWhenEmpty ("Notes", Colours::lightgrey);
     notesPage.setFont (Font ("Optima", 14, 0));
 
-    fileListAndDetail.setContent1 (fileList);
-    fileListAndDetail.setContent2 (fileDetails);
-
-    symbolListAndDetail.setContent1 (symbolList);
-    symbolListAndDetail.setContent2 (symbolDetails);
-
-    fileManager.setPollingInterval (100);
-    figure     .setModel (model = FigureModel::createExample());
-
-    definitionEditor.setValidator ([this] (const auto& key, const auto& expr) -> std::string
-    {
-        if (key.empty() || expr.empty())
-        {
-            return " ";
-        }
-        try {
-            auto e = mcl::Expression (expr);
-            kernel.throwIfWouldCreateCycle (key, e.symbols());
-        }
-        catch (std::exception& e) {
-            return e.what();
-        }
-        return std::string();
-    });
-
-    fileManager     .addListener (this);
-    fileList        .addListener (this);
-    symbolList      .addListener (this);
-    symbolDetails   .addListener (this);
-    fileDetails     .addListener (this);
-    definitionEditor.addListener (this);
-    figure          .addListener (this);
+    figure.setModel (model = FigureModel::createExample());
+    figure.addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
-
-    mcl::Expression::testParser();
-
-    // Initial kernel configuration
-    // ========================================================================
-    kernel.setListener ([this] (const std::string& key, const mcl::Object& val)
-    {
-        auto status = kernel.status (key);
-        symbolList.updateSymbolStatus (key, status);
-
-        if (symbolDetails.getCurrentSymbol() == key)
-            symbolDetails.setViewedObject (key, val);
-
-        if (key == "F")
-        {
-            try {
-                figure.setModel (model = val.get_data<FigureModel>());
-            }
-            catch (...) {
-                figure.setModel (model = FigureModel::createExample());
-            }
-        }
-    });
-
-    kernel.setErrorLog ([this] (const std::string& key, const std::string& msg) { DBG("error: " << key << " " << msg); });
-    kernel.import (mcl::Builtin::builtin());
-    kernel.import (Loaders::loaders());
-    kernel.import (PlotModels::plot_models());
-
-    kernel.insert ("L", mcl::Object::Expr ("(line-plot x y)"));
-    kernel.insert ("F", mcl::Object::Expr ("(figure L)"));
-
-    symbolList.setSymbolList (kernel.status (kernel.select()));
 }
 
 MainComponent::~MainComponent()
@@ -343,114 +197,6 @@ void MainComponent::fileDragExit (const StringArray& files)
 
 void MainComponent::filesDropped (const StringArray& files, int x, int y)
 {
-}
-
-//==========================================================================
-void MainComponent::fileManagerFileChangedOnDisk (File file)
-{
-    fileList.updateFileDisplayStatus (file);
-    fileDetails.updateFileDetailsIfShowing (file);
-    kernel.touch (File (file).getFileNameWithoutExtension().toStdString());
-}
-
-//==========================================================================
-void MainComponent::fileListFilesInserted (const StringArray& files, int index)
-{
-    fileManager.insertFiles (files, index);
-    fileList.setFileList (fileManager.getFiles());
-
-    for (const auto& file : files)
-    {
-        auto key = File (file).getFileNameWithoutExtension().toStdString();
-        fileManager.setUniqueKey (file, key);
-        kernel.insert (key, file.toStdString());
-    }
-}
-
-void MainComponent::fileListFilesRemoved (const StringArray& files)
-{
-    for (const auto& file : files)
-    {
-        kernel.remove (fileManager.getUniqueKey (file));
-    }
-    fileManager.removeFiles (files);
-    fileList.setFileList (fileManager.getFiles());
-}
-
-void MainComponent::fileListSelectionChanged (const StringArray& files)
-{
-    fileDetails.setCurrentlyActiveFiles (files);
-}
-
-void MainComponent::fileListWantsToApplyFilter (const StringArray& files, const String& name)
-{
-    if (! files.isEmpty())
-    {
-        skeleton.openNavSection ("Symbols");
-        symbolList.deselectAllRows();
-    }
-    for (const auto& file : files)
-    {
-        auto fileKey = fileManager.getUniqueKey (file);
-        auto newSymbol = fileKey + "-data";
-        kernel.insert (newSymbol, mcl::Object::expr ("(load-txt " + fileKey + ")"));
-        symbolList.addKeyToSelection (newSymbol);
-    }
-}
-
-//==========================================================================
-void MainComponent::symbolListSelectionChanged (const StringArray& symbols)
-{
-    if (symbols.size() == 1)
-        symbolDetails.setViewedObject (symbols[0].toStdString(), kernel.concrete (symbols[0].toStdString()));
-    else
-        symbolDetails.setViewedObject ("", mcl::Object());
-}
-
-void MainComponent::symbolListSymbolsRemoved (const StringArray& symbols)
-{
-    for (const auto& key : symbols)
-        kernel.remove (key.toStdString());
-}
-
-void MainComponent::symbolListSymbolPunched (const String& symbol)
-{
-    definitionEditor.addPart (symbol);
-    skeleton.setBackdropRevealed (true);
-}
-
-void MainComponent::symbolListExpressionShouldBeEdited (const String& key)
-{
-    definitionEditor.setSymbolToEdit (key.toStdString(), kernel.abstract (key.toStdString()).get<mcl::Object::Expr>().source);
-    skeleton.setBackdropRevealed (true);
-    definitionEditor.grabKeyboardFocus();
-}
-
-//==========================================================================
-void MainComponent::symbolDetailsItemPunched (const std::string& expression)
-{
-    definitionEditor.addPart (expression);
-    skeleton.setBackdropRevealed (true);
-}
-
-void MainComponent::symbolDetailsWantsNewDefinition (const std::string& key, const std::string& expression)
-{
-    kernel.insert (key, mcl::Object::expr (expression));
-    symbolList.selectOnlyKeys ({key});
-}
-
-//==========================================================================
-void MainComponent::definitionEditorCommited (const std::string& key, const std::string& expression)
-{
-    kernel.insert (key, mcl::Object::expr (expression));
-    skeleton.setBackdropRevealed (false);
-    symbolList.grabKeyboardFocus();
-}
-
-void MainComponent::definitionEditorCanceled()
-{
-    skeleton.setBackdropRevealed (false);
-    symbolList.grabKeyboardFocus();
 }
 
 //==========================================================================
