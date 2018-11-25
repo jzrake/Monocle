@@ -46,34 +46,162 @@ using Kernel = crt::kernel<var, VarCallAdapter>;
 
 
 
-class RuleView : public TreeViewItem
+//==============================================================================
+class ExpressionEditorItem;
+class ExpressionEditorItemView;
+
+
+
+
+//==============================================================================
+class MainComponent::ExpressionEditor : public TreeView
 {
 public:
-    RuleView (const std::string& key) : key (key)
-    {
-        setDrawsInLeftMargin (true);
-    }
-
-    //==========================================================================
-    String getUniqueName() const override { return key; }
-    bool mightContainSubItems() override { return false; }
-    void paintItem (Graphics& g, int width, int height) override
-    {
-        if (isSelected())
-        {
-            g.fillAll (Colours::lightblue);
-        }
-        g.setColour (Colours::black);
-        g.drawText (key, 0, 0, width, height, Justification::centredLeft);
-    };
-    void itemClicked (const MouseEvent&) override {}
-    void itemDoubleClicked (const MouseEvent&) override {}
-    void itemSelectionChanged (bool isNowSelected) override {}
-
-    //==========================================================================
-    std::string key;
+    ExpressionEditor();
+    bool keyPressed (const KeyPress& key) override;
+private:
+    std::unique_ptr<ExpressionEditorItem> root;
 };
 
+
+
+
+//==========================================================================
+class ExpressionEditorItem : public TreeViewItem
+{
+public:
+    ExpressionEditorItem (crt::expression expr);
+
+    //==========================================================================
+    void paintItem (Graphics& g, int width, int height) override;
+    String getUniqueName() const override;
+    bool mightContainSubItems() override;
+    Component* createItemComponent() override;
+    void itemClicked (const MouseEvent&) override;
+    void itemDoubleClicked (const MouseEvent&) override;
+    void itemSelectionChanged (bool isNowSelected) override;
+
+    //==========================================================================
+    crt::expression expr;
+    Label label;
+};
+
+
+
+
+//==========================================================================
+class ExpressionEditorItemView : public Component
+{
+public:
+    ExpressionEditorItemView (ExpressionEditorItem& item, Label& label);
+    void resized() override;
+    void paint (Graphics& g) override;
+    ExpressionEditorItem& item;
+    Label& label;
+};
+
+
+
+
+//==========================================================================
+ExpressionEditorItemView::ExpressionEditorItemView (ExpressionEditorItem& item, Label& label) : item (item), label (label)
+{
+    label.setText (item.expr.str(), NotificationType::dontSendNotification);
+    label.setColour (Label::textColourId, Colours::black);
+    label.setFont (Font ("Monaco", 12, 0));
+    setInterceptsMouseClicks (false, false);
+    addAndMakeVisible (label);
+}
+
+void ExpressionEditorItemView::resized()
+{
+    label.setBounds (getLocalBounds());
+}
+
+void ExpressionEditorItemView::paint (Graphics& g)
+{
+}
+
+
+
+
+//==========================================================================
+ExpressionEditorItem::ExpressionEditorItem (crt::expression expr) : expr (expr)
+{
+    setDrawsInLeftMargin (true);
+
+    for (const auto& e : expr)
+    {
+        addSubItem (new ExpressionEditorItem (e));
+    }
+}
+
+//==========================================================================
+void ExpressionEditorItem::paintItem (Graphics& g, int width, int height)
+{
+    if (isSelected())
+    {
+        g.fillAll (Colours::lightblue);
+    }
+}
+
+String ExpressionEditorItem::getUniqueName() const
+{
+    return expr.str();
+}
+
+bool ExpressionEditorItem::mightContainSubItems()
+{
+    return expr.dtype() == crt::data_type::composite;
+}
+
+Component* ExpressionEditorItem::createItemComponent()
+{
+    return new ExpressionEditorItemView (*this, label);
+}
+
+void ExpressionEditorItem::itemClicked (const MouseEvent&)
+{
+}
+
+void ExpressionEditorItem::itemDoubleClicked (const MouseEvent&)
+{
+    label.showEditor();
+}
+void ExpressionEditorItem::itemSelectionChanged (bool isNowSelected)
+{
+}
+
+
+
+
+//==============================================================================
+MainComponent::ExpressionEditor::ExpressionEditor()
+{
+    crt::expression e {
+        1,
+        2.3,
+        std::string("sdf"),
+        crt::expression::symbol("a"),
+        {1, crt::expression::symbol("b"), crt::expression::symbol("b")}};
+
+    root = std::make_unique<ExpressionEditorItem>(e);
+
+    setRootItem (root.get());
+    setIndentSize (12);
+    setMultiSelectEnabled (true);
+    setRootItemVisible (true);
+}
+
+bool MainComponent::ExpressionEditor::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress::returnKey && getNumSelectedItems() == 1)
+    {
+        dynamic_cast<ExpressionEditorItem*>(getSelectedItem(0))->label.showEditor();
+        return true;
+    }
+    return TreeView::keyPressed (key);
+}
 
 
 
@@ -85,11 +213,8 @@ public:
     {
         kernel.insert ("list", var::NativeFunction (builtin_list));
         kernel.insert ("dict", var::NativeFunction (builtin_dict));
-        root = std::make_unique<RuleView>("Thing");
-        setRootItem (root.get());
     }
 private:
-    std::unique_ptr<RuleView> root;
     Kernel kernel;
 };
 
@@ -99,7 +224,8 @@ private:
 //==============================================================================
 MainComponent::MainComponent()
 {
-    kernelView = std::make_unique<KernelView>();
+    kernelView       = std::make_unique<KernelView>();
+    expressionEditor = std::make_unique<ExpressionEditor>();
 
     skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
@@ -108,6 +234,7 @@ MainComponent::MainComponent()
     skeleton.setMainContent (figure);
     skeleton.setNavPage ("Notes", notesPage);
     skeleton.setNavPage ("Symbols", *kernelView);
+    skeleton.setBackdrop ("Symbols", *expressionEditor);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);

@@ -45,11 +45,13 @@ private:
 
     //==========================================================================
     class KernelView;
+    class ExpressionEditor;
 
     AppSkeleton       skeleton;
     FigureView        figure;
     TextEditor        notesPage;
     std::unique_ptr<KernelView> kernelView;
+    std::unique_ptr<ExpressionEditor> expressionEditor;
 
     //==========================================================================
     FigureModel model;

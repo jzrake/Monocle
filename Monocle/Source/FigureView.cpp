@@ -264,12 +264,12 @@ FigureView::FigureView() : plotArea (*this)
     xlabel.setJustificationType (Justification::centred);
     ylabel.setJustificationType (Justification::centred);
     title .setJustificationType (Justification::centred);
-    xlabel.setColour (Label::ColourIds::textColourId, Colours::black);
-    ylabel.setColour (Label::ColourIds::textColourId, Colours::black);
-    title .setColour (Label::ColourIds::textColourId, Colours::black);
-    xlabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
-    ylabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
-    title .setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+//    xlabel.setColour (Label::ColourIds::textColourId, Colours::black);
+//    ylabel.setColour (Label::ColourIds::textColourId, Colours::black);
+//    title .setColour (Label::ColourIds::textColourId, Colours::black);
+//    xlabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+//    ylabel.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
+//    title .setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
 
     xlabel.setEditable (true);
     ylabel.setEditable (true);

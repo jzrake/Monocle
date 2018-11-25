@@ -289,13 +289,6 @@ void AppSkeleton::openNavSection (const String& name)
             if (button->getName() == name && ! button->getToggleState())
                 button->triggerClick();
     }
-//    else
-//    {
-//        for (const auto& button : navButtons)
-//            if (button->getToggleState())
-//                button->triggerClick();
-//
-//    }
 }
 
 String AppSkeleton::getCurrentNavSectionName() const
