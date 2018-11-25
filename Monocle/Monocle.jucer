@@ -54,6 +54,10 @@
       </GROUP>
       <FILE id="u8gK2D" name="AppSkeleton.cpp" compile="1" resource="0" file="Source/AppSkeleton.cpp"/>
       <FILE id="ptcxxb" name="AppSkeleton.hpp" compile="0" resource="0" file="Source/AppSkeleton.hpp"/>
+      <FILE id="bT1AYh" name="ExpressionEditor.cpp" compile="1" resource="0"
+            file="Source/ExpressionEditor.cpp"/>
+      <FILE id="e1uPNq" name="ExpressionEditor.hpp" compile="0" resource="0"
+            file="Source/ExpressionEditor.hpp"/>
       <FILE id="NIVnCW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="aJxBMb" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="w11Dvv" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
@@ -68,6 +72,8 @@
             file="Source/MaterialIcons.hpp"/>
       <FILE id="EifNf8" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="kBw3vB" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
+      <FILE id="OJ4RMT" name="Runtime.cpp" compile="1" resource="0" file="Source/Runtime.cpp"/>
+      <FILE id="l0L7x8" name="Runtime.hpp" compile="0" resource="0" file="Source/Runtime.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

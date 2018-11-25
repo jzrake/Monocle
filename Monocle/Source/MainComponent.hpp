@@ -3,7 +3,7 @@
 #include "PlotModels.hpp"
 #include "FigureView.hpp"
 #include "AppSkeleton.hpp"
-#include "3rdParty/crt-kernel/kernel.hpp"
+#include "ExpressionEditor.hpp"
 
 
 
@@ -45,7 +45,6 @@ private:
 
     //==========================================================================
     class KernelView;
-    class ExpressionEditor;
 
     AppSkeleton       skeleton;
     FigureView        figure;
