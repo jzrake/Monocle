@@ -53,6 +53,7 @@ private:
 
     //==========================================================================
     void kernelEditorSelectionChanged() override;
+    void kernelEditorRulePunched (const std::string& key) override;
 
     //==========================================================================
     AppSkeleton       skeleton;

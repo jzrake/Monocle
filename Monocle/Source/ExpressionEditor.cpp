@@ -16,7 +16,7 @@ ExpressionEditor::ExpressionEditor()
     root = std::make_unique<ExpressionEditorItem>(e);
     setRootItem (root.get());
     setIndentSize (12);
-    setMultiSelectEnabled (true);
+    setMultiSelectEnabled (false);
     setRootItemVisible (true);
 }
 

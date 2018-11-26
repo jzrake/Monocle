@@ -7,7 +7,7 @@
 KernelEditor::KernelEditor()
 {
     setIndentSize (12);
-    setMultiSelectEnabled (true);
+    setMultiSelectEnabled (false);
     setRootItemVisible (false);
 }
 
@@ -30,7 +30,7 @@ void KernelEditor::setKernel (const Kernel* kernelToView)
     {
         kernelObject->setProperty (String (rule.first), rule.second.value);
     }
-    root = std::make_unique<KernelEditorItem> (var(), kernelObject);
+    root = std::make_unique<KernelEditorItem> (0, kernelObject);
     setRootItem (root.get());
 }
 
@@ -50,8 +50,11 @@ bool KernelEditor::keyPressed (const KeyPress& key)
 {
     if (key == KeyPress::returnKey && getNumSelectedItems() == 1)
     {
-        dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->label.showEditor();
-        return true;
+        return showEditorInSelectedItem();
+    }
+    if (key == KeyPress::spaceKey && getNumSelectedItems() == 1)
+    {
+        return sendRulePunched();
     }
     return TreeView::keyPressed (key);
 }
@@ -66,9 +69,26 @@ void KernelEditor::focusOfChildComponentChanged (FocusChangeType)
 }
 
 //==========================================================================
+bool KernelEditor::showEditorInSelectedItem()
+{
+    dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->label.showEditor();
+    return true;
+}
+
 void KernelEditor::sendSelectionChanged()
 {
     listeners.call (&Listener::kernelEditorSelectionChanged);
+}
+
+bool KernelEditor::sendRulePunched()
+{
+    if (getNumSelectedItems() == 1)
+    {
+        auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString();
+        listeners.call (&Listener::kernelEditorRulePunched, key.toStdString());
+        return true;
+    }
+    return false;
 }
 
 
@@ -79,6 +99,8 @@ KernelEditorItem::KernelEditorItem (const var& key, const var& value) : key (key
 {
     label.addListener (this);
     setDrawsInLeftMargin (true);
+
+    jassert (! key.isVoid());
 
     if (value.getDynamicObject())
     {
@@ -124,11 +146,7 @@ String KernelEditorItem::getUniqueName() const
 
 var KernelEditorItem::getDragSourceDescription()
 {
-    if (getParentItem() == getOwnerView()->getRootItem())
-    {
-        return key;
-    }
-    return var();
+    return String (getExpressionToIndexInParent().str());
 }
 
 bool KernelEditorItem::mightContainSubItems()
@@ -163,6 +181,21 @@ void KernelEditorItem::labelTextChanged (Label* labelThatHasChanged)
     catch (const std::exception& e)
     {
     }
+}
+
+//==========================================================================
+crt::expression KernelEditorItem::getExpressionToIndexInParent() const
+{
+    if (auto parent = dynamic_cast<KernelEditorItem*> (getParentItem()))
+    {
+        if (key.isInt())
+            return {crt::expression::symbol("item"), int (key), parent->getExpressionToIndexInParent()};
+        else if (key.isString())
+            return {crt::expression::symbol("attr"), key.toString().toStdString(), parent->getExpressionToIndexInParent()};
+        else
+            jassertfalse;
+    }
+    return crt::expression{};
 }
 
 

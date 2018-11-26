@@ -164,20 +164,33 @@ void MainComponent::expressionEditorParserError (const std::string& what)
 //==========================================================================
 void MainComponent::kernelEditorSelectionChanged()
 {
-    auto keys = kernelEditor.getSelectedRules();
+//    auto keys = kernelEditor.getSelectedRules();
+//
+//    if (keys.size() == 1)
+//    {
+//        auto key = keys[0].toStdString();
+//
+//        if (kernel.contains (key))
+//        {
+//            auto expr = kernel.expr_at (key);
+//            expressionEditor.setExpression (expr);
+//        }
+//        else
+//        {
+//            expressionEditor.setExpression ({});
+//        }
+//    }
+}
 
-    if (keys.size() == 1)
+void MainComponent::kernelEditorRulePunched (const std::string& key)
+{
+    if (kernel.contains (key))
     {
-        auto key = keys[0].toStdString();
-
-        if (kernel.contains (key))
-        {
-            auto expr = kernel.expr_at (key);
-            expressionEditor.setExpression (expr);
-        }
-        else
-        {
-            expressionEditor.setExpression ({});
-        }
+        auto expr = kernel.expr_at (key);
+        expressionEditor.setExpression (expr);
+    }
+    else
+    {
+        expressionEditor.setExpression ({});
     }
 }

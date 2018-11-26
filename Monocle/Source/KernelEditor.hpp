@@ -22,6 +22,7 @@ public:
     public:
         virtual ~Listener() {}
         virtual void kernelEditorSelectionChanged() = 0;
+        virtual void kernelEditorRulePunched (const std::string& key) = 0;
     };
 
     KernelEditor();
@@ -36,14 +37,15 @@ public:
 
 private:
     //==========================================================================
+    bool showEditorInSelectedItem();
     void sendSelectionChanged();
+    bool sendRulePunched();
 
     friend class KernelEditorItem;
     ListenerList<Listener> listeners;
     std::unique_ptr<KernelEditorItem> root;
     const Kernel* kernel = nullptr;
 };
-
 
 
 
@@ -69,6 +71,9 @@ public:
 private:
     //==========================================================================
     void labelTextChanged (Label* labelThatHasChanged) override;
+
+    //==========================================================================
+    crt::expression getExpressionToIndexInParent() const;
 
     //==========================================================================
     friend class KernelEditor;
