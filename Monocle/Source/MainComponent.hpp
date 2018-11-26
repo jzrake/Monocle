@@ -4,6 +4,7 @@
 #include "FigureView.hpp"
 #include "AppSkeleton.hpp"
 #include "ExpressionEditor.hpp"
+#include "KernelEditor.hpp"
 
 
 
@@ -13,7 +14,9 @@ class MainComponent
 : public Component
 , public ApplicationCommandTarget
 , public FileDragAndDropTarget
+, public DragAndDropContainer
 , private FigureView::Listener
+, private ExpressionEditor::Listener
 {
 public:
     //==========================================================================
@@ -44,13 +47,15 @@ private:
     void figureViewSetTitle (FigureView* figure, const String& value) override;
 
     //==========================================================================
-    class KernelView;
+    void expressionEditorNewExpression (const crt::expression&) override;
+    void expressionEditorParserError (const std::string&) override;
 
+    //==========================================================================
     AppSkeleton       skeleton;
     FigureView        figure;
     TextEditor        notesPage;
-    std::unique_ptr<KernelView> kernelView;
-    std::unique_ptr<ExpressionEditor> expressionEditor;
+    ExpressionEditor  expressionEditor;
+    KernelEditor      kernelEditor;
 
     //==========================================================================
     FigureModel model;

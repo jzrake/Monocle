@@ -20,6 +20,16 @@ ExpressionEditor::ExpressionEditor()
     setRootItemVisible (true);
 }
 
+void ExpressionEditor::addListener (Listener *listener)
+{
+    listeners.add (listener);
+}
+
+void ExpressionEditor::removeListener(Listener *listener)
+{
+    listeners.remove (listener);
+}
+
 void ExpressionEditor::setExpression (crt::expression expr)
 {
     auto state = std::unique_ptr<XmlElement> (getOpennessState (true));
@@ -36,12 +46,53 @@ crt::expression ExpressionEditor::computeExpression() const
 //==============================================================================
 bool ExpressionEditor::keyPressed (const KeyPress& key)
 {
-    if (key == KeyPress::returnKey && getNumSelectedItems() == 1)
+    if (getNumSelectedItems() == 1)
     {
-        dynamic_cast<ExpressionEditorItem*> (getSelectedItem(0))->label.showEditor();
-        return true;
+        if (key == KeyPress::returnKey)
+        {
+            return showEditorInSelectedItem();
+        }
+        if (key == KeyPress::backspaceKey)
+        {
+            return removeSelectedItem();
+        }
     }
     return TreeView::keyPressed (key);
+}
+
+//==========================================================================
+bool ExpressionEditor::showEditorInSelectedItem()
+{
+    dynamic_cast<ExpressionEditorItem*> (getSelectedItem(0))->label.showEditor();
+    return true;
+}
+
+bool ExpressionEditor::removeSelectedItem()
+{
+    auto item = getSelectedItem(0);
+
+    if (auto parent = item->getParentItem())
+    {
+        auto index = item->getIndexInParent();
+
+        parent->removeSubItem (index);
+
+        if (auto next = parent->getSubItem (index))
+            next->setSelected (true, true);
+        else if (auto next = parent->getSubItem (index - 1))
+            next->setSelected (true, true);
+        else
+            parent->setSelected (true, true);
+
+        sendNewExpression();
+        return true;
+    }
+    return false;
+}
+
+void ExpressionEditor::sendNewExpression()
+{
+    listeners.call (&Listener::expressionEditorNewExpression, computeExpression());
 }
 
 
@@ -110,6 +161,19 @@ bool ExpressionEditorItem::mightContainSubItems()
     return expr.dtype() == crt::data_type::composite;
 }
 
+bool ExpressionEditorItem::isInterestedInDragSource (const DragAndDropTarget::SourceDetails& details)
+{
+    return mightContainSubItems();
+}
+
+void ExpressionEditorItem::itemDropped (const DragAndDropTarget::SourceDetails& details, int insertIndex)
+{
+    auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
+    auto part = crt::parser::parse (details.description.toString().getCharPointer());
+    addSubItem (new ExpressionEditorItem (part), insertIndex);
+    tree->sendNewExpression();
+}
+
 void ExpressionEditorItem::itemClicked (const MouseEvent&)
 {
 }
@@ -125,15 +189,16 @@ void ExpressionEditorItem::itemSelectionChanged (bool isNowSelected)
 //==========================================================================
 void ExpressionEditorItem::labelTextChanged (Label* labelThatHasChanged)
 {
+    auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
+
     try {
         setExpression (crt::parser::parse (label.getText().getCharPointer()));
+        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorNewExpression, tree->computeExpression());
     }
     catch (const std::exception& e)
     {
-         DBG(e.what());
+        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorParserError, e.what());
     }
-    auto tree = dynamic_cast<ExpressionEditor*>(getOwnerView());
-    tree->setExpression (tree->computeExpression());
 }
 
 

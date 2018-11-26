@@ -6,35 +6,16 @@
 
 
 //==============================================================================
-class MainComponent::KernelView : public TreeView
-{
-public:
-    KernelView()
-    {
-         kernel.insert ("list", var::NativeFunction (Runtime::builtin_list));
-         kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict));
-    }
-private:
-     Kernel kernel;
-};
-
-
-
-
-//==============================================================================
 MainComponent::MainComponent()
 {
-    kernelView       = std::make_unique<KernelView>();
-     expressionEditor = std::make_unique<ExpressionEditor>();
-
-    skeleton.addNavButton ("Symbols",  material::bintos (material::action::ic_list));
+    skeleton.addNavButton ("Kernel",  material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
     skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
     skeleton.setMainContent (figure);
     skeleton.setNavPage ("Notes", notesPage);
-    skeleton.setNavPage ("Symbols", *kernelView);
-     skeleton.setBackdrop ("Symbols", *expressionEditor);
+    skeleton.setNavPage ("Kernel", kernelEditor);
+    skeleton.setBackdrop ("Kernel", expressionEditor);
 
     notesPage.setMultiLine (true);
     notesPage.setReturnKeyStartsNewLine (true);
@@ -44,6 +25,7 @@ MainComponent::MainComponent()
 
     figure.setModel (model = FigureModel::createExample());
     figure.addListener (this);
+    expressionEditor.addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
@@ -158,4 +140,15 @@ void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
 {
     model.title = value;
     figure->setModel (model);
+}
+
+//==========================================================================
+void MainComponent::expressionEditorNewExpression (const crt::expression& expr)
+{
+    expressionEditor.setExpression (expr);
+}
+
+void MainComponent::expressionEditorParserError (const std::string& what)
+{
+    DBG(what);
 }

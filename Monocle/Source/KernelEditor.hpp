@@ -1,72 +1,59 @@
 #pragma once
 #include "JuceHeader.h"
-#include "3rdParty/crt-kernel/kernel.hpp"
+#include "Runtime.hpp"
 
 
 
 
 //==============================================================================
-class ExpressionEditor;
-class ExpressionEditorItem;
-class ExpressionEditorItemView;
+class KernelEditor;
+class KernelEditorItem;
+class KernelEditorItemView;
 
 
 
 
 //==============================================================================
-class ExpressionEditor : public TreeView
+class KernelEditor : public TreeView
 {
 public:
     class Listener
     {
     public:
         virtual ~Listener() {}
-        virtual void expressionEditorNewExpression (const crt::expression&) = 0;
-        virtual void expressionEditorParserError (const std::string&) = 0;
     };
 
-    //==========================================================================
-    ExpressionEditor();
+    KernelEditor();
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
-    void setExpression (crt::expression expr);
-    crt::expression computeExpression() const;
 
     //==========================================================================
     bool keyPressed (const KeyPress& key) override;
 
 private:
-    //==========================================================================
-    bool showEditorInSelectedItem();
-    bool removeSelectedItem();
-    void sendNewExpression();
-
-    //==========================================================================
-    friend class ExpressionEditorItem;
     ListenerList<Listener> listeners;
-    std::unique_ptr<ExpressionEditorItem> root;
+    std::unique_ptr<KernelEditorItem> root;
+    Kernel kernel;
 };
 
 
 
 
+
 //==============================================================================
-class ExpressionEditorItem : public TreeViewItem, private Label::Listener
+class KernelEditorItem : public TreeViewItem, private Label::Listener
 {
 public:
     //==========================================================================
-    ExpressionEditorItem (crt::expression expr);
-    void setExpression (crt::expression expr);
-    void insertPart (int index, crt::expression part);
-    crt::expression computeExpression() const;
+    KernelEditorItem (const var& key, const var& value);
+    void setValue (const var& newValue);
 
     //==========================================================================
     void paintItem (Graphics& g, int width, int height) override;
     Component* createItemComponent() override;
     String getUniqueName() const override;
+    var getDragSourceDescription() override;
     bool mightContainSubItems() override;
-    bool isInterestedInDragSource (const DragAndDropTarget::SourceDetails& dragSourceDetails) override;
-    void itemDropped (const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex) override;
     void itemClicked (const MouseEvent&) override;
     void itemDoubleClicked (const MouseEvent&) override;
     void itemSelectionChanged (bool isNowSelected) override;
@@ -76,9 +63,10 @@ private:
     void labelTextChanged (Label* labelThatHasChanged) override;
 
     //==========================================================================
-    friend class ExpressionEditor;
-    friend class ExpressionEditorItemView;
-    crt::expression expr;
+    friend class KernelEditor;
+    friend class KernelEditorItemView;
+    var key;
+    var value;
     Label label;
 };
 
@@ -86,15 +74,15 @@ private:
 
 
 //==============================================================================
-class ExpressionEditorItemView : public Component
+class KernelEditorItemView : public Component
 {
 public:
     //==========================================================================
-    ExpressionEditorItemView (ExpressionEditorItem& item);
+    KernelEditorItemView (KernelEditorItem& item);
 
     //==========================================================================
     void resized() override;
     void paint (Graphics& g) override;
 private:
-    ExpressionEditorItem& item;
+    KernelEditorItem& item;
 };
