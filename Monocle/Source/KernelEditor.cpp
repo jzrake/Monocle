@@ -6,19 +6,6 @@
 // ============================================================================
 KernelEditor::KernelEditor()
 {
-    kernel.insert ("list", var::NativeFunction (Runtime::builtin_list));
-    kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict));
-    kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
-
-    DynamicObject* kernelObject = new DynamicObject;
-
-    for (const auto& rule : kernel)
-    {
-        kernelObject->setProperty (String (rule.first), rule.second.value);
-    }
-
-    root = std::make_unique<KernelEditorItem> (var(), kernelObject);
-    setRootItem (root.get());
     setIndentSize (12);
     setMultiSelectEnabled (true);
     setRootItemVisible (false);
@@ -34,6 +21,30 @@ void KernelEditor::removeListener(Listener *listener)
     listeners.remove (listener);
 }
 
+void KernelEditor::setKernel (const Kernel* kernelToView)
+{
+    kernel = kernelToView;
+    DynamicObject* kernelObject = new DynamicObject;
+
+    for (const auto& rule : *kernel)
+    {
+        kernelObject->setProperty (String (rule.first), rule.second.value);
+    }
+    root = std::make_unique<KernelEditorItem> (var(), kernelObject);
+    setRootItem (root.get());
+}
+
+StringArray KernelEditor::getSelectedRules()
+{
+    StringArray res;
+
+    for (int n = 0; n < getNumSelectedItems(); ++n)
+    {
+        res.add (dynamic_cast<KernelEditorItem*> (getSelectedItem(n))->key);
+    }
+    return res;
+}
+
 //==============================================================================
 bool KernelEditor::keyPressed (const KeyPress& key)
 {
@@ -43,6 +54,21 @@ bool KernelEditor::keyPressed (const KeyPress& key)
         return true;
     }
     return TreeView::keyPressed (key);
+}
+
+void KernelEditor::focusOfChildComponentChanged (FocusChangeType)
+{
+    if (hasKeyboardFocus (true) && getNumSelectedItems() == 0)
+    {
+        getRootItem()->setSelected (true, false);
+    }
+    repaint();
+}
+
+//==========================================================================
+void KernelEditor::sendSelectionChanged()
+{
+    listeners.call (&Listener::kernelEditorSelectionChanged);
 }
 
 
@@ -82,7 +108,7 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
 {
     if (isSelected())
     {
-        g.fillAll (Colours::lightblue);
+        g.fillAll (getOwnerView()->hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
 }
 
@@ -118,8 +144,13 @@ void KernelEditorItem::itemDoubleClicked (const MouseEvent&)
 {
     label.showEditor();
 }
+
 void KernelEditorItem::itemSelectionChanged (bool isNowSelected)
 {
+    if (isNowSelected)
+    {
+        dynamic_cast<KernelEditor*> (getOwnerView())->sendSelectionChanged();
+    }
 }
 
 //==========================================================================

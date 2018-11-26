@@ -413,9 +413,9 @@ void AppSkeleton::layout (bool animate)
 {
     auto setBounds = [animate] (Component* c, const Rectangle<int>& b)
     {
-        if (animate)
-            Desktop::getInstance().getAnimator().animateComponent (c, b, 1.f, 150, false, 1, 0);
-        else
+//        if (animate)
+//            Desktop::getInstance().getAnimator().animateComponent (c, b, 1.f, 150, false, 1, 0);
+//        else
             c->setBounds (b);
     };
 

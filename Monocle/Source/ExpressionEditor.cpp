@@ -60,6 +60,15 @@ bool ExpressionEditor::keyPressed (const KeyPress& key)
     return TreeView::keyPressed (key);
 }
 
+void ExpressionEditor::focusOfChildComponentChanged (FocusChangeType)
+{
+    if (hasKeyboardFocus (true) && getNumSelectedItems() == 0)
+    {
+        getRootItem()->setSelected (true, false);
+    }
+    repaint();
+}
+
 //==========================================================================
 bool ExpressionEditor::showEditorInSelectedItem()
 {
@@ -142,7 +151,7 @@ void ExpressionEditorItem::paintItem (Graphics& g, int width, int height)
 {
     if (isSelected())
     {
-        g.fillAll (Colours::lightblue);
+        g.fillAll (getOwnerView()->hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
 }
 

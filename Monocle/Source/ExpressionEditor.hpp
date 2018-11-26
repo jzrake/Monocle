@@ -34,6 +34,7 @@ public:
 
     //==========================================================================
     bool keyPressed (const KeyPress& key) override;
+    void focusOfChildComponentChanged (FocusChangeType cause) override;
 
 private:
     //==========================================================================

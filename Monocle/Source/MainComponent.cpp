@@ -8,7 +8,12 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    skeleton.addNavButton ("Kernel",  material::bintos (material::action::ic_list));
+    kernel.insert ("list", var::NativeFunction (Runtime::builtin_list));
+    kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict));
+    kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
+    kernel.insert ("expr", crt::parser::parse ("(a b c)"));
+
+    skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
     skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
     skeleton.addNavButton ("Settings", material::bintos (material::action::ic_settings));
@@ -24,8 +29,11 @@ MainComponent::MainComponent()
     notesPage.setFont (Font ("Optima", 14, 0));
 
     figure.setModel (model = FigureModel::createExample());
-    figure.addListener (this);
+    kernelEditor.setKernel (&kernel);
+
+    figure          .addListener (this);
     expressionEditor.addListener (this);
+    kernelEditor    .addListener (this);
 
     addAndMakeVisible (skeleton);
     setSize (800, 600);
@@ -151,4 +159,25 @@ void MainComponent::expressionEditorNewExpression (const crt::expression& expr)
 void MainComponent::expressionEditorParserError (const std::string& what)
 {
     DBG(what);
+}
+
+//==========================================================================
+void MainComponent::kernelEditorSelectionChanged()
+{
+    auto keys = kernelEditor.getSelectedRules();
+
+    if (keys.size() == 1)
+    {
+        auto key = keys[0].toStdString();
+
+        if (kernel.contains (key))
+        {
+            auto expr = kernel.expr_at (key);
+            expressionEditor.setExpression (expr);
+        }
+        else
+        {
+            expressionEditor.setExpression ({});
+        }
+    }
 }

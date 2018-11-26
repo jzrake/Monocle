@@ -17,6 +17,7 @@ class MainComponent
 , public DragAndDropContainer
 , private FigureView::Listener
 , private ExpressionEditor::Listener
+, private KernelEditor::Listener
 {
 public:
     //==========================================================================
@@ -51,6 +52,9 @@ private:
     void expressionEditorParserError (const std::string&) override;
 
     //==========================================================================
+    void kernelEditorSelectionChanged() override;
+
+    //==========================================================================
     AppSkeleton       skeleton;
     FigureView        figure;
     TextEditor        notesPage;
@@ -59,4 +63,5 @@ private:
 
     //==========================================================================
     FigureModel model;
+    Kernel kernel;
 };

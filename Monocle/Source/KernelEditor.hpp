@@ -21,19 +21,27 @@ public:
     {
     public:
         virtual ~Listener() {}
+        virtual void kernelEditorSelectionChanged() = 0;
     };
 
     KernelEditor();
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
+    void setKernel (const Kernel* kernelToView);
+    StringArray getSelectedRules();
 
     //==========================================================================
     bool keyPressed (const KeyPress& key) override;
+    void focusOfChildComponentChanged (FocusChangeType) override;
 
 private:
+    //==========================================================================
+    void sendSelectionChanged();
+
+    friend class KernelEditorItem;
     ListenerList<Listener> listeners;
     std::unique_ptr<KernelEditorItem> root;
-    Kernel kernel;
+    const Kernel* kernel = nullptr;
 };
 
 
