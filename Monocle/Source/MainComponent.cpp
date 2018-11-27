@@ -8,10 +8,12 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    kernel.insert ("list", var::NativeFunction (Runtime::builtin_list), Runtime::locked);
-    kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict), Runtime::locked);
+    kernel.insert ("list", var::NativeFunction (Runtime::list), Runtime::locked);
+    kernel.insert ("dict", var::NativeFunction (Runtime::dict), Runtime::locked);
+    kernel.insert ("add", var::NativeFunction (Runtime::add), Runtime::locked);
     kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
-    kernel.insert ("expr", crt::parser::parse ("(a b c)"));
+    kernel.insert ("a", crt::parser::parse ("(add 1 2)"));
+    kernel.insert ("b", crt::parser::parse ("(add a 3)"));
     kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
 
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
@@ -30,6 +32,7 @@ MainComponent::MainComponent()
     notesPage.setFont (Font ("Optima", 14, 0));
 
     figure.setModel (model = FigureModel::createExample());
+    kernel.update_all (kernel.dirty_rules());
     kernelEditor.setKernel (&kernel);
 
     figure          .addListener (this);
@@ -64,6 +67,7 @@ void MainComponent::getAllCommands (Array<CommandID>& commands)
     const CommandID ids[] = {
         CommandIDs::windowToggleBackdrop,
         CommandIDs::windowToggleNavPages,
+        CommandIDs::kernelCreateRule,
     };
     commands.addArray (ids, numElementsInArray (ids));
 }
@@ -80,6 +84,10 @@ void MainComponent::getCommandInfo (CommandID commandID, ApplicationCommandInfo&
             result.setInfo ("Toggle Backdrop", "", CommandCategories::window, 0);
             result.defaultKeypresses.add (KeyPress ('L', ModifierKeys::commandModifier, 0));
             break;
+        case CommandIDs::kernelCreateRule:
+            result.setInfo ("Create Rule", "", CommandCategories::edit, 0);
+            result.defaultKeypresses.add (KeyPress ('T', ModifierKeys::ctrlModifier, 0));
+            break;
         default: break;
     }
 }
@@ -90,6 +98,7 @@ bool MainComponent::perform (const InvocationInfo& info)
     {
         case CommandIDs::windowToggleNavPages: skeleton.toggleNavPagesRevealed(); return true;
         case CommandIDs::windowToggleBackdrop: skeleton.toggleBackdropRevealed(); return true;
+        case CommandIDs::kernelCreateRule: createNewRule ("new-rule", {}); return true;
         default: return false;
     }
 }
@@ -115,6 +124,22 @@ void MainComponent::fileDragExit (const StringArray& files)
 
 void MainComponent::filesDropped (const StringArray& files, int x, int y)
 {
+}
+
+//==========================================================================
+void MainComponent::updateKernel (const Kernel::set_t& dirty)
+{
+    kernel.update_all (dirty);
+    kernelEditor.setKernel (&kernel);
+}
+
+void MainComponent::createNewRule (const std::string& key, const crt::expression& expr)
+{
+    updateKernel (kernel.insert (key, expr));
+    expressionEditor.setExpression (expr);
+    kernelEditor.setEmphasizedKey (key);
+    kernelEditor.selectRule (key);
+    skeleton.setBackdropRevealed (true);
 }
 
 //==========================================================================
@@ -155,19 +180,12 @@ void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
 void MainComponent::expressionEditorNewExpression (const crt::expression& expr)
 {
     auto key = kernelEditor.getEmphasizedKey();
-
-    if (key.empty())
-    {
-        return;
-    }
-    kernel.insert (key, expr);
-    kernelEditor.setKernel (&kernel);
+    updateKernel (kernel.insert (key, expr));
     expressionEditor.setExpression (expr);
 }
 
 void MainComponent::expressionEditorEncounteredError (const std::string& what)
 {
-    DBG(what);
     skeleton.flashAlertLabel (what);
 }
 
@@ -178,16 +196,6 @@ void MainComponent::kernelEditorSelectionChanged()
 
 void MainComponent::kernelEditorRulePunched (const std::string& key)
 {
-    if (! kernel.contains (key))
-    {
-        jassertfalse;
-        return;
-    }
-    if (! kernel.at (key).isVoid() && kernel.expr_at (key).empty())
-    {
-        jassertfalse;
-        return;
-    }
     if (kernelEditor.getEmphasizedKey() != key)
     {
         auto expr = kernel.expr_at (key);
@@ -206,18 +214,19 @@ void MainComponent::kernelEditorRulePunched (const std::string& key)
 void MainComponent::kernelEditorWantsNewRule (const crt::expression& expr)
 {
     assert(! expr.key().empty());
-    kernel.insert (expr.key(), expr.keyed (std::string()));
-    kernelEditor.setKernel (&kernel);
-    kernelEditor.setEmphasizedKey (expr.key());
-    expressionEditor.setExpression (expr.keyed (std::string()));
+    createNewRule (expr.key(), expr.keyed (std::string()));
 }
 
 void MainComponent::kernelEditorWantsRuleRemoved (const std::string& key)
 {
-    kernel.erase (key);
+    if (key == kernelEditor.getEmphasizedKey())
+    {
+        expressionEditor.setExpression ({});
+        kernelEditor.setEmphasizedKey (std::string());
+        skeleton.setBackdropRevealed (false);
+    }
     kernelEditor.selectNext();
-    kernelEditor.setKernel (&kernel);
-    expressionEditor.setExpression ({});
+    updateKernel (kernel.erase (key));
 }
 
 void MainComponent::kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to)
@@ -225,4 +234,9 @@ void MainComponent::kernelEditorWantsRuleRelabeled (const std::string& from, con
     kernel.relabel (from, to);
     kernelEditor.setKernel (&kernel);
     kernelEditor.selectRule (to);
+}
+
+void MainComponent::kernelEditorEncounteredError (const std::string& what)
+{
+    skeleton.flashAlertLabel (what);
 }

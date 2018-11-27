@@ -41,6 +41,10 @@ public:
 
 private:
     //==========================================================================
+    void updateKernel (const Kernel::set_t& dirty);
+    void createNewRule (const std::string& key, const crt::expression& expr);
+
+    //==========================================================================
     void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
     void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) override;
     void figureViewSetXlabel (FigureView* figure, const String& value) override;
@@ -57,6 +61,7 @@ private:
     void kernelEditorWantsNewRule (const crt::expression&) override;
     void kernelEditorWantsRuleRemoved (const std::string&) override;
     void kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to) override;
+    void kernelEditorEncounteredError (const std::string&) override;
 
     //==========================================================================
     AppSkeleton       skeleton;

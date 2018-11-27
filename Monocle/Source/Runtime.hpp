@@ -25,15 +25,9 @@ public:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };
 
-    static var builtin_list (var::NativeFunctionArgs args)
-    {
-        return Array<var>(args.arguments, args.numArguments);
-    }
-
-    static var builtin_dict (var::NativeFunctionArgs args)
-    {
-        return args.thisObject;
-    }
+    static var list (var::NativeFunctionArgs args);
+    static var dict (var::NativeFunctionArgs args);
+    static var add (var::NativeFunctionArgs args);
 };
 
 
@@ -54,15 +48,20 @@ public:
                            const list_t& args,
                            const dict_t& kwar)
     {
-        auto self = new DynamicObject;
+        var self = new DynamicObject;
 
         for (const auto& kw : kwar)
         {
-            self->setProperty (String (kw.first), kw.second);
+            self.getDynamicObject()->setProperty (String (kw.first), kw.second);
         }
         auto f = scope.at(key).getNativeFunction();
-        auto a = var::NativeFunctionArgs (var (self), &args[0], int (args.size()));
+        auto a = var::NativeFunctionArgs (self, &args[0], int (args.size()));
         return f(a);
     }
+
+    static ObjectType convert (const crt::expression::none&) { return var(); }
+    static ObjectType convert (const int& value) { return value; }
+    static ObjectType convert (const double& value) { return value; }
+    static ObjectType convert (const std::string& value) { return String (value); }
 };
 using Kernel = crt::kernel<var, VarCallAdapter>;

@@ -299,7 +299,7 @@ void AppSkeleton::flashAlertLabel (const String& textToShow)
     alertLabel.setText (textToShow, NotificationType::sendNotification);
     alertLabel.setVisible (true);
     alertLabel.setAlpha (1.f);
-    Timer::callAfterDelay (1500, [this, label=SafePointer<Component>(&alertLabel)] ()
+    Timer::callAfterDelay (1500, [label=SafePointer<Component> (&alertLabel)] ()
     {
         if (label)
         {

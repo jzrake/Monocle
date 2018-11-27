@@ -189,7 +189,6 @@ bool KernelEditor::showEditorInSelectedItem()
         if (item->isAtKernelLevel() && ! item->isLocked())
         {
             item->label.showEditor();
-            sendRulePunched();
             return true;
         }
     }
@@ -296,7 +295,6 @@ bool KernelEditorItem::isLiteral() const
     && tree.kernel->expr_at (stringKey).empty();
 }
 
-
 //==========================================================================
 void KernelEditorItem::paintItem (Graphics& g, int width, int height)
 {
@@ -304,6 +302,9 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
     {
         g.fillAll (getOwnerView()->hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
+    g.setFont (tree.font.withHeight (10));
+    g.setColour (Colours::grey);
+    g.drawText (value.toString(), 0, 0, width - 10, height, Justification::centredRight);
 }
 
 Component* KernelEditorItem::createItemComponent()
@@ -375,9 +376,16 @@ void KernelEditorItem::labelTextChanged (Label*)
 {
     if (label.getText().isEmpty())
     {
-        label.setText ("none", NotificationType::dontSendNotification);
+        label.setText (key.toString(), NotificationType::dontSendNotification);
     }
-    tree.sendRelabelSelectedRule (key.toString().toStdString(), label.getText().toStdString());
+    try {
+        tree.sendRelabelSelectedRule (key.toString().toStdString(), label.getText().toStdString());
+    }
+    catch (const std::exception& e)
+    {
+        label.setText (key.toString(), NotificationType::dontSendNotification);
+        tree.listeners.call (&KernelEditor::Listener::kernelEditorEncounteredError, e.what());
+    }
 }
 
 //==========================================================================

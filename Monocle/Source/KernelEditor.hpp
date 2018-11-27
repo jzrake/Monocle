@@ -26,6 +26,7 @@ public:
         virtual void kernelEditorWantsNewRule (const crt::expression&) = 0;
         virtual void kernelEditorWantsRuleRemoved (const std::string&) = 0;
         virtual void kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to) = 0;
+        virtual void kernelEditorEncounteredError (const std::string&) = 0;
     };
 
     KernelEditor();

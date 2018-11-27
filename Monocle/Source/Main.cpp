@@ -62,8 +62,8 @@ public:
     {
         PopupMenu menu;
 
-        if (menuName == "File")             createFileMenu (menu);
-        else if (menuName == "Edit")        {}
+        if      (menuName == "File")        createFileMenu (menu);
+        else if (menuName == "Edit")        createEditMenu (menu);
         else if (menuName == "View")        {}
         else if (menuName == "Window")      createWindowMenu (menu);
         else if (menuName == "Document")    {}
@@ -76,6 +76,11 @@ public:
     void createFileMenu (PopupMenu& menu)
     {
         menu.addCommandItem (&commandManager, CommandIDs::openDocument);
+    }
+
+    void createEditMenu (PopupMenu& menu)
+    {
+        menu.addCommandItem (&commandManager, CommandIDs::kernelCreateRule);
     }
 
     void createWindowMenu (PopupMenu& menu)
