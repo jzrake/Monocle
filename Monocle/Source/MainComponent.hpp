@@ -54,6 +54,9 @@ private:
     //==========================================================================
     void kernelEditorSelectionChanged() override;
     void kernelEditorRulePunched (const std::string& key) override;
+    void kernelEditorWantsNewRule (const crt::expression&) override;
+    void kernelEditorWantsRuleRemoved (const std::string&) override;
+    void kernelEditorWantsRuleRenamed (const std::string& oldKey, const std::string& newKey) override;
 
     //==========================================================================
     AppSkeleton       skeleton;

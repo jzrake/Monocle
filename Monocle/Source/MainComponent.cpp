@@ -153,6 +153,14 @@ void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
 //==========================================================================
 void MainComponent::expressionEditorNewExpression (const crt::expression& expr)
 {
+    auto key = kernelEditor.getEmphasizedKey();
+
+    if (key.empty())
+    {
+        return;
+    }
+    kernel.insert (key, expr);
+    kernelEditor.setKernel (&kernel);
     expressionEditor.setExpression (expr);
 }
 
@@ -164,22 +172,6 @@ void MainComponent::expressionEditorParserError (const std::string& what)
 //==========================================================================
 void MainComponent::kernelEditorSelectionChanged()
 {
-//    auto keys = kernelEditor.getSelectedRules();
-//
-//    if (keys.size() == 1)
-//    {
-//        auto key = keys[0].toStdString();
-//
-//        if (kernel.contains (key))
-//        {
-//            auto expr = kernel.expr_at (key);
-//            expressionEditor.setExpression (expr);
-//        }
-//        else
-//        {
-//            expressionEditor.setExpression ({});
-//        }
-//    }
 }
 
 void MainComponent::kernelEditorRulePunched (const std::string& key)
@@ -188,9 +180,47 @@ void MainComponent::kernelEditorRulePunched (const std::string& key)
     {
         auto expr = kernel.expr_at (key);
         expressionEditor.setExpression (expr);
+        kernelEditor.setEmphasizedKey (key);
     }
     else
     {
         expressionEditor.setExpression ({});
+        kernelEditor.setEmphasizedKey (std::string());
     }
+}
+
+void MainComponent::kernelEditorWantsNewRule (const crt::expression& expr)
+{
+    assert(! expr.key().empty());
+    kernel.insert (expr.key(), expr.keyed (std::string()));
+    kernelEditor.setKernel (&kernel);
+    kernelEditor.setEmphasizedKey (expr.key());
+    expressionEditor.setExpression (expr.keyed (std::string()));
+}
+
+void MainComponent::kernelEditorWantsRuleRemoved (const std::string& key)
+{
+    kernel.erase (key);
+    kernelEditor.selectNext();
+    kernelEditor.setKernel (&kernel);
+    expressionEditor.setExpression ({});
+}
+
+void MainComponent::kernelEditorWantsRuleRenamed (const std::string& oldKey, const std::string& newKey)
+{
+    auto val = kernel.at (oldKey);
+    auto expr = kernel.expr_at (oldKey);
+
+    kernel.erase (oldKey);
+
+    if (! expr.empty())
+    {
+        kernel.insert (newKey, expr);
+    }
+    else
+    {
+        kernel.insert (newKey, val);
+    }
+    kernelEditor.setKernel (&kernel);
+    kernelEditor.selectRule (newKey);
 }

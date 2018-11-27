@@ -6,18 +6,12 @@
 //==============================================================================
 ExpressionEditor::ExpressionEditor()
 {
-    crt::expression e {
-        1,
-        2.3,
-        std::string("sdf"),
-        crt::expression::symbol("a"),
-        {1, crt::expression::symbol("b"), crt::expression::symbol("b")}};
-
-    root = std::make_unique<ExpressionEditorItem>(e);
+    root = std::make_unique<ExpressionEditorItem>(crt::expression());
     setRootItem (root.get());
     setIndentSize (12);
     setMultiSelectEnabled (false);
     setRootItemVisible (true);
+    getViewport()->setScrollBarsShown (true, false);
 }
 
 void ExpressionEditor::addListener (Listener *listener)
@@ -72,7 +66,10 @@ void ExpressionEditor::focusOfChildComponentChanged (FocusChangeType)
 //==========================================================================
 bool ExpressionEditor::showEditorInSelectedItem()
 {
-    dynamic_cast<ExpressionEditorItem*> (getSelectedItem(0))->label.showEditor();
+    if (auto item = dynamic_cast<ExpressionEditorItem*> (getSelectedItem(0)))
+    {
+        item->label.showEditor();
+    }
     return true;
 }
 
@@ -191,6 +188,7 @@ void ExpressionEditorItem::itemDoubleClicked (const MouseEvent&)
 {
     label.showEditor();
 }
+
 void ExpressionEditorItem::itemSelectionChanged (bool isNowSelected)
 {
 }

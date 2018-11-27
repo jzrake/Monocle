@@ -23,13 +23,21 @@ public:
         virtual ~Listener() {}
         virtual void kernelEditorSelectionChanged() = 0;
         virtual void kernelEditorRulePunched (const std::string& key) = 0;
+        virtual void kernelEditorWantsNewRule (const crt::expression&) = 0;
+        virtual void kernelEditorWantsRuleRemoved (const std::string&) = 0;
+        virtual void kernelEditorWantsRuleRenamed (const std::string& oldKey, const std::string& newKey) = 0;
     };
 
     KernelEditor();
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setKernel (const Kernel* kernelToView);
+    void selectRule (const std::string& key);
+    void selectNext();
+    void setEmphasizedKey (const std::string& keyToEmphasize);
+    void createRule();
     StringArray getSelectedRules();
+    std::string getEmphasizedKey();
 
     //==========================================================================
     bool keyPressed (const KeyPress& key) override;
@@ -37,14 +45,22 @@ public:
 
 private:
     //==========================================================================
+    struct ItemComparator;
+
+    //==========================================================================
     bool showEditorInSelectedItem();
     void sendSelectionChanged();
     bool sendRulePunched();
+    bool removeSelectedRules();
 
     friend class KernelEditorItem;
     ListenerList<Listener> listeners;
     std::unique_ptr<KernelEditorItem> root;
+    std::unique_ptr<XmlElement> state;
+    Font font;
     const Kernel* kernel = nullptr;
+    bool creatingNewRule = false;
+    std::string emphasizedKey;
 };
 
 
@@ -67,12 +83,14 @@ public:
     void itemClicked (const MouseEvent&) override;
     void itemDoubleClicked (const MouseEvent&) override;
     void itemSelectionChanged (bool isNowSelected) override;
+    void ownerViewChanged (TreeView* newOwner) override;
 
 private:
     //==========================================================================
     void labelTextChanged (Label* labelThatHasChanged) override;
 
     //==========================================================================
+    void setFontForEmphasizedKey();
     crt::expression getExpressionToIndexInParent() const;
 
     //==========================================================================
