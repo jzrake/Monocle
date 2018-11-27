@@ -25,7 +25,7 @@ public:
         virtual void kernelEditorRulePunched (const std::string& key) = 0;
         virtual void kernelEditorWantsNewRule (const crt::expression&) = 0;
         virtual void kernelEditorWantsRuleRemoved (const std::string&) = 0;
-        virtual void kernelEditorWantsRuleRenamed (const std::string& oldKey, const std::string& newKey) = 0;
+        virtual void kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to) = 0;
     };
 
     KernelEditor();
@@ -52,6 +52,7 @@ private:
     void sendSelectionChanged();
     bool sendRulePunched();
     bool removeSelectedRules();
+    bool relabelSelectedRule(const std::string& from, const std::string& to);
 
     friend class KernelEditorItem;
     ListenerList<Listener> listeners;

@@ -10,6 +10,11 @@ class Runtime
 {
 public:
 
+    enum KernelFlags
+    {
+        locked = 8,
+    };
+
     template<typename T>
     struct Data : public ReferenceCountedObject
     {
@@ -17,6 +22,7 @@ public:
         Data() {}
         Data (const T& value) : value (value) {}
         T value;
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };
 
     static var builtin_list (var::NativeFunctionArgs args)

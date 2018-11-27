@@ -202,9 +202,32 @@ bool KernelEditor::removeSelectedRules()
     {
         if (getSelectedItem(0)->getParentItem() == root.get())
         {
+            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString().toStdString();
+
+            if ((kernel->flags_at (key) & Runtime::locked) == 0)
+            {
+                listeners.call (&Listener::kernelEditorWantsRuleRemoved, key);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool KernelEditor::relabelSelectedRule (const std::string &from, const std::string &to)
+{
+    if (getNumSelectedItems() == 1)
+    {
+        if (getSelectedItem(0)->getParentItem() == root.get())
+        {
             auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString();
-            listeners.call (&Listener::kernelEditorWantsRuleRemoved, key.toStdString());
-            return true;
+            jassert (key == String (from));
+
+            if ((kernel->flags_at (from) & Runtime::locked) == 0)
+            {
+                listeners.call (&Listener::kernelEditorWantsRuleRelabeled, from, to);
+                return true;
+            }
         }
     }
     return false;
@@ -279,6 +302,7 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
         PopupMenu menu;
         menu.addItem (1, "Create Rule");
         menu.addItem (2, "Delete Rule");
+        menu.addItem (3, "Relabel Rule");
 
         menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
         {
@@ -288,6 +312,7 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
             {
                 case 1: tree->createRule(); break;
                 case 2: tree->removeSelectedRules(); break;
+                case 3: tree->showEditorInSelectedItem(); break;
                 default: break;
             }
         });
@@ -322,9 +347,7 @@ void KernelEditorItem::labelTextChanged (Label*)
         label.setText ("none", NotificationType::dontSendNotification);
     }
     auto tree = dynamic_cast<KernelEditor*> (getOwnerView());
-    tree->listeners.call (&KernelEditor::Listener::kernelEditorWantsRuleRenamed,
-                          key.toString().toStdString(),
-                          label.getText().toStdString());
+    tree->relabelSelectedRule (key.toString().toStdString(), label.getText().toStdString());
     tree->sendRulePunched();
 }
 

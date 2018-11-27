@@ -8,8 +8,8 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    kernel.insert ("list", var::NativeFunction (Runtime::builtin_list));
-    kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict));
+    kernel.insert ("list", var::NativeFunction (Runtime::builtin_list), Runtime::locked);
+    kernel.insert ("dict", var::NativeFunction (Runtime::builtin_dict), Runtime::locked);
     kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
     kernel.insert ("expr", crt::parser::parse ("(a b c)"));
 
@@ -220,21 +220,22 @@ void MainComponent::kernelEditorWantsRuleRemoved (const std::string& key)
     expressionEditor.setExpression ({});
 }
 
-void MainComponent::kernelEditorWantsRuleRenamed (const std::string& oldKey, const std::string& newKey)
+void MainComponent::kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to)
 {
-    auto val = kernel.at (oldKey);
-    auto expr = kernel.expr_at (oldKey);
-
-    kernel.erase (oldKey);
-
-    if (! expr.empty())
-    {
-        kernel.insert (newKey, expr);
-    }
-    else
-    {
-        kernel.insert (newKey, val);
-    }
+    kernel.relabel (from, to);
+//    auto val = kernel.at (from);
+//    auto expr = kernel.expr_at (from);
+//
+//    kernel.erase (from);
+//
+//    if (! expr.empty())
+//        kernel.insert (to, expr);
+//    else
+//        kernel.insert (to, val);
+//
     kernelEditor.setKernel (&kernel);
-    kernelEditor.selectRule (newKey);
+    kernelEditor.selectRule (to);
+    // kernelEditor.setEmphasizedKey (key);
+    // expressionEditor.setExpression (expr);
+    // skeleton.setBackdropRevealed (true);
 }
