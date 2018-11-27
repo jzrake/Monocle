@@ -49,7 +49,7 @@ private:
 
     //==========================================================================
     void expressionEditorNewExpression (const crt::expression&) override;
-    void expressionEditorParserError (const std::string&) override;
+    void expressionEditorEncounteredError (const std::string&) override;
 
     //==========================================================================
     void kernelEditorSelectionChanged() override;

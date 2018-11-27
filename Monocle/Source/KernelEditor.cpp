@@ -166,8 +166,11 @@ bool KernelEditor::showEditorInSelectedItem()
     {
         if (item->getParentItem() == root.get())
         {
-            item->label.showEditor();
-            return true;
+            if ((kernel->flags_at (item->key.toString().toStdString()) & Runtime::locked) == 0)
+            {
+                item->label.showEditor();
+                return true;
+            }
         }
     }
     return false;

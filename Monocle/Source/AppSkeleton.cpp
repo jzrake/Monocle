@@ -210,10 +210,13 @@ public:
 // ============================================================================
 AppSkeleton::AppSkeleton()
 {
+    alertLabel.setColour (Label::textColourId, Colours::darkred);
+    alertLabel.setJustificationType (Justification::centred);
     topNavComponent = std::make_unique<TopNavComponent>();
     backdropButton  = std::make_unique<BackdropButton>();
     addAndMakeVisible (*topNavComponent);
     addAndMakeVisible (*backdropButton);
+    addChildComponent (alertLabel);
 }
 
 AppSkeleton::~AppSkeleton()
@@ -289,6 +292,20 @@ void AppSkeleton::openNavSection (const String& name)
             if (button->getName() == name && ! button->getToggleState())
                 button->triggerClick();
     }
+}
+
+void AppSkeleton::flashAlertLabel (const String& textToShow)
+{
+    alertLabel.setText (textToShow, NotificationType::sendNotification);
+    alertLabel.setVisible (true);
+    alertLabel.setAlpha (1.f);
+    Timer::callAfterDelay (1500, [this, label=SafePointer<Component>(&alertLabel)] ()
+    {
+        if (label)
+        {
+            Desktop::getInstance().getAnimator().fadeOut (label, 500);
+        }
+    });
 }
 
 String AppSkeleton::getCurrentNavSectionName() const
@@ -437,6 +454,7 @@ void AppSkeleton::layout (bool animate)
 
     topNavComponent->setBounds (geom.topNav);
     backdropButton->setBounds (geom.backdropButton);
+    alertLabel.setBounds (geom.topNav);
 }
 
 void AppSkeleton::updatePageVisibility()

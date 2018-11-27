@@ -22,7 +22,7 @@ public:
     public:
         virtual ~Listener() {}
         virtual void expressionEditorNewExpression (const crt::expression&) = 0;
-        virtual void expressionEditorParserError (const std::string&) = 0;
+        virtual void expressionEditorEncounteredError (const std::string&) = 0;
     };
 
     //==========================================================================

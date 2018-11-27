@@ -73,6 +73,7 @@ public:
     void toggleNavPagesRevealed();
     void toggleBackdropRevealed();
     void openNavSection (const String& name);
+    void flashAlertLabel (const String& textToShow);
     String getCurrentNavSectionName() const;
 
     // ========================================================================
@@ -99,6 +100,7 @@ private:
     Array<std::unique_ptr<NavButton>> navButtons;
     std::unique_ptr<BackdropButton> backdropButton;
     std::unique_ptr<TopNavComponent> topNavComponent;
+    Label alertLabel;
 
     bool sourceListVisible = false;
     bool mouseIsAtRightEdgeOfSourceList = false;

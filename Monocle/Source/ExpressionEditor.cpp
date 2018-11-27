@@ -198,6 +198,7 @@ void ExpressionEditorItem::itemSelectionChanged (bool isNowSelected)
 void ExpressionEditorItem::labelTextChanged (Label* labelThatHasChanged)
 {
     auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
+    auto orig = expr;
 
     try {
         setExpression (crt::parser::parse (label.getText().getCharPointer()));
@@ -205,7 +206,9 @@ void ExpressionEditorItem::labelTextChanged (Label* labelThatHasChanged)
     }
     catch (const std::exception& e)
     {
-        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorParserError, e.what());
+        setExpression (orig);
+        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorNewExpression, tree->computeExpression());
+        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorEncounteredError, e.what());
     }
 }
 
