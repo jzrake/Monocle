@@ -12,6 +12,7 @@ ExpressionEditor::ExpressionEditor()
     setMultiSelectEnabled (false);
     setRootItemVisible (true);
     getViewport()->setScrollBarsShown (true, false);
+    getViewport()->setWantsKeyboardFocus (false);
 }
 
 void ExpressionEditor::addListener (Listener *listener)
@@ -27,8 +28,8 @@ void ExpressionEditor::removeListener(Listener *listener)
 void ExpressionEditor::setExpression (crt::expression expr)
 {
     auto state = std::unique_ptr<XmlElement> (getOpennessState (true));
-    root = std::make_unique<ExpressionEditorItem> (expr);
-    setRootItem (root.get());
+    setRootItem (nullptr);
+    setRootItem ((root = std::make_unique<ExpressionEditorItem> (expr)).get());
     restoreOpennessState (*state, true);
 }
 

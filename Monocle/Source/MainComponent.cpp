@@ -13,6 +13,8 @@ MainComponent::MainComponent()
     kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
     kernel.insert ("expr", crt::parser::parse ("(a b c)"));
 
+    kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
+
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
     skeleton.addNavButton ("Notes",    material::bintos (material::action::ic_speaker_notes));
@@ -176,16 +178,28 @@ void MainComponent::kernelEditorSelectionChanged()
 
 void MainComponent::kernelEditorRulePunched (const std::string& key)
 {
-    if (kernel.contains (key))
+    if (! kernel.contains (key))
+    {
+        jassertfalse;
+        return;
+    }
+    if (! kernel.at (key).isVoid() && kernel.expr_at (key).empty())
+    {
+        jassertfalse;
+        return;
+    }
+    if (kernelEditor.getEmphasizedKey() != key)
     {
         auto expr = kernel.expr_at (key);
         expressionEditor.setExpression (expr);
         kernelEditor.setEmphasizedKey (key);
+        skeleton.setBackdropRevealed (true);
     }
     else
     {
         expressionEditor.setExpression ({});
         kernelEditor.setEmphasizedKey (std::string());
+        skeleton.setBackdropRevealed (false);
     }
 }
 

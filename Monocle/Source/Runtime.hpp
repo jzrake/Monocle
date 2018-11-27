@@ -9,6 +9,16 @@
 class Runtime
 {
 public:
+
+    template<typename T>
+    struct Data : public ReferenceCountedObject
+    {
+    public:
+        Data() {}
+        Data (const T& value) : value (value) {}
+        T value;
+    };
+
     static var builtin_list (var::NativeFunctionArgs args)
     {
         return Array<var>(args.arguments, args.numArguments);

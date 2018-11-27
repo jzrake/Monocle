@@ -25,6 +25,7 @@ KernelEditor::KernelEditor()
     setIndentSize (12);
     setMultiSelectEnabled (false);
     setRootItemVisible (false);
+    getViewport()->setWantsKeyboardFocus (false);
 }
 
 void KernelEditor::addListener (Listener *listener)
@@ -48,15 +49,13 @@ void KernelEditor::setKernel (const Kernel* kernelToView)
     {
         kernelObject->setProperty (String (rule.first), rule.second.value);
     }
-    root = std::make_unique<KernelEditorItem> (var(), kernelObject);
-
-    setRootItem (root.get());
+    setRootItem (nullptr);
+    setRootItem ((root = std::make_unique<KernelEditorItem> (var(), kernelObject)).get());
 
     if (state)
     {
         restoreOpennessState (*state, true);
     }
-
     if (creatingNewRule)
     {
         creatingNewRule = false;
@@ -185,9 +184,13 @@ bool KernelEditor::sendRulePunched()
     {
         if (getSelectedItem(0)->getParentItem() == root.get())
         {
-            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString();
-            listeners.call (&Listener::kernelEditorRulePunched, key.toStdString());
-            return true;
+            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString().toStdString();
+
+            if (kernel->at (key).isVoid() || ! kernel->expr_at (key).empty())
+            {
+                listeners.call (&Listener::kernelEditorRulePunched, key);
+                return true;
+            }
         }
     }
     return false;
@@ -266,7 +269,7 @@ var KernelEditorItem::getDragSourceDescription()
 
 bool KernelEditorItem::mightContainSubItems()
 {
-    return value.isArray() || value.isObject();
+    return value.isArray() || value.getDynamicObject();
 }
 
 void KernelEditorItem::itemClicked (const MouseEvent& e)
