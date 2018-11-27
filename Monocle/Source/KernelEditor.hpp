@@ -36,6 +36,7 @@ public:
     void selectNext();
     void setEmphasizedKey (const std::string& keyToEmphasize);
     void createRule();
+    KernelEditorItem* getSoleSelectedItem();
     StringArray getSelectedRules();
     std::string getEmphasizedKey();
 
@@ -48,11 +49,11 @@ private:
     struct ItemComparator;
 
     //==========================================================================
-    bool showEditorInSelectedItem();
+    void sendRelabelSelectedRule (const std::string& from, const std::string& to);
     void sendSelectionChanged();
+    bool showEditorInSelectedItem();
     bool sendRulePunched();
     bool removeSelectedRules();
-    bool relabelSelectedRule(const std::string& from, const std::string& to);
 
     friend class KernelEditorItem;
     ListenerList<Listener> listeners;
@@ -72,8 +73,15 @@ class KernelEditorItem : public TreeViewItem, private Label::Listener
 {
 public:
     //==========================================================================
-    KernelEditorItem (const var& key, const var& value);
+    KernelEditorItem (KernelEditor& tree, const var& key, const var& value);
+    KernelEditorItem* getKernelEditorSubItem (int index);
+    KernelEditorItem* getKernelEditorParentItem();
+    const KernelEditorItem* getKernelEditorSubItem (int index) const;
+    const KernelEditorItem* getKernelEditorParentItem() const;
     void setValue (const var& newValue);
+    bool isAtKernelLevel() const;
+    bool isLocked() const;
+    bool isLiteral() const;
 
     //==========================================================================
     void paintItem (Graphics& g, int width, int height) override;
@@ -97,8 +105,10 @@ private:
     //==========================================================================
     friend class KernelEditor;
     friend class KernelEditorItemView;
+    KernelEditor& tree;
     var key;
     var value;
+    std::string stringKey;
     Label label;
 };
 

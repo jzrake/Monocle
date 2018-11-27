@@ -50,7 +50,7 @@ void KernelEditor::setKernel (const Kernel* kernelToView)
         kernelObject->setProperty (String (rule.first), rule.second.value);
     }
     setRootItem (nullptr);
-    setRootItem ((root = std::make_unique<KernelEditorItem> (var(), kernelObject)).get());
+    setRootItem ((root = std::make_unique<KernelEditorItem> (*this, var(), kernelObject)).get());
 
     if (state)
     {
@@ -67,9 +67,9 @@ void KernelEditor::selectRule (const std::string& key)
 {
     for (int n = 0; n < root->getNumSubItems(); ++n)
     {
-        auto item = dynamic_cast<KernelEditorItem*> (root->getSubItem(n));
+        auto item = root->getKernelEditorSubItem(n);
 
-        if (item->key == String (key))
+        if (item->stringKey == key)
         {
             item->setSelected (true, true);
             return;
@@ -102,18 +102,27 @@ void KernelEditor::setEmphasizedKey (const std::string &keyToEmphasize)
 
     for (int n = 0; n < root->getNumSubItems(); ++n)
     {
-        auto item = dynamic_cast<KernelEditorItem*> (root->getSubItem(n));
+        auto item = root->getKernelEditorSubItem(n);
         item->setFontForEmphasizedKey();
     }
 }
 
 void KernelEditor::createRule()
 {
-    auto item = new KernelEditorItem ("new-rule", var());
+    auto item = new KernelEditorItem (*this, "new-rule", var());
     root->addSubItem (item);
     item->setSelected (true, true);
     creatingNewRule = true;
     listeners.call (&Listener::kernelEditorWantsNewRule, crt::expression().keyed ("new-rule"));
+}
+
+KernelEditorItem* KernelEditor::getSoleSelectedItem()
+{
+    if (getNumSelectedItems() == 1)
+    {
+        return dynamic_cast<KernelEditorItem*> (getSelectedItem(0));
+    }
+    return nullptr;
 }
 
 StringArray KernelEditor::getSelectedRules()
@@ -160,20 +169,12 @@ void KernelEditor::focusOfChildComponentChanged (FocusChangeType)
 }
 
 //==========================================================================
-bool KernelEditor::showEditorInSelectedItem()
+void KernelEditor::sendRelabelSelectedRule (const std::string &from, const std::string &to)
 {
-    if (auto item = dynamic_cast<KernelEditorItem*> (getSelectedItem(0)))
-    {
-        if (item->getParentItem() == root.get())
-        {
-            if ((kernel->flags_at (item->key.toString().toStdString()) & Runtime::locked) == 0)
-            {
-                item->label.showEditor();
-                return true;
-            }
-        }
-    }
-    return false;
+    auto item = getSoleSelectedItem();
+    jassert (item != nullptr);
+    jassert (item->stringKey == from);
+    listeners.call (&Listener::kernelEditorWantsRuleRelabeled, from, to);
 }
 
 void KernelEditor::sendSelectionChanged()
@@ -181,19 +182,28 @@ void KernelEditor::sendSelectionChanged()
     listeners.call (&Listener::kernelEditorSelectionChanged);
 }
 
+bool KernelEditor::showEditorInSelectedItem()
+{
+    if (auto item = getSoleSelectedItem())
+    {
+        if (item->isAtKernelLevel() && ! item->isLocked())
+        {
+            item->label.showEditor();
+            sendRulePunched();
+            return true;
+        }
+    }
+    return false;
+}
+
 bool KernelEditor::sendRulePunched()
 {
-    if (getNumSelectedItems() == 1)
+    if (auto item = getSoleSelectedItem())
     {
-        if (getSelectedItem(0)->getParentItem() == root.get())
+        if (item->isAtKernelLevel() && ! item->isLiteral())
         {
-            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString().toStdString();
-
-            if (kernel->at (key).isVoid() || ! kernel->expr_at (key).empty())
-            {
-                listeners.call (&Listener::kernelEditorRulePunched, key);
-                return true;
-            }
+            listeners.call (&Listener::kernelEditorRulePunched, item->stringKey);
+            return true;
         }
     }
     return false;
@@ -201,36 +211,12 @@ bool KernelEditor::sendRulePunched()
 
 bool KernelEditor::removeSelectedRules()
 {
-    if (getNumSelectedItems() == 1)
+    if (auto item = getSoleSelectedItem())
     {
-        if (getSelectedItem(0)->getParentItem() == root.get())
+        if (item->isAtKernelLevel() && ! item->isLocked())
         {
-            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString().toStdString();
-
-            if ((kernel->flags_at (key) & Runtime::locked) == 0)
-            {
-                listeners.call (&Listener::kernelEditorWantsRuleRemoved, key);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool KernelEditor::relabelSelectedRule (const std::string &from, const std::string &to)
-{
-    if (getNumSelectedItems() == 1)
-    {
-        if (getSelectedItem(0)->getParentItem() == root.get())
-        {
-            auto key = dynamic_cast<KernelEditorItem*> (getSelectedItem(0))->key.toString();
-            jassert (key == String (from));
-
-            if ((kernel->flags_at (from) & Runtime::locked) == 0)
-            {
-                listeners.call (&Listener::kernelEditorWantsRuleRelabeled, from, to);
-                return true;
-            }
+            listeners.call (&Listener::kernelEditorWantsRuleRemoved, item->stringKey);
+            return true;
         }
     }
     return false;
@@ -240,9 +226,13 @@ bool KernelEditor::relabelSelectedRule (const std::string &from, const std::stri
 
 
 //==========================================================================
-KernelEditorItem::KernelEditorItem (const var& key, const var& value) : key (key), value (value)
+KernelEditorItem::KernelEditorItem (KernelEditor& tree, const var& key, const var& value)
+: tree (tree)
+, key (key)
+, value (value)
 {
     KernelEditor::ItemComparator comparator;
+    stringKey = key.toString().toStdString();
 
     label.addListener (this);
     label.setText (key.toString(), NotificationType::dontSendNotification);
@@ -253,21 +243,59 @@ KernelEditorItem::KernelEditorItem (const var& key, const var& value) : key (key
 
     if (key.isVoid()) /* A void key is used for the root node. */
         for (const auto& property : value.getDynamicObject()->getProperties())
-            addSubItemSorted (comparator, new KernelEditorItem (property.name.toString(), property.value));
+            addSubItemSorted (comparator, new KernelEditorItem (tree, property.name.toString(), property.value));
 
     else if (value.getDynamicObject())
         for (const auto& property : value.getDynamicObject()->getProperties())
-            addSubItem (new KernelEditorItem (property.name.toString(), property.value));
+            addSubItem (new KernelEditorItem (tree, property.name.toString(), property.value));
 
     else if (value.getArray())
         for (const auto& item : *value.getArray())
-            addSubItem (new KernelEditorItem (index++, item));
+            addSubItem (new KernelEditorItem (tree, index++, item));
+}
+
+KernelEditorItem* KernelEditorItem::getKernelEditorSubItem (int index)
+{
+    return dynamic_cast<KernelEditorItem*> (getSubItem(index));
+}
+
+KernelEditorItem* KernelEditorItem::getKernelEditorParentItem()
+{
+    return dynamic_cast<KernelEditorItem*> (getParentItem());
+}
+
+const KernelEditorItem* KernelEditorItem::getKernelEditorSubItem (int index) const
+{
+    return dynamic_cast<const KernelEditorItem*> (getSubItem(index));
+}
+
+const KernelEditorItem* KernelEditorItem::getKernelEditorParentItem() const
+{
+    return dynamic_cast<const KernelEditorItem*> (getParentItem());
 }
 
 void KernelEditorItem::setValue (const var& newValue)
 {
     jassertfalse;
 }
+
+bool KernelEditorItem::isAtKernelLevel() const
+{
+    return getParentItem() == tree.getRootItem();
+}
+
+bool KernelEditorItem::isLocked() const
+{
+    return ! isAtKernelLevel() || (tree.kernel->flags_at (stringKey) & Runtime::locked);
+}
+
+bool KernelEditorItem::isLiteral() const
+{
+    return isAtKernelLevel()
+    && ! tree.kernel->at (stringKey).isVoid()
+    && tree.kernel->expr_at (stringKey).empty();
+}
+
 
 //==========================================================================
 void KernelEditorItem::paintItem (Graphics& g, int width, int height)
@@ -300,22 +328,22 @@ bool KernelEditorItem::mightContainSubItems()
 
 void KernelEditorItem::itemClicked (const MouseEvent& e)
 {
-    if (e.mods.isPopupMenu()) 
+    if (e.mods.isPopupMenu())
     {
         PopupMenu menu;
         menu.addItem (1, "Create Rule");
-        menu.addItem (2, "Delete Rule");
-        menu.addItem (3, "Relabel Rule");
+        menu.addItem (2, "Delete Rule",  isAtKernelLevel() && ! isLocked());
+        menu.addItem (3, "Relabel Rule", isAtKernelLevel() && ! isLocked());
+        menu.addItem (4, "Edit Rule",    isAtKernelLevel() && ! isLocked() && ! isLiteral());
 
         menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
         {
-            auto tree = dynamic_cast<KernelEditor*> (getOwnerView());
-
             switch (code)
             {
-                case 1: tree->createRule(); break;
-                case 2: tree->removeSelectedRules(); break;
-                case 3: tree->showEditorInSelectedItem(); break;
+                case 1: tree.createRule(); break;
+                case 2: tree.removeSelectedRules(); break;
+                case 3: tree.showEditorInSelectedItem(); break;
+                case 4: tree.sendRulePunched(); break;
                 default: break;
             }
         });
@@ -330,7 +358,7 @@ void KernelEditorItem::itemSelectionChanged (bool isNowSelected)
 {
     if (isNowSelected)
     {
-        dynamic_cast<KernelEditor*> (getOwnerView())->sendSelectionChanged();
+        tree.sendSelectionChanged();
     }
 }
 
@@ -349,27 +377,20 @@ void KernelEditorItem::labelTextChanged (Label*)
     {
         label.setText ("none", NotificationType::dontSendNotification);
     }
-    auto tree = dynamic_cast<KernelEditor*> (getOwnerView());
-    tree->relabelSelectedRule (key.toString().toStdString(), label.getText().toStdString());
-    tree->sendRulePunched();
+    tree.sendRelabelSelectedRule (key.toString().toStdString(), label.getText().toStdString());
 }
 
 //==========================================================================
 crt::expression KernelEditorItem::getExpressionToIndexInParent() const
 {
-    if (auto parent = dynamic_cast<KernelEditorItem*> (getParentItem()))
+    if (auto parent = getKernelEditorParentItem())
     {
-        if (parent == getOwnerView()->getRootItem())
-            return crt::expression::symbol (key.toString().toStdString());
-
+        if (isAtKernelLevel())
+            return crt::expression::symbol (stringKey);
         else if (key.isInt())
-            return {crt::expression::symbol ("item"),
-                parent->getExpressionToIndexInParent(), int (key)};
-
+            return {crt::expression::symbol ("item"), parent->getExpressionToIndexInParent(), int (key)};
         else if (key.isString())
-            return {crt::expression::symbol ("attr"), key.toString().toStdString(),
-                parent->getExpressionToIndexInParent()};
-
+            return {crt::expression::symbol ("attr"), stringKey, parent->getExpressionToIndexInParent()};
         else
             jassertfalse;
     }
@@ -378,8 +399,7 @@ crt::expression KernelEditorItem::getExpressionToIndexInParent() const
 
 void KernelEditorItem::setFontForEmphasizedKey()
 {
-    auto tree = dynamic_cast<KernelEditor*> (getOwnerView());
-    label.setFont (key == tree->emphasizedKey ? tree->font.italicised() : tree->font);
+    label.setFont (key == tree.emphasizedKey ? tree.font.italicised() : tree.font);
 }
 
 
