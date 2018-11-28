@@ -321,7 +321,7 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
 
     g.setFont (tree.font.withHeight (10));
     g.setColour (Colours::grey);
-    g.drawText (Runtime::summarize (value), 0, 0, width - 10, height, Justification::centredRight);
+    g.drawText (Runtime::getSummary (value), 0, 0, width - 10, height, Justification::centredRight);
 }
 
 Component* KernelEditorItem::createItemComponent()

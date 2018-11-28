@@ -26,11 +26,6 @@ bool WatchedFile::hasChanged()
     return status.refreshFromDisk();
 }
 
-File WatchedFile::getFile()
-{
-    return status.file;
-}
-
 void WatchedFile::setData (const var& dataObject)
 {
     jassert(dataObject.getDynamicObject());
@@ -50,6 +45,11 @@ StringArray WatchedFile::getDataNames() const
 var WatchedFile::getDataItem (const String& key) const
 {
     return data.getProperty (key, var());
+}
+
+File WatchedFile::getFile() const
+{
+    return status.file;
 }
 
 
@@ -204,7 +204,7 @@ var Runtime::loadtxt (var::NativeFunctionArgs args)
 
 
 // ============================================================================
-String Runtime::summarize (const var& value)
+String Runtime::getSummary (const var& value)
 {
     if (auto object = value.getDynamicObject())
     {
@@ -216,7 +216,7 @@ String Runtime::summarize (const var& value)
     }
     if (auto object = dynamic_cast<GenericData*> (value.getObject()))
     {
-        return object->getType();
+        return object->getSummary();
     }
     return value.toString();
 }
@@ -252,7 +252,7 @@ bool Runtime::checkAttribute (const var& value, const String& key)
     auto error_str = [&] ()
     {
         return "object "
-        + summarize (value).toStdString()
+        + getSummary (value).toStdString()
         + " has no attribute "
         + key.toStdString();
     };

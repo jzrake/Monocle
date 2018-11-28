@@ -54,10 +54,10 @@ public:
     WatchedFile();
     WatchedFile (const String& url);
     bool hasChanged();
-    File getFile();
     void setData (const var& dataObject);
     StringArray getDataNames() const;
     var getDataItem (const String& key) const;
+    File getFile() const;
 
     // ========================================================================
     struct Status
@@ -95,7 +95,7 @@ public:
     };
 
     // ========================================================================
-    static String summarize (const var& value);
+    static String getSummary (const var& value);
     static bool isContainer (const var& value);
     static bool hasAttributes (const var& value);
     static bool checkAttribute (const var& value, const String& key);
@@ -107,7 +107,7 @@ public:
     class GenericData : public ReferenceCountedObject
     {
     public:
-        virtual String getType() { return "Unknown"; }
+        virtual String getSummary() { return String(); }
         virtual StringArray getPropertyNames() { return {}; }
         virtual var getProperty (const String& key) { return var(); }
 
@@ -134,7 +134,7 @@ public:
             throw std::invalid_argument ("bad cast to Runtime::Data");
         }
 
-        String getType() override { return info.getType(); }
+        String getSummary() override { return info.getSummary (value); }
         StringArray getPropertyNames() override { return info.getPropertyNames (value); }
         var getProperty (const String& key) override { return info.getProperty (value, key); }
 
@@ -164,7 +164,7 @@ template<>
 class Runtime::DataTypeInfo<WatchedFile>
 {
 public:
-    String getType() const { return "WatchedFile"; }
+    String getSummary (const WatchedFile& f) const { return f.getFile().getFileName(); }
     StringArray getPropertyNames (const WatchedFile& f) { return f.getDataNames(); }
     var getProperty (const WatchedFile& f, const String& key) { return f.getDataItem (key); }
 };
@@ -173,7 +173,7 @@ template<>
 class Runtime::DataTypeInfo<nd::ndarray<double, 1>>
 {
 public:
-    String getType() const { return "nd::array<double, 1>"; }
+    String getSummary (const nd::ndarray<double, 1>& A) const { return "Array[" + std::to_string (A.shape()[0]) + "]"; }
     StringArray getPropertyNames (const nd::ndarray<double, 1>&) { return {}; }
     var getProperty (const nd::ndarray<double, 1>&, const String& key) { return var(); }
 };
