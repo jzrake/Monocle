@@ -55,6 +55,9 @@ public:
     WatchedFile (const String& url);
     bool hasChanged();
     File getFile();
+    void setData (const var& dataObject);
+    StringArray getDataNames() const;
+    var getDataItem (const String& key) const;
 
     // ========================================================================
     struct Status
@@ -68,6 +71,7 @@ public:
     };
 private:
     Status status;
+    var data; /**< Must be a DynamicObject */
 };
 
 
@@ -92,20 +96,25 @@ public:
 
     // ========================================================================
     static String summarize (const var& value);
+    static bool isContainer (const var& value);
+    static bool hasAttributes (const var& value);
+    static bool checkAttribute (const var& value, const String& key);
 
     // ========================================================================
-    template<typename T>
-    class DataTypeInfo
-    {
-    public:
-        String getType() const { return "Data"; }
-    };
+    template<typename T> class DataTypeInfo {};
 
     // ========================================================================
     class GenericData : public ReferenceCountedObject
     {
     public:
-        virtual String getType() = 0;
+        virtual String getType() { return "Unknown"; }
+        virtual StringArray getPropertyNames() { return {}; }
+        virtual var getProperty (const String& key) { return var(); }
+
+        static GenericData* cast (const var& value)
+        {
+            return dynamic_cast<Runtime::GenericData*> (value.getObject());
+        }
     };
 
     // ========================================================================
@@ -125,10 +134,9 @@ public:
             throw std::invalid_argument ("bad cast to Runtime::Data");
         }
 
-        String getType() override
-        {
-            return info.getType();
-        }
+        String getType() override { return info.getType(); }
+        StringArray getPropertyNames() override { return info.getPropertyNames (value); }
+        var getProperty (const String& key) override { return info.getProperty (value, key); }
 
         T value;
         DataTypeInfo<T> info;
@@ -156,7 +164,9 @@ template<>
 class Runtime::DataTypeInfo<WatchedFile>
 {
 public:
-    String getType() const { return "File Status"; }
+    String getType() const { return "WatchedFile"; }
+    StringArray getPropertyNames (const WatchedFile& f) { return f.getDataNames(); }
+    var getProperty (const WatchedFile& f, const String& key) { return f.getDataItem (key); }
 };
 
 template<>
@@ -164,4 +174,6 @@ class Runtime::DataTypeInfo<nd::ndarray<double, 1>>
 {
 public:
     String getType() const { return "nd::array<double, 1>"; }
+    StringArray getPropertyNames (const nd::ndarray<double, 1>&) { return {}; }
+    var getProperty (const nd::ndarray<double, 1>&, const String& key) { return var(); }
 };

@@ -252,6 +252,11 @@ KernelEditorItem::KernelEditorItem (KernelEditor& tree, const var& key, const va
     else if (value.getArray())
         for (const auto& item : *value.getArray())
             addSubItem (new KernelEditorItem (tree, index++, item));
+
+    else if (auto data = Runtime::GenericData::cast (value))
+        for (const auto& key : data->getPropertyNames())
+            addSubItem (new KernelEditorItem (tree, key, data->getProperty (key)));
+
 }
 
 KernelEditorItem* KernelEditorItem::getKernelEditorSubItem (int index)
@@ -336,7 +341,7 @@ var KernelEditorItem::getDragSourceDescription()
 
 bool KernelEditorItem::mightContainSubItems()
 {
-    return value.isArray() || value.getDynamicObject();
+    return Runtime::isContainer (value);
 }
 
 void KernelEditorItem::itemClicked (const MouseEvent& e)
