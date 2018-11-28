@@ -17,12 +17,13 @@ MainComponent::MainComponent()
     kernel.insert ("mul", var::NativeFunction (Runtime::mul), Runtime::locked);
     kernel.insert ("div", var::NativeFunction (Runtime::div), Runtime::locked);
     kernel.insert ("file", var::NativeFunction (Runtime::file), Runtime::locked);
+    kernel.insert ("loadtxt", var::NativeFunction (Runtime::loadtxt), Runtime::locked);
 
     kernel.insert ("data", JSON::fromString ("[1, 2, 3, ['a', 'b', 'c', [1, 2, 3]]]"));
     kernel.insert ("a", crt::parser::parse ("(add 1 2)"));
     kernel.insert ("b", crt::parser::parse ("(add a 3)"));
     kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
-    kernel.insert ("data-file", crt::parser::parse ("(file '/Users/jzrake/Desktop/test.dat')"));
+    kernel.insert ("data-file", crt::parser::parse ("(file '/Users/jzrake/Work/Monocle/test.dat' filter=loadtxt)"));
 
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));

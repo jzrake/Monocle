@@ -1,4 +1,5 @@
 #include "KernelEditor.hpp"
+#include "Runtime.hpp"
 
 
 
@@ -312,12 +313,10 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
             g.drawText (tree.kernel->error_at (stringKey), 0, 0, width - 10, height, Justification::centredRight);
         }
     }
-    else
-    {
-        g.setFont (tree.font.withHeight (10));
-        g.setColour (Colours::grey);
-        g.drawText (value.toString(), 0, 0, width - 10, height, Justification::centredRight);
-    }
+
+    g.setFont (tree.font.withHeight (10));
+    g.setColour (Colours::grey);
+    g.drawText (Runtime::summarize (value), 0, 0, width - 10, height, Justification::centredRight);
 }
 
 Component* KernelEditorItem::createItemComponent()
