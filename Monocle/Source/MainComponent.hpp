@@ -13,6 +13,7 @@
 class MainComponent
 : public Component
 , public ApplicationCommandTarget
+, public Timer
 , public FileDragAndDropTarget
 , public DragAndDropContainer
 , private FigureView::Listener
@@ -31,6 +32,9 @@ public:
     void getAllCommands (Array<CommandID>& commands) override;
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform (const InvocationInfo& info) override;
+
+    //==========================================================================
+    void timerCallback() override;
 
     //==========================================================================
     bool isInterestedInFileDrag (const StringArray& files) override;

@@ -37,6 +37,7 @@ public:
     void selectNext();
     void setEmphasizedKey (const std::string& keyToEmphasize);
     void createRule();
+    bool showEditorInSelectedItem();
     KernelEditorItem* getSoleSelectedItem();
     StringArray getSelectedRules();
     std::string getEmphasizedKey();
@@ -52,7 +53,6 @@ private:
     //==========================================================================
     void sendRelabelSelectedRule (const std::string& from, const std::string& to);
     void sendSelectionChanged();
-    bool showEditorInSelectedItem();
     bool sendRulePunched();
     bool removeSelectedRules();
 

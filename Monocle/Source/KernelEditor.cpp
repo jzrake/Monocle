@@ -300,11 +300,24 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
 {
     if (isSelected())
     {
-        g.fillAll (getOwnerView()->hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
+        g.fillAll (tree.hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
-    g.setFont (tree.font.withHeight (10));
-    g.setColour (Colours::grey);
-    g.drawText (value.toString(), 0, 0, width - 10, height, Justification::centredRight);
+
+    if (isAtKernelLevel())
+    {
+        if (! tree.kernel->error_at (stringKey).empty())
+        {
+            g.setFont (tree.font.withHeight (10));
+            g.setColour (Colours::red);
+            g.drawText (tree.kernel->error_at (stringKey), 0, 0, width - 10, height, Justification::centredRight);
+        }
+    }
+    else
+    {
+        g.setFont (tree.font.withHeight (10));
+        g.setColour (Colours::grey);
+        g.drawText (value.toString(), 0, 0, width - 10, height, Justification::centredRight);
+    }
 }
 
 Component* KernelEditorItem::createItemComponent()
@@ -398,7 +411,7 @@ crt::expression KernelEditorItem::getExpressionToIndexInParent() const
         else if (key.isInt())
             return {crt::expression::symbol ("item"), parent->getExpressionToIndexInParent(), int (key)};
         else if (key.isString())
-            return {crt::expression::symbol ("attr"), stringKey, parent->getExpressionToIndexInParent()};
+            return {crt::expression::symbol ("attr"), parent->getExpressionToIndexInParent(), stringKey};
         else
             jassertfalse;
     }

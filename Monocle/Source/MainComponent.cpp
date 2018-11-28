@@ -10,11 +10,19 @@ MainComponent::MainComponent()
 {
     kernel.insert ("list", var::NativeFunction (Runtime::list), Runtime::locked);
     kernel.insert ("dict", var::NativeFunction (Runtime::dict), Runtime::locked);
+    kernel.insert ("item", var::NativeFunction (Runtime::item), Runtime::locked);
+    kernel.insert ("attr", var::NativeFunction (Runtime::attr), Runtime::locked);
     kernel.insert ("add", var::NativeFunction (Runtime::add), Runtime::locked);
-    kernel.insert ("data", JSON::fromString ("[1, 2, 3]"));
+    kernel.insert ("sub", var::NativeFunction (Runtime::sub), Runtime::locked);
+    kernel.insert ("mul", var::NativeFunction (Runtime::mul), Runtime::locked);
+    kernel.insert ("div", var::NativeFunction (Runtime::div), Runtime::locked);
+    kernel.insert ("file", var::NativeFunction (Runtime::file), Runtime::locked);
+
+    kernel.insert ("data", JSON::fromString ("[1, 2, 3, ['a', 'b', 'c', [1, 2, 3]]]"));
     kernel.insert ("a", crt::parser::parse ("(add 1 2)"));
     kernel.insert ("b", crt::parser::parse ("(add a 3)"));
     kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
+    kernel.insert ("data-file", crt::parser::parse ("(file '/Users/jzrake/Desktop/test.dat')"));
 
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
@@ -39,6 +47,7 @@ MainComponent::MainComponent()
     expressionEditor.addListener (this);
     kernelEditor    .addListener (this);
 
+    startTimer (100);
     addAndMakeVisible (skeleton);
     setSize (800, 600);
 }
@@ -104,6 +113,30 @@ bool MainComponent::perform (const InvocationInfo& info)
 }
 
 //==========================================================================
+void MainComponent::timerCallback()
+{
+    for (const auto& rule : kernel)
+    {
+        if (rule.second.expr.size() >= 2)
+        {
+            if (rule.second.expr.at(0) == Runtime::Symbols::file)
+            {
+                if (auto fileDict = rule.second.value.getDynamicObject())
+                {
+                    auto& status = Runtime::Data<WatchedFile>::check (fileDict->getProperty ("status"));
+
+                    if (status.hasChanged())
+                    {
+                        DBG("touching file " << status.getFile().getFullPathName());
+                        kernel.touch (rule.first);
+                    }
+                }
+            }
+        }
+    }
+}
+
+//==========================================================================
 bool MainComponent::isInterestedInFileDrag (const StringArray& files)
 {
     return true;
@@ -139,6 +172,7 @@ void MainComponent::createNewRule (const std::string& key, const crt::expression
     expressionEditor.setExpression (expr);
     kernelEditor.setEmphasizedKey (key);
     kernelEditor.selectRule (key);
+    kernelEditor.showEditorInSelectedItem();
     skeleton.setBackdropRevealed (true);
 }
 
@@ -234,6 +268,11 @@ void MainComponent::kernelEditorWantsRuleRelabeled (const std::string& from, con
     kernel.relabel (from, to);
     kernelEditor.setKernel (&kernel);
     kernelEditor.selectRule (to);
+
+    if (kernelEditor.getEmphasizedKey() == from)
+    {
+        kernelEditor.setEmphasizedKey (to);
+    }
 }
 
 void MainComponent::kernelEditorEncounteredError (const std::string& what)
