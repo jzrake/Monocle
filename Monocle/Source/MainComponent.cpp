@@ -8,22 +8,22 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    kernel.insert ("list", var::NativeFunction (Runtime::list), Runtime::locked);
-    kernel.insert ("dict", var::NativeFunction (Runtime::dict), Runtime::locked);
-    kernel.insert ("item", var::NativeFunction (Runtime::item), Runtime::locked);
-    kernel.insert ("attr", var::NativeFunction (Runtime::attr), Runtime::locked);
-    kernel.insert ("add", var::NativeFunction (Runtime::add), Runtime::locked);
-    kernel.insert ("sub", var::NativeFunction (Runtime::sub), Runtime::locked);
-    kernel.insert ("mul", var::NativeFunction (Runtime::mul), Runtime::locked);
-    kernel.insert ("div", var::NativeFunction (Runtime::div), Runtime::locked);
-    kernel.insert ("file", var::NativeFunction (Runtime::file), Runtime::locked);
-    kernel.insert ("loadtxt", var::NativeFunction (Runtime::loadtxt), Runtime::locked);
+    kernel.insert ("list", var::NativeFunction (Runtime::list), Runtime::Flags::locked);
+    kernel.insert ("dict", var::NativeFunction (Runtime::dict), Runtime::Flags::locked);
+    kernel.insert ("item", var::NativeFunction (Runtime::item), Runtime::Flags::locked);
+    kernel.insert ("attr", var::NativeFunction (Runtime::attr), Runtime::Flags::locked);
+    kernel.insert ("add", var::NativeFunction (Runtime::add), Runtime::Flags::locked);
+    kernel.insert ("sub", var::NativeFunction (Runtime::sub), Runtime::Flags::locked);
+    kernel.insert ("mul", var::NativeFunction (Runtime::mul), Runtime::Flags::locked);
+    kernel.insert ("div", var::NativeFunction (Runtime::div), Runtime::Flags::locked);
+    kernel.insert ("file", var::NativeFunction (Runtime::file), Runtime::Flags::locked);
+    kernel.insert ("loadtxt", var::NativeFunction (Runtime::loadtxt), Runtime::Flags::locked);
 
     kernel.insert ("data", JSON::fromString ("[1, 2, 3, ['a', 'b', 'c', [1, 2, 3]]]"));
     kernel.insert ("a", crt::parser::parse ("(add 1 2)"));
     kernel.insert ("b", crt::parser::parse ("(add a 3)"));
     kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
-    kernel.insert ("data-file", crt::parser::parse ("(file '/Users/jzrake/Work/Monocle/test.dat' filter=loadtxt)"));
+    kernel.insert ("data-file", crt::parser::parse ("(file 'Users/jzrake/Work/Monocle/test.dat' filter=loadtxt)"), Runtime::Flags::isfile);
 
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
@@ -118,20 +118,14 @@ void MainComponent::timerCallback()
 {
     for (const auto& rule : kernel)
     {
-        if (rule.second.expr.size() >= 2)
+        if (rule.second.flags & Runtime::Flags::isfile && rule.second.error.empty())
         {
-            if (rule.second.expr.at(0) == Runtime::Symbols::file)
-            {
-                if (auto fileDict = rule.second.value.getDynamicObject())
-                {
-                    auto& status = Runtime::Data<WatchedFile>::check (fileDict->getProperty ("status"));
+            auto& watched = Runtime::Data<WatchedFile>::check (rule.second.value);
 
-                    if (status.hasChanged())
-                    {
-                        DBG("touching file " << status.getFile().getFullPathName());
-                        kernel.touch (rule.first);
-                    }
-                }
+            if (watched.hasChanged())
+            {
+                skeleton.flashAlertLabel ("Updating " + watched.getFile().getFileName());
+                updateKernel (kernel.touch (rule.first));
             }
         }
     }
@@ -169,7 +163,7 @@ void MainComponent::updateKernel (const Kernel::set_t& dirty)
 
 void MainComponent::createNewRule (const std::string& key, const crt::expression& expr)
 {
-    updateKernel (kernel.insert (key, expr));
+    updateKernel (kernel.insert (key, expr, Runtime::getFlags (expr)));
     expressionEditor.setExpression (expr);
     kernelEditor.setEmphasizedKey (key);
     kernelEditor.selectRule (key);
@@ -215,7 +209,7 @@ void MainComponent::figureViewSetTitle (FigureView* figure, const String& value)
 void MainComponent::expressionEditorNewExpression (const crt::expression& expr)
 {
     auto key = kernelEditor.getEmphasizedKey();
-    updateKernel (kernel.insert (key, expr));
+    updateKernel (kernel.insert (key, expr, Runtime::getFlags (expr)));
     expressionEditor.setExpression (expr);
 }
 

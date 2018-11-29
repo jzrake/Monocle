@@ -18,6 +18,15 @@ public:
     std::vector<double> getRowData (int index) const;
     std::string getColumnName (int index) const;
     std::string getStatusMessage() const;
+
+    template <class OutputIterator>
+    void column (int j, OutputIterator iter)
+    {
+        for (int i = 0; i < numRows; ++i)
+        {
+            *iter = data[i * numColumns + j];
+        }
+    }
 private:
     unsigned long numColumns = 0;
     unsigned long numRows = 0;

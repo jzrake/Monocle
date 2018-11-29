@@ -58,6 +58,7 @@ File WatchedFile::getFile() const
 // ============================================================================
 WatchedFile::Status::Status()
 {
+    refreshFromDisk();
 }
 
 WatchedFile::Status::Status (File file) : file (file)
@@ -187,15 +188,10 @@ var Runtime::loadtxt (var::NativeFunctionArgs args)
 
     for (int n = 0; n < loader.getNumColumns(); ++n)
     {
-        auto x = loader.getColumnData(n);
-        auto X = nd::ndarray<double, 1> (int (x.size()));
-
-        for (int i = 0; i < x.size(); ++i)
-        {
-            X(i) = x[i];
-        }
-        var c = new Data<nd::ndarray<double, 1>> (X);
-        table->setProperty (String (loader.getColumnName(n)), c);
+        auto x = nd::ndarray<double, 1> (loader.getNumRows());
+        auto k = String (loader.getColumnName(n));
+        loader.column (n, x.begin());
+        table->setProperty (k, data(x));
     }
     return table.release();
 }
@@ -274,4 +270,16 @@ bool Runtime::checkAttribute (const var& value, const String& key)
         return object->getProperty (key);
     }
     throw std::range_error (error_str());
+}
+
+long Runtime::getFlags (const crt::expression &expr)
+{
+    if (expr.size() > 0)
+    {
+        if (expr.at(0) == Symbols::file)
+        {
+            return Flags::isfile;
+        }
+    }
+    return 0;
 }

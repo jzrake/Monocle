@@ -291,7 +291,7 @@ bool KernelEditorItem::isAtKernelLevel() const
 
 bool KernelEditorItem::isLocked() const
 {
-    return ! isAtKernelLevel() || (tree.kernel->flags_at (stringKey) & Runtime::locked);
+    return ! isAtKernelLevel() || (tree.kernel->flags_at (stringKey) & Runtime::Flags::locked);
 }
 
 bool KernelEditorItem::isLiteral() const

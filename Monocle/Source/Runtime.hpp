@@ -83,9 +83,12 @@ class Runtime
 public:
 
     // ========================================================================
-    enum KernelFlags
+    struct Flags
     {
-        locked = 8,
+        enum {
+            locked = 8,
+            isfile = 16,
+        };
     };
 
     // ========================================================================
@@ -99,6 +102,7 @@ public:
     static bool isContainer (const var& value);
     static bool hasAttributes (const var& value);
     static bool checkAttribute (const var& value, const String& key);
+    static long getFlags (const crt::expression& expr);
 
     // ========================================================================
     template<typename T> class DataTypeInfo {};
@@ -142,6 +146,12 @@ public:
         DataTypeInfo<T> info;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };
+
+    template<typename T>
+    static var data (const T& value)
+    {
+        return new Data<T> (value);
+    }
 
     // ========================================================================
     static var list (var::NativeFunctionArgs args);
