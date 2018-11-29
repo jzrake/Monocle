@@ -66,7 +66,8 @@ private:
     //==========================================================================
     void kernelEditorSelectionChanged() override;
     void kernelEditorRulePunched (const std::string& key) override;
-    void kernelEditorWantsNewRule (const crt::expression&) override;
+    void kernelEditorWantsRuleCreated (const std::string& key, const crt::expression&) override;
+    void kernelEditorWantsRuleChanged (const std::string& key, const crt::expression&) override;
     void kernelEditorWantsRuleRemoved (const std::string&) override;
     void kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to) override;
     void kernelEditorEncounteredError (const std::string&) override;

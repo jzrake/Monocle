@@ -23,7 +23,8 @@ public:
         virtual ~Listener() {}
         virtual void kernelEditorSelectionChanged() = 0;
         virtual void kernelEditorRulePunched (const std::string& key) = 0;
-        virtual void kernelEditorWantsNewRule (const crt::expression&) = 0;
+        virtual void kernelEditorWantsRuleCreated (const std::string& key, const crt::expression&) = 0;
+        virtual void kernelEditorWantsRuleChanged (const std::string& key, const crt::expression&) = 0;
         virtual void kernelEditorWantsRuleRemoved (const std::string&) = 0;
         virtual void kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to) = 0;
         virtual void kernelEditorEncounteredError (const std::string&) = 0;
@@ -51,6 +52,7 @@ private:
 
     //==========================================================================
     void sendCreateRule (const std::string& key, const crt::expression& expr);
+    void sendChangeRule (const std::string& key, const crt::expression& expr);
     void sendRelabelSelectedRule (const std::string& from, const std::string& to);
     void sendSelectionChanged();
     bool sendRulePunched();
@@ -82,6 +84,7 @@ public:
     bool isAtKernelLevel() const;
     bool isLocked() const;
     bool isLiteral() const;
+    bool hasFlag (long flag) const;
 
     //==========================================================================
     void paintItem (Graphics& g, int width, int height) override;

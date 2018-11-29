@@ -240,10 +240,19 @@ void MainComponent::kernelEditorRulePunched (const std::string& key)
     }
 }
 
-void MainComponent::kernelEditorWantsNewRule (const crt::expression& expr)
+void MainComponent::kernelEditorWantsRuleCreated (const std::string& key, const crt::expression& expr)
 {
-    assert(! expr.key().empty());
-    createNewRule (expr.key(), expr.keyed (std::string()));
+    createNewRule (key, expr);
+}
+
+void MainComponent::kernelEditorWantsRuleChanged (const std::string& key, const crt::expression& expr)
+{
+    updateKernel (kernel.insert (key, expr, Runtime::getFlags (expr)));
+    
+    if (kernelEditor.getEmphasizedKey() == key)
+    {
+        expressionEditor.setExpression (expr);
+    }
 }
 
 void MainComponent::kernelEditorWantsRuleRemoved (const std::string& key)

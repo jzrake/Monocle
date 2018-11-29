@@ -164,7 +164,12 @@ void KernelEditor::focusOfChildComponentChanged (FocusChangeType)
 //==========================================================================
 void KernelEditor::sendCreateRule (const std::string& key, const crt::expression& expr)
 {
-    listeners.call (&Listener::kernelEditorWantsNewRule, expr.keyed (key));
+    listeners.call (&Listener::kernelEditorWantsRuleCreated, key, expr);
+}
+
+void KernelEditor::sendChangeRule (const std::string& key, const crt::expression& expr)
+{
+    listeners.call (&Listener::kernelEditorWantsRuleChanged, key, expr);
 }
 
 void KernelEditor::sendRelabelSelectedRule (const std::string &from, const std::string &to)
@@ -299,6 +304,11 @@ bool KernelEditorItem::isLiteral() const
     && tree.kernel->expr_at (stringKey).empty();
 }
 
+bool KernelEditorItem::hasFlag (long flag) const
+{
+    return tree.kernel->flags_at (stringKey) & flag;
+}
+
 //==========================================================================
 void KernelEditorItem::paintItem (Graphics& g, int width, int height)
 {
@@ -357,11 +367,16 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
 {
     if (e.mods.isPopupMenu())
     {
+        PopupMenu filterMenu;
+        filterMenu.addItem (11, "Load Text", isAtKernelLevel() && ! isLocked() && hasFlag (Runtime::Flags::isfile));
+
         PopupMenu menu;
         menu.addItem (1, "Create Rule");
         menu.addItem (2, "Delete Rule",  isAtKernelLevel() && ! isLocked());
         menu.addItem (3, "Relabel Rule", isAtKernelLevel() && ! isLocked());
         menu.addItem (4, "Edit Rule",    isAtKernelLevel() && ! isLocked() && ! isLiteral(), tree.emphasizedKey == stringKey);
+        menu.addSeparator();
+        menu.addSubMenu ("Apply Filter", filterMenu);
 
         menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
         {
@@ -371,6 +386,12 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
                 case 2: tree.sendRemoveSelectedRules(); break;
                 case 3: tree.showEditorInSelectedItem(); break;
                 case 4: tree.sendRulePunched(); break;
+                case 11:
+                {
+                    auto parts = tree.kernel->expr_at (stringKey).list();
+                    parts.push_back (crt::expression::symbol ("loadtxt").keyed ("filter"));
+                    tree.sendChangeRule (stringKey, parts);
+                }
                 default: break;
             }
         });
