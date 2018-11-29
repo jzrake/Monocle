@@ -57,11 +57,6 @@ void KernelEditor::setKernel (const Kernel* kernelToView)
     {
         restoreOpennessState (*state, true);
     }
-    if (creatingNewRule)
-    {
-        creatingNewRule = false;
-        showEditorInSelectedItem();
-    }
 }
 
 void KernelEditor::selectRule (const std::string& key)
@@ -88,11 +83,17 @@ void KernelEditor::selectNext()
         if (auto parent = item->getParentItem())
         {
             if (auto next = parent->getSubItem (index + 1))
+            {
                 next->setSelected (true, true);
+            }
             else if (auto next = parent->getSubItem (index - 1))
+            {
                 next->setSelected (true, true);
+            }
             else
+            {
                 parent->setSelected (true, true);
+            }
         }
     }
 }
@@ -106,15 +107,6 @@ void KernelEditor::setEmphasizedKey (const std::string &keyToEmphasize)
         auto item = root->getKernelEditorSubItem(n);
         item->setFontForEmphasizedKey();
     }
-}
-
-void KernelEditor::createRule()
-{
-    auto item = new KernelEditorItem (*this, "new-rule", var());
-    root->addSubItem (item);
-    item->setSelected (true, true);
-    creatingNewRule = true;
-    listeners.call (&Listener::kernelEditorWantsNewRule, crt::expression().keyed ("new-rule"));
 }
 
 KernelEditorItem* KernelEditor::getSoleSelectedItem()
@@ -155,7 +147,7 @@ bool KernelEditor::keyPressed (const KeyPress& key)
     }
     if (key == KeyPress::backspaceKey && getNumSelectedItems() == 1)
     {
-        return removeSelectedRules();
+        return sendRemoveSelectedRules();
     }
     return TreeView::keyPressed (key);
 }
@@ -170,6 +162,11 @@ void KernelEditor::focusOfChildComponentChanged (FocusChangeType)
 }
 
 //==========================================================================
+void KernelEditor::sendCreateRule (const std::string& key, const crt::expression& expr)
+{
+    listeners.call (&Listener::kernelEditorWantsNewRule, expr.keyed (key));
+}
+
 void KernelEditor::sendRelabelSelectedRule (const std::string &from, const std::string &to)
 {
     auto item = getSoleSelectedItem();
@@ -209,7 +206,7 @@ bool KernelEditor::sendRulePunched()
     return false;
 }
 
-bool KernelEditor::removeSelectedRules()
+bool KernelEditor::sendRemoveSelectedRules()
 {
     if (auto item = getSoleSelectedItem())
     {
@@ -238,6 +235,7 @@ KernelEditorItem::KernelEditorItem (KernelEditor& tree, const var& key, const va
     label.setText (key.toString(), NotificationType::dontSendNotification);
     label.setColour (Label::textColourId, Colours::black);
 
+    setFontForEmphasizedKey();
     setDrawsInLeftMargin (true);
     int index = 0;
 
@@ -339,6 +337,17 @@ var KernelEditorItem::getDragSourceDescription()
     return String (getExpressionToIndexInParent().str());
 }
 
+bool KernelEditorItem::isInterestedInFileDrag (const StringArray& files)
+{
+    return this == tree.root.get();
+}
+
+void KernelEditorItem::filesDropped (const StringArray& files, int insertIndex)
+{
+    tree.sendCreateRule (File (files[0]).getFileNameWithoutExtension().toStdString(),
+                         crt::expression {Runtime::Symbols::file, files[0].toStdString()});
+}
+
 bool KernelEditorItem::mightContainSubItems()
 {
     return Runtime::isContainer (value);
@@ -352,14 +361,14 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
         menu.addItem (1, "Create Rule");
         menu.addItem (2, "Delete Rule",  isAtKernelLevel() && ! isLocked());
         menu.addItem (3, "Relabel Rule", isAtKernelLevel() && ! isLocked());
-        menu.addItem (4, "Edit Rule",    isAtKernelLevel() && ! isLocked() && ! isLiteral());
+        menu.addItem (4, "Edit Rule",    isAtKernelLevel() && ! isLocked() && ! isLiteral(), tree.emphasizedKey == stringKey);
 
         menu.showMenuAsync (PopupMenu::Options(), [this] (int code)
         {
             switch (code)
             {
-                case 1: tree.createRule(); break;
-                case 2: tree.removeSelectedRules(); break;
+                case 1: tree.sendCreateRule ("new-rule", crt::expression()); break;
+                case 2: tree.sendRemoveSelectedRules(); break;
                 case 3: tree.showEditorInSelectedItem(); break;
                 case 4: tree.sendRulePunched(); break;
                 default: break;
@@ -377,14 +386,6 @@ void KernelEditorItem::itemSelectionChanged (bool isNowSelected)
     if (isNowSelected)
     {
         tree.sendSelectionChanged();
-    }
-}
-
-void KernelEditorItem::ownerViewChanged (TreeView* newOwner)
-{
-    if (newOwner)
-    {
-        setFontForEmphasizedKey();
     }
 }
 

@@ -139,7 +139,7 @@ bool MainComponent::isInterestedInFileDrag (const StringArray& files)
 
 void MainComponent::fileDragEnter (const StringArray& files, int x, int y)
 {
-    skeleton.openNavSection ("Files");
+    skeleton.openNavSection ("Kernel");
 }
 
 void MainComponent::fileDragMove (const StringArray& files, int x, int y)

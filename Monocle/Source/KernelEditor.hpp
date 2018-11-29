@@ -36,7 +36,6 @@ public:
     void selectRule (const std::string& key);
     void selectNext();
     void setEmphasizedKey (const std::string& keyToEmphasize);
-    void createRule();
     bool showEditorInSelectedItem();
     KernelEditorItem* getSoleSelectedItem();
     StringArray getSelectedRules();
@@ -51,10 +50,11 @@ private:
     struct ItemComparator;
 
     //==========================================================================
+    void sendCreateRule (const std::string& key, const crt::expression& expr);
     void sendRelabelSelectedRule (const std::string& from, const std::string& to);
     void sendSelectionChanged();
     bool sendRulePunched();
-    bool removeSelectedRules();
+    bool sendRemoveSelectedRules();
 
     friend class KernelEditorItem;
     ListenerList<Listener> listeners;
@@ -62,7 +62,6 @@ private:
     std::unique_ptr<XmlElement> state;
     Font font;
     const Kernel* kernel = nullptr;
-    bool creatingNewRule = false;
     std::string emphasizedKey;
 };
 
@@ -89,11 +88,12 @@ public:
     Component* createItemComponent() override;
     String getUniqueName() const override;
     var getDragSourceDescription() override;
+    bool isInterestedInFileDrag (const StringArray& files) override;
+    void filesDropped (const StringArray& files, int insertIndex) override;
     bool mightContainSubItems() override;
     void itemClicked (const MouseEvent&) override;
     void itemDoubleClicked (const MouseEvent&) override;
     void itemSelectionChanged (bool isNowSelected) override;
-    void ownerViewChanged (TreeView* newOwner) override;
 
 private:
     //==========================================================================
