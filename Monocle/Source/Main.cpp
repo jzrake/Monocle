@@ -103,6 +103,12 @@ public:
         laf.setColour (Label::ColourIds::textWhenEditingColourId, Colours::black);
         laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
         laf.setColour (ListBox::backgroundColourId, Colours::white);
+
+        laf.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
+        laf.setColour (TreeView::selectedItemBackgroundColourId, Colours::transparentBlack);
+        laf.setColour (TreeView::ColourIds::linesColourId, Colours::red);
+        laf.setColour (TreeView::oddItemsColourId, Colours::whitesmoke);
+        laf.setColour (TreeView::evenItemsColourId, Colours::white);
     }
 
 

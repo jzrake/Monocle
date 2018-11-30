@@ -316,20 +316,22 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
     {
         g.fillAll (tree.hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
-
-    if (isAtKernelLevel())
-    {
-        if (! tree.kernel->error_at (stringKey).empty())
-        {
-            g.setFont (tree.font.withHeight (10));
-            g.setColour (Colours::red);
-            g.drawText (tree.kernel->error_at (stringKey), 0, 0, width - 10, height, Justification::centredRight);
-        }
-    }
+    auto descStart = 100;
+    auto descLeftMargin = 10;
+    auto descArea = Rectangle<int> (descStart, 0, width - descLeftMargin - descStart, height);
 
     g.setFont (tree.font.withHeight (10));
-    g.setColour (Colours::grey);
-    g.drawText (Runtime::getSummary (value), 0, 0, width - 10, height, Justification::centredRight);
+
+    if (isAtKernelLevel() && ! tree.kernel->error_at (stringKey).empty())
+    {
+        g.setColour (Colours::darkred);
+        g.drawText (tree.kernel->error_at (stringKey), descArea, Justification::centredRight, true);
+    }
+    else if (tree.kernel->error_at (stringKey).empty())
+    {
+        g.setColour (Colours::grey);
+        g.drawText (Runtime::getSummary (value), descArea, Justification::centredRight, true);
+    }
 }
 
 Component* KernelEditorItem::createItemComponent()
