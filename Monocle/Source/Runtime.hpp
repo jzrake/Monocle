@@ -108,12 +108,6 @@ public:
     };
 
     // ========================================================================
-    struct Symbols
-    {
-        static crt::expression file;
-    };
-
-    // ========================================================================
     static String getSummary (const var& value);
     static bool isContainer (const var& value);
     static bool hasAttributes (const var& value);
@@ -168,6 +162,16 @@ public:
     {
         return new Data<T> (value);
     }
+
+    // ========================================================================
+    struct Symbols
+    {
+        static crt::expression list;
+        static crt::expression dict;
+        static crt::expression item;
+        static crt::expression attr;
+        static crt::expression file;
+    };
 
     // ========================================================================
     static var list (var::NativeFunctionArgs args);

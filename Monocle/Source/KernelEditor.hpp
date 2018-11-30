@@ -34,6 +34,7 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     void setKernel (const Kernel* kernelToView);
+    void kernelHasChanged();
     void selectRule (const std::string& key);
     void selectNext();
     void setEmphasizedKey (const std::string& keyToEmphasize);

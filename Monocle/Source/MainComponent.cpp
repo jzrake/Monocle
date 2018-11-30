@@ -158,7 +158,7 @@ void MainComponent::filesDropped (const StringArray& files, int x, int y)
 void MainComponent::updateKernel (const Kernel::set_t& dirty)
 {
     kernel.update_all (dirty);
-    kernelEditor.setKernel (&kernel);
+    kernelEditor.kernelHasChanged();
 }
 
 void MainComponent::createNewRule (const std::string& key, const crt::expression& expr)
@@ -188,6 +188,14 @@ void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<dou
     model.ymin = domain.getY();
     model.ymax = domain.getBottom();
     figure->setModel (model);
+
+    auto expr = crt::expression {Runtime::Symbols::list, model.xmin, model.xmax, model.ymin, model.ymax};
+    updateKernel (kernel.insert ("figure-domain", expr));
+
+    if (kernelEditor.getEmphasizedKey() == "figure-domain")
+    {
+        expressionEditor.setExpression (expr);
+    }
 }
 
 void MainComponent::figureViewSetXlabel (FigureView* figure, const String& value)
@@ -273,7 +281,7 @@ void MainComponent::kernelEditorWantsRuleRemoved (const std::string& key)
 void MainComponent::kernelEditorWantsRuleRelabeled (const std::string& from, const std::string& to)
 {
     kernel.relabel (from, to);
-    kernelEditor.setKernel (&kernel);
+    kernelEditor.kernelHasChanged();
     kernelEditor.selectRule (to);
 
     if (kernelEditor.getEmphasizedKey() == from)

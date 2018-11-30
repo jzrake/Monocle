@@ -41,17 +41,24 @@ void KernelEditor::removeListener(Listener *listener)
 
 void KernelEditor::setKernel (const Kernel* kernelToView)
 {
-    state.reset (getOpennessState (true));
+    if (kernel != kernelToView)
+    {
+        kernel = kernelToView;
+        kernelHasChanged();
+    }
+}
 
-    kernel = kernelToView;
-    DynamicObject* kernelObject = new DynamicObject;
+void KernelEditor::kernelHasChanged()
+{
+    state.reset (getOpennessState (true));
+    auto kernelObject = std::make_unique<DynamicObject>();
 
     for (const auto& rule : *kernel)
     {
         kernelObject->setProperty (String (rule.first), rule.second.value);
     }
     setRootItem (nullptr);
-    setRootItem ((root = std::make_unique<KernelEditorItem> (*this, var(), kernelObject)).get());
+    setRootItem ((root = std::make_unique<KernelEditorItem> (*this, var(), kernelObject.release())).get());
 
     if (state)
     {
@@ -294,19 +301,20 @@ bool KernelEditorItem::isAtKernelLevel() const
 
 bool KernelEditorItem::isLocked() const
 {
-    return ! isAtKernelLevel() || (tree.kernel->flags_at (stringKey) & Runtime::Flags::locked);
+    const auto& K = *tree.kernel;
+    return ! isAtKernelLevel() || (K.flags_at (stringKey) & Runtime::Flags::locked);
 }
 
 bool KernelEditorItem::isLiteral() const
 {
-    return isAtKernelLevel()
-    && ! tree.kernel->at (stringKey).isVoid()
-    && tree.kernel->expr_at (stringKey).empty();
+    const auto& K = *tree.kernel;
+    return isAtKernelLevel() && ! K.at (stringKey).isVoid() && K.expr_at (stringKey).empty();
 }
 
 bool KernelEditorItem::hasFlag (long flag) const
 {
-    return tree.kernel->flags_at (stringKey) & flag;
+    const auto& K = *tree.kernel;
+    return isAtKernelLevel() && K.flags_at (stringKey) & flag;
 }
 
 //==========================================================================
@@ -316,18 +324,19 @@ void KernelEditorItem::paintItem (Graphics& g, int width, int height)
     {
         g.fillAll (tree.hasKeyboardFocus (true) ? Colours::lightblue : Colours::lightgrey);
     }
-    auto descStart = 100;
-    auto descLeftMargin = 10;
-    auto descArea = Rectangle<int> (descStart, 0, width - descLeftMargin - descStart, height);
+    const auto descStart = 100;
+    const auto descLeftMargin = 10;
+    const auto descArea = Rectangle<int> (descStart, 0, width - descLeftMargin - descStart, height);
+    const auto& K = *tree.kernel;
 
     g.setFont (tree.font.withHeight (10));
 
-    if (isAtKernelLevel() && ! tree.kernel->error_at (stringKey).empty())
+    if (isAtKernelLevel() && ! K.error_at (stringKey).empty())
     {
         g.setColour (Colours::darkred);
-        g.drawText (tree.kernel->error_at (stringKey), descArea, Justification::centredRight, true);
+        g.drawText (K.error_at (stringKey), descArea, Justification::centredRight, true);
     }
-    else if (tree.kernel->error_at (stringKey).empty())
+    else if (! isAtKernelLevel() || (isAtKernelLevel() && K.error_at (stringKey).empty()))
     {
         g.setColour (Colours::grey);
         g.drawText (Runtime::getSummary (value), descArea, Justification::centredRight, true);

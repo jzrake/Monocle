@@ -78,6 +78,10 @@ bool WatchedFile::Status::refreshFromDisk()
 
 
 // ============================================================================
+crt::expression Runtime::Symbols::list = crt::expression::symbol ("list");
+crt::expression Runtime::Symbols::dict = crt::expression::symbol ("dict");
+crt::expression Runtime::Symbols::item = crt::expression::symbol ("item");
+crt::expression Runtime::Symbols::attr = crt::expression::symbol ("attr");
 crt::expression Runtime::Symbols::file = crt::expression::symbol ("file");
 
 
