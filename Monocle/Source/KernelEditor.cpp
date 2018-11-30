@@ -391,6 +391,7 @@ void KernelEditorItem::itemClicked (const MouseEvent& e)
                     auto parts = tree.kernel->expr_at (stringKey).list();
                     parts.push_back (crt::expression::symbol ("loadtxt").keyed ("filter"));
                     tree.sendChangeRule (stringKey, parts);
+                    break;
                 }
                 default: break;
             }

@@ -16,20 +16,36 @@ public:
     using func_t = std::function<ObjectType(list_t, dict_t)>;
 
     template<typename Mapping>
-    static ObjectType call(const Mapping& scope,
-                           const std::string& key,
-                           const list_t& args,
-                           const dict_t& kwar)
+    static ObjectType call(const Mapping& scope, const crt::expression& expr)
     {
-        var self = new DynamicObject;
+        auto self = std::unique_ptr<DynamicObject>();
+        auto head = var();
+        auto args = Array<var>();
 
-        for (const auto& kw : kwar)
+        for (const auto& part : expr)
         {
-            self.getDynamicObject()->setProperty (String (kw.first), kw.second);
+            if (part == expr.front())
+            {
+                head = scope.at (part.sym());
+            }
+            else if (expr.key().empty())
+            {
+                args.add (part.resolve<ObjectType, VarCallAdapter> (scope));
+            }
+            else
+            {
+                self->setProperty (String (expr.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
+            }
         }
-        auto f = scope.at(key).getNativeFunction();
-        auto a = var::NativeFunctionArgs (self, &args[1], int (args.size() - 1));
+        auto f = head.getNativeFunction();
+        auto a = var::NativeFunctionArgs (self.release(), args.begin(), args.size());
         return f(a);
+    }
+
+    template<typename Mapping>
+    static const ObjectType& at (const Mapping& scope, const std::string& key)
+    {
+        return scope.at(key);
     }
 
     static ObjectType convert (const crt::expression::none&) { return var(); }

@@ -23,7 +23,7 @@ MainComponent::MainComponent()
     kernel.insert ("a", crt::parser::parse ("(add 1 2)"));
     kernel.insert ("b", crt::parser::parse ("(add a 3)"));
     kernel.insert ("array", new Runtime::Data<nd::ndarray<double, 1>>());
-    kernel.insert ("data-file", crt::parser::parse ("(file 'Users/jzrake/Work/Monocle/test.dat' filter=loadtxt)"), Runtime::Flags::isfile);
+    kernel.insert ("data-file", crt::parser::parse ("(file '/Users/jzrake/Work/Monocle/test.dat' filter=loadtxt)"), Runtime::Flags::isfile);
 
     skeleton.addNavButton ("Kernel",   material::bintos (material::action::ic_list));
     skeleton.addNavButton ("Files",    material::bintos (material::file::ic_folder_open));
@@ -165,10 +165,14 @@ void MainComponent::createNewRule (const std::string& key, const crt::expression
 {
     updateKernel (kernel.insert (key, expr, Runtime::getFlags (expr)));
     expressionEditor.setExpression (expr);
-    kernelEditor.setEmphasizedKey (key);
     kernelEditor.selectRule (key);
-    kernelEditor.showEditorInSelectedItem();
-    skeleton.setBackdropRevealed (true);
+
+    if (expr.empty())
+    {
+        kernelEditor.setEmphasizedKey (key);
+        kernelEditor.showEditorInSelectedItem();
+        skeleton.setBackdropRevealed (true);
+    }
 }
 
 //==========================================================================
@@ -248,7 +252,7 @@ void MainComponent::kernelEditorWantsRuleCreated (const std::string& key, const 
 void MainComponent::kernelEditorWantsRuleChanged (const std::string& key, const crt::expression& expr)
 {
     updateKernel (kernel.insert (key, expr, Runtime::getFlags (expr)));
-    
+
     if (kernelEditor.getEmphasizedKey() == key)
     {
         expressionEditor.setExpression (expr);
