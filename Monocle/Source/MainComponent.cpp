@@ -189,6 +189,9 @@ void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<dou
     model.ymax = domain.getBottom();
     figure->setModel (model);
 
+//    if (! kernelActive)
+//        return;
+
     auto expr = crt::expression {Runtime::Symbols::list, model.xmin, model.xmax, model.ymin, model.ymax};
     updateKernel (kernel.insert ("figure-domain", expr));
 

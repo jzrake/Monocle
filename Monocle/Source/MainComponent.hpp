@@ -13,7 +13,6 @@
 class MainComponent
 : public Component
 , public ApplicationCommandTarget
-// , public FocusChangeListener
 , public Timer
 , public FileDragAndDropTarget
 , public DragAndDropContainer
@@ -33,9 +32,6 @@ public:
     void getAllCommands (Array<CommandID>& commands) override;
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform (const InvocationInfo& info) override;
-
-    //==========================================================================
-    // void globalFocusChanged (Component* focusedComponent) override { DBG(String(focusedComponent != nullptr ? focusedComponent->getBounds().toString() : String("No component"))); }
 
     //==========================================================================
     void timerCallback() override;

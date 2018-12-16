@@ -175,10 +175,20 @@ bool ExpressionEditorItem::isInterestedInDragSource (const DragAndDropTarget::So
 
 void ExpressionEditorItem::itemDropped (const DragAndDropTarget::SourceDetails& details, int insertIndex)
 {
+    auto orig = expr;
     auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
     auto part = crt::parser::parse (details.description.toString().getCharPointer());
     addSubItem (new ExpressionEditorItem (part), insertIndex);
-    tree->sendNewExpression();
+
+    try {
+        tree->sendNewExpression();
+    }
+    catch (const std::exception& e)
+    {
+        setExpression (orig);
+        tree->sendNewExpression();
+        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorEncounteredError, e.what());
+    }
 }
 
 void ExpressionEditorItem::itemClicked (const MouseEvent&)
@@ -197,17 +207,17 @@ void ExpressionEditorItem::itemSelectionChanged (bool isNowSelected)
 //==========================================================================
 void ExpressionEditorItem::labelTextChanged (Label* labelThatHasChanged)
 {
-    auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
     auto orig = expr;
+    auto tree = dynamic_cast<ExpressionEditor*> (getOwnerView());
+    setExpression (crt::parser::parse (label.getText().getCharPointer()));
 
     try {
-        setExpression (crt::parser::parse (label.getText().getCharPointer()));
-        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorNewExpression, tree->computeExpression());
+        tree->sendNewExpression();
     }
     catch (const std::exception& e)
     {
         setExpression (orig);
-        tree->listeners.call (&ExpressionEditor::Listener::expressionEditorNewExpression, tree->computeExpression());
+        tree->sendNewExpression();
         tree->listeners.call (&ExpressionEditor::Listener::expressionEditorEncounteredError, e.what());
     }
 }
