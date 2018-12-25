@@ -159,6 +159,16 @@ void MainComponent::updateKernel (const Kernel::set_t& dirty)
 {
     kernel.update_all (dirty);
     kernelEditor.kernelHasChanged();
+
+    if (dirty.count("figure-domain"))
+    {
+        auto domain = *kernel.at("figure-domain").getArray();
+        model.xmin = domain[0];
+        model.xmax = domain[1];
+        model.ymin = domain[2];
+        model.ymax = domain[3];
+        figure.setModel (model);
+    }
 }
 
 void MainComponent::createNewRule (const std::string& key, const crt::expression& expr)
@@ -183,16 +193,12 @@ void MainComponent::figureViewSetMargin (FigureView* figure, const BorderSize<in
 
 void MainComponent::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
-    model.xmin = domain.getX();
-    model.xmax = domain.getRight();
-    model.ymin = domain.getY();
-    model.ymax = domain.getBottom();
-    figure->setModel (model);
+    auto xmin = domain.getX();
+    auto xmax = domain.getRight();
+    auto ymin = domain.getY();
+    auto ymax = domain.getBottom();
 
-//    if (! kernelActive)
-//        return;
-
-    auto expr = crt::expression {Runtime::Symbols::list, model.xmin, model.xmax, model.ymin, model.ymax};
+    auto expr = crt::expression {Runtime::Symbols::list, xmin, xmax, ymin, ymax};
     updateKernel (kernel.insert ("figure-domain", expr));
 
     if (kernelEditor.getEmphasizedKey() == "figure-domain")
